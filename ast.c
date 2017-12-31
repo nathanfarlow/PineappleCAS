@@ -69,7 +69,7 @@ void ast_Cleanup(ast_t *e) {
 	free(e);
 }
 
-ast_error ast_ChildAppend(ast_t *parent, ast_t *child) {
+error ast_ChildAppend(ast_t *parent, ast_t *child) {
 	ast_t *last;
 
 	if(parent->type != NODE_OPERATOR)
@@ -82,7 +82,7 @@ ast_error ast_ChildAppend(ast_t *parent, ast_t *child) {
 	else
 		last->next = child;
 	
-	return E_AST_SUCCESS;
+	return E_SUCCESS;
 }
 
 ast_t *ast_ChildGet(ast_t *parent, LSIZE index) {
@@ -118,7 +118,7 @@ ast_t *ast_ChildGetLast(ast_t *parent) {
 	return NULL;
 }
 
-ast_error ast_ChildInsert(ast_t *parent, ast_t *child, LSIZE index) {
+error ast_ChildInsert(ast_t *parent, ast_t *child, LSIZE index) {
 	LSIZE i;
 	ast_t *current;
 
@@ -133,7 +133,7 @@ ast_error ast_ChildInsert(ast_t *parent, ast_t *child, LSIZE index) {
 			parent->op.operator.base = child;
 		}
 
-		return E_AST_SUCCESS;
+		return E_SUCCESS;
 	}
 
 	i = 1;
@@ -146,7 +146,7 @@ ast_error ast_ChildInsert(ast_t *parent, ast_t *child, LSIZE index) {
 			current->next = child;
 			child->next = temp;
 
-			return E_AST_SUCCESS;
+			return E_SUCCESS;
 		}
 
 		current = current->next;

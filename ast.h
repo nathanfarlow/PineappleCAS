@@ -2,17 +2,11 @@
 #define AST_H_
 
 #include "num.h"
+#include "error.h"
 
 #include <malloc.h>
 
 #define LSIZE uint16_t
-
-typedef enum {
-	E_AST_SUCCESS,
-	//trying to add nodes to a NODE_NUMBER for instance
-	E_AST_NOT_ALLOWED,
-	E_AST_OUT_OF_BOUNDS
-} ast_error;
 
 typedef enum {
 	NODE_NUMBER, NODE_SYMBOL, NODE_OPERATOR
@@ -57,8 +51,8 @@ ast_t *ast_MakeBinary(OperatorType type, ast_t *left, ast_t *right);
 void ast_Cleanup(ast_t *e);
 
 //Functions dealing with the children of operator asts
-ast_error ast_ChildAppend(ast_t *parent, ast_t *child);
-ast_error ast_ChildInsert(ast_t *parent, ast_t *child, LSIZE index);
+error ast_ChildAppend(ast_t *parent, ast_t *child);
+error ast_ChildInsert(ast_t *parent, ast_t *child, LSIZE index);
 
 ast_t *ast_ChildGet(ast_t *parent, LSIZE index);
 ast_t *ast_ChildGetLast(ast_t *parent);
