@@ -11,6 +11,6 @@ typedef enum _Error {
 	ERROR_AMOUNT
 } error;
 
-extern const char *text[ERROR_AMOUNT];
+extern const char *error_text[ERROR_AMOUNT];
 
 #endif

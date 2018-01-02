@@ -10,9 +10,47 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "../ast.h"
+#include "../parser.h"
+
+#include "yvar.h"
 
 int main(int argc, char **argv) {
+
+    error err;
+
+    FILE *file;
+    yvar_t yvar;
+
+    ast_t *a;
+
+    if (argc <= 1) {
+        printf("Usage: pineapple.exe /path/to/your/yvar.8xy\n");
+        return 1;
+    }
+
+    fopen_s(&file, argv[1], "rb");
+
+    if (!file) {
+        printf("File not found.\n");
+        return 1;
+    }
+
+    if (yvar_Read(&yvar, file) != 0) {
+        printf("Corrupt or invalid 8xy file.\n");
+        return 1;
+    }
+
+    a = parse(yvar.data, yvar.yvar_data_len, &err);
+
+    if (err != E_SUCCESS) {
+        printf("Unable to parse ast, reason: %s\n", error_text[err]);
+        return 1;
+    }
+
+    ast_Cleanup(a);
+
+    yvar_Cleanup(&yvar);
+
     return 0;
 }
 
