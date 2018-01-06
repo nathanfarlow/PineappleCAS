@@ -1,8 +1,5 @@
 obj/
-bin/*.8xv
-bin/*.8xy
-bin/*.hex
-bin/*.map
+bin/
 
 *.sublime-project
 *.sublime-workspace

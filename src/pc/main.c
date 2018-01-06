@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    fopen_s(&file, argv[1], "rb");
+    file = fopen(argv[1], "rb");
 
     if (!file) {
         printf("File not found.\n");

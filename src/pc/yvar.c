@@ -30,7 +30,9 @@ int yvar_Read(yvar_t *yvar, FILE *file) {
     uint16_t magic;
     uint8_t var_id;
 
-    if (error = read_header(&yvar->header, file) != 0)
+    error = read_header(&yvar->header, file);
+
+    if (error != 0)
         return error;
 
     fread(&magic, 2, 1, file);
