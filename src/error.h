@@ -8,7 +8,12 @@ typedef enum _Error {
     E_AST_NOT_ALLOWED,
     E_AST_OUT_OF_BOUNDS,
 
+    /*Tokenizing and parsing*/
     E_TOK_INVALID,
+
+    E_PARSE_BAD_OPERATOR,
+    E_PARSE_UNMATCHED_CLOSE_PAR,
+    E_PARSE_BAD_COMMA,
 
 	ERROR_AMOUNT
 } error;

@@ -18,7 +18,7 @@ typedef enum _TokenType {
     TI_ROOT,
 
     TI_NEGATE,
-    TI_RECRIPROCAL, TI_SQUARE, TI_CUBE,
+    TI_RECIPROCAL, TI_SQUARE, TI_CUBE,
 
     TI_LOG_BASE,
 
