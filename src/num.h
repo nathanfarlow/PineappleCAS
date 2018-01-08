@@ -1,6 +1,8 @@
 #ifndef NUM_H_
 #define NUM_H_
 
+#include "stdbool.h"
+
 /*
 A note:
 I wasn't originally planning to have the num_t struct always be treated using pointers,

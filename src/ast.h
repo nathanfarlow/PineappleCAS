@@ -23,11 +23,24 @@ typedef enum {
 	OP_SIN, OP_SIN_INV,
 	OP_COS, OP_COS_INV,
 	OP_TAN, OP_TAN_INV,
-	
+
 	OP_SINH, OP_SINH_INV,
 	OP_COSH, OP_COSH_INV,
 	OP_TANH, OP_TANH_INV
 } OperatorType;
+
+typedef enum {
+	SYM_INVALID,
+
+	SYM_PI, SYM_EULER, SYM_THETA,
+
+	SYM_A = 'A',
+	SYM_B, SYM_C, SYM_D, SYM_E, SYM_F,
+	SYM_G, SYM_H, SYM_I, SYM_J, SYM_K,
+	SYM_L, SYM_M, SYM_N, SYM_O, SYM_P,
+	SYM_Q, SYM_R, SYM_S, SYM_T, SYM_U,
+	SYM_V, SYM_W, SYM_X, SYM_Y, SYM_Z
+} Symbol;
 
 typedef struct _Node {
 
@@ -40,7 +53,7 @@ typedef struct _Node {
 		num_t *number;
 
 		/*NODE_SYMBOL*/
-		char symbol;
+		Symbol symbol;
 
 		/*NODE_OPERATOR*/
 		struct {

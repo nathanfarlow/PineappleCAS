@@ -35,14 +35,17 @@ typedef enum _TokenType {
 
     TI_OPEN_PAR, TI_CLOSE_PAR, TI_COMMA, TI_PERIOD,
 
+    TI_EULER, TI_PI, TI_THETA,
+
     AMOUNT_TOKENS, TI_INVALID
 } TokenType;
 
 struct Identifier {
-    uint8_t len;
+    uint8_t length;
     uint8_t bytes[2];
 };
-extern struct Identifier table[AMOUNT_TOKENS];
+
+extern struct Identifier token_table[AMOUNT_TOKENS];
 
 ast_t *parse(const uint8_t *equation, unsigned length, error *e);
 

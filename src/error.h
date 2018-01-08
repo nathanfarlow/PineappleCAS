@@ -8,6 +8,8 @@ typedef enum _Error {
     E_AST_NOT_ALLOWED,
     E_AST_OUT_OF_BOUNDS,
 
+    E_TOK_INVALID,
+
 	ERROR_AMOUNT
 } error;
 
