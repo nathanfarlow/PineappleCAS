@@ -13,7 +13,20 @@ typedef enum {
 } NodeType;
 
 typedef enum {
-	TOK_ADD, TOK_SUB, TOK_MULT, TOK_DIV
+	OP_ADD, OP_SUB,
+	OP_MULT, OP_DIV,
+
+	OP_POWER, OP_LOG,
+
+	OP_INT, OP_ABS,
+
+	OP_SIN, OP_SIN_INV,
+	OP_COS, OP_COS_INV,
+	OP_TAN, OP_TAN_INV,
+	
+	OP_SINH, OP_SINH_INV,
+	OP_COSH, OP_COSH_INV,
+	OP_TANH, OP_TANH_INV
 } OperatorType;
 
 typedef struct _Node {

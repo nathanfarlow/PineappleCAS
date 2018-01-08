@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     FILE *file;
     yvar_t yvar;
 
-    ast_t *a;
+    ast_t *e;
 
     if (argc <= 1) {
         printf("Usage: pineapple.exe /path/to/your/yvar.8xy\n");
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    a = parse(yvar.data, yvar.yvar_data_len, &err);
+    e = parse(yvar.data, yvar.yvar_data_len, &err);
 
     if (err != E_SUCCESS) {
         printf("Unable to parse ast, reason: %s\n", error_text[err]);
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
 
     fclose(file);
 
-    ast_Cleanup(a);
+    ast_Cleanup(e);
 
     yvar_Cleanup(&yvar);
 
