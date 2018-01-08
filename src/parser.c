@@ -260,6 +260,89 @@ uint8_t operand_count(TokenType type) {
     return 0;
 }
 
+/*Changes the TokenType into the OperatorType and fixes operands*/
+void translate(ast_t *e) {
+
+    switch((int)e->op.operator.type) {
+    case TI_PLUS:       e->op.operator.type = OP_ADD; break;
+    case TI_MINUS:      e->op.operator.type = OP_SUB; break;
+    case TI_MULTIPLY:   e->op.operator.type = OP_MULT; break;
+    case TI_DIVIDE:     e->op.operator.type = OP_DIV; break;
+    case TI_FRACTION:   e->op.operator.type = OP_DIV; break;
+    case TI_POWER:      e->op.operator.type = OP_POW; break;
+    case TI_SCIENTIFIC: {
+        ast_t *op2;
+        
+        e->op.operator.type = OP_MULT;
+
+        op2 = ast_MakeBinary(OP_POW, ast_MakeNumber(num_Create("10")), ast_ChildGet(e, 1));
+        ast_ChildRemoveIndex(e, 1);
+        ast_ChildAppend(e, op2);
+
+        break;   
+    }
+    case TI_ROOT:       e->op.operator.type = OP_ROOT; break;
+    case TI_NEGATE:
+        e->op.operator.type = OP_MULT;
+        ast_ChildInsert(e, ast_MakeNumber(num_Create("-1")), 0);
+        break;
+    case TI_RECIPROCAL:
+        e->op.operator.type = OP_POW;
+        ast_ChildAppend(e, ast_MakeNumber(num_Create("-1")));
+        break;
+    case TI_SQUARE:
+        e->op.operator.type = OP_POW;
+        ast_ChildAppend(e, ast_MakeNumber(num_Create("2")));
+        break;
+    case TI_CUBE:
+        e->op.operator.type = OP_POW;
+        ast_ChildAppend(e, ast_MakeNumber(num_Create("3")));
+        break;
+    case TI_LOG_BASE:   e->op.operator.type = OP_LOG; break;
+    case TI_INT:        e->op.operator.type = OP_INT; break;
+    case TI_ABS:        e->op.operator.type = OP_ABS; break;
+    case TI_SQRT:
+        e->op.operator.type = OP_ROOT;
+        ast_ChildInsert(e, ast_MakeNumber(num_Create("2")), 0);
+        break;
+    case TI_CUBED_ROOT:
+        e->op.operator.type = OP_ROOT;
+        ast_ChildInsert(e, ast_MakeNumber(num_Create("3")), 0);
+        break;
+    case TI_LN:
+        e->op.operator.type = OP_LOG;
+        ast_ChildInsert(e, ast_MakeSymbol(SYM_EULER), 0);
+        break;
+    case TI_E_TO_POWER:
+        e->op.operator.type = OP_POW;
+        ast_ChildInsert(e, ast_MakeSymbol(SYM_EULER), 0);
+        break;
+    case TI_LOG:
+        e->op.operator.type = OP_LOG;
+        ast_ChildInsert(e, ast_MakeNumber(num_Create("10")), 0);
+        break;
+    case TI_10_TO_POWER:
+        e->op.operator.type = OP_POW;
+        ast_ChildInsert(e, ast_MakeNumber(num_Create("10")), 0);
+        break;
+    case TI_SIN:        e->op.operator.type = OP_SIN; break;
+    case TI_SIN_INV:    e->op.operator.type = OP_SIN_INV; break;
+    case TI_COS:        e->op.operator.type = OP_COS; break;
+    case TI_COS_INV:    e->op.operator.type = OP_COS_INV; break;
+    case TI_TAN:        e->op.operator.type = OP_TAN; break;
+    case TI_TAN_INV:    e->op.operator.type = OP_TAN_INV; break;
+    case TI_SINH:       e->op.operator.type = OP_SINH; break;
+    case TI_SINH_INV:   e->op.operator.type = OP_SINH_INV; break;
+    case TI_COSH:       e->op.operator.type = OP_COSH; break;
+    case TI_COSH_INV:   e->op.operator.type = OP_COSH_INV; break;
+    case TI_TANH:       e->op.operator.type = OP_TANH; break;
+    case TI_TANH_INV:   e->op.operator.type = OP_TANH_INV; break;
+
+    default:
+        break;
+    }
+}
+
 bool collapse_precedence(stack_t *operators, stack_t *expressions, TokenType type) {
 
     while(operators->top > 0) {
@@ -279,6 +362,8 @@ bool collapse_precedence(stack_t *operators, stack_t *expressions, TokenType typ
 
         op = stack_Pop(operators);
 
+        /*Store the token type into the operand type. This will
+        Be fixed in make_operator*/
         collapsed = ast_MakeOperator(op->type);
         for(i = 0; i < operand_count(op->type); i++) {
             ast_t *operand = stack_Pop(expressions);
@@ -289,8 +374,9 @@ bool collapse_precedence(stack_t *operators, stack_t *expressions, TokenType typ
             ast_ChildInsert(collapsed, operand, 0);
         }
 
-        stack_Push(expressions, collapsed);
+        translate(collapsed);
 
+        stack_Push(expressions, collapsed);
     }
 
     return true;

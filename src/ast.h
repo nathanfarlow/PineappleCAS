@@ -16,7 +16,8 @@ typedef enum {
 	OP_ADD, OP_SUB,
 	OP_MULT, OP_DIV,
 
-	OP_POWER, OP_LOG,
+	OP_POW, OP_ROOT,
+	OP_LOG,
 
 	OP_INT, OP_ABS,
 

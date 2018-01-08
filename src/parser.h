@@ -23,9 +23,12 @@ typedef enum _TokenType {
     TI_LOG_BASE,
 
     TI_INT, TI_ABS,
+    
     TI_SQRT, TI_CUBED_ROOT,
+
     TI_LN, TI_E_TO_POWER,
     TI_LOG, TI_10_TO_POWER,
+
     TI_SIN, TI_SIN_INV,
     TI_COS, TI_COS_INV,
     TI_TAN, TI_TAN_INV,
