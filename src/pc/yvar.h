@@ -1,7 +1,7 @@
 #ifdef COMPILE_PC
 
-#ifndef _YVAR_H_
-#define _YVAR_H_
+#ifndef YVAR_H_
+#define YVAR_H_
 
 #include <stdio.h>
 #include <stdint.h>
@@ -25,7 +25,7 @@ typedef struct {
     uint8_t *data;
 } yvar_t;
 
-//only works on little endian systems right now.
+/*Only works on little endian systems right now.*/
 
 int yvar_Read(yvar_t *yvar, FILE *file);
 

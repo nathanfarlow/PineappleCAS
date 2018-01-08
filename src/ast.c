@@ -55,7 +55,7 @@ void ast_Cleanup(ast_t *e) {
 	case NODE_SYMBOL:
 		break;
 	case NODE_OPERATOR: {
-		//Free each node in the list
+		/*Free each node in the list*/
 		ast_t *current = e->op.operator.base;
 		while(current != NULL) {
 			ast_t *next = current->next;
@@ -188,9 +188,12 @@ ast_t *ast_ChildRemoveIndex(ast_t *parent, LSIZE index) {
 		return NULL;
 
 	if(index == 0) {
+		ast_t *temp;
+		
 		if(parent->op.operator.base == NULL)
 			return NULL;
-		ast_t *temp = parent->op.operator.base;
+
+		temp = parent->op.operator.base;
 		parent->op.operator.base = parent->op.operator.base->next;
 		return temp;
 	}

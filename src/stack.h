@@ -1,7 +1,7 @@
-#ifndef _STACK_H_
-#define _STACK_H_
+#ifndef STACK_H_
+#define STACK_H_
 
-//the default stack size
+/*the default stack size*/
 #define STACK_START 10
 
 typedef struct _Stack {

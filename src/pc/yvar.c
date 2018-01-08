@@ -24,7 +24,6 @@ int read_header(header_t *header, FILE *file) {
     return 0;
 }
 
-//todo: more error handling?
 int yvar_Read(yvar_t *yvar, FILE *file) {
     int error = 0;
     uint16_t magic;

@@ -19,21 +19,21 @@ typedef enum {
 typedef struct _Node {
 
 	NodeType type;
-	//For the linked list implementation
+	/*For the linked list implementation*/
 	struct _Node *next;
 
 	union {
-		//NODE_NUMBER
+		/*NODE_NUMBER*/
 		num_t *number;
 
-		//NODE_SYMBOL
+		/*NODE_SYMBOL*/
 		char symbol;
 
-		//NODE_OPERATOR
+		/*NODE_OPERATOR*/
 		struct {
 			OperatorType type;
 
-			//the base node for the linked list
+			/*The base node for the linked list*/
 			struct _Node *base;
 
 		} operator;
@@ -50,19 +50,21 @@ ast_t *ast_MakeBinary(OperatorType type, ast_t *left, ast_t *right);
 
 void ast_Cleanup(ast_t *e);
 
-//Functions dealing with the children of operator asts
+/*Functions dealing with the children of operator asts*/
 error ast_ChildAppend(ast_t *parent, ast_t *child);
 error ast_ChildInsert(ast_t *parent, ast_t *child, LSIZE index);
 
 ast_t *ast_ChildGet(ast_t *parent, LSIZE index);
 ast_t *ast_ChildGetLast(ast_t *parent);
 
-//returns -1 (unsigned) if not found
+/*returns -1 (unsigned) if not found*/
 LSIZE ast_ChildIndexOf(ast_t *parent, ast_t *child);
 
-//Returns the removed node, null if none
-//Currently, removeIndex() is much faster, so please
-//use that if possible.
+/*
+Returns the removed node, null if none
+Currently, removeIndex() is much faster, so please
+use that if possible.
+*/
 ast_t *ast_ChildRemove(ast_t *parent, ast_t *child);
 ast_t *ast_ChildRemoveIndex(ast_t *parent, LSIZE index);
 

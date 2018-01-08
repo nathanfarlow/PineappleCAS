@@ -6,13 +6,13 @@
 
 #include "error.h"
 
-//Ti Tokens, used for reading from yvars
+/*Ti Tokens, used for reading from yvars*/
 typedef enum _TokenType {
-    TI_NUMBER, TI_SYMBOL, //numbers, variables, pi, e
+    TI_NUMBER, TI_SYMBOL, /*numbers, variables, pi, e*/
 
     TI_PLUS, TI_MINUS,
     TI_MULTIPLY, TI_DIVIDE,
-    TI_FRACTION, //special '/' for ti pretty print
+    TI_FRACTION, /*special '/' for ti pretty print*/
     TI_POWER,
     TI_SCIENTIFIC,
     TI_ROOT,

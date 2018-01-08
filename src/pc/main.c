@@ -47,6 +47,8 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    fclose(file);
+
     ast_Cleanup(a);
 
     yvar_Cleanup(&yvar);
