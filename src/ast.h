@@ -27,7 +27,9 @@ typedef enum {
 
 	OP_SINH, OP_SINH_INV,
 	OP_COSH, OP_COSH_INV,
-	OP_TANH, OP_TANH_INV
+	OP_TANH, OP_TANH_INV,
+
+	AMOUNT_OPS
 } OperatorType;
 
 typedef enum {

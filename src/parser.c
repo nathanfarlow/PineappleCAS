@@ -2,6 +2,8 @@
 
 #include "stack.h"
 
+#include "debug.h"
+
 struct Identifier token_table[AMOUNT_TOKENS] = {
     {0, {0}}, {0, {0}},         /*TI_NUMBER, TI_SYMBOL*/
 
@@ -253,7 +255,8 @@ uint8_t precedence(TokenType type) {
 }
 
 uint8_t operand_count(TokenType type) {
-    if(type >= TI_INT && type <= TI_TANH_INV)
+    if(    (type >= TI_NEGATE && type <= TI_CUBE)
+        || (type >= TI_INT && type <= TI_TANH_INV))
         return 1;
     if((type >= TI_PLUS && type <= TI_ROOT) || type == TI_LOG_BASE)
         return 2;
