@@ -8,8 +8,8 @@
 #ifdef COMPILE_PC
 
 #include <stdlib.h>
-#include <stdio.h>
 
+#include "../debug.h"
 #include "../parser.h"
 
 #include "yvar.h"
@@ -48,6 +48,9 @@ int main(int argc, char **argv) {
     }
 
     fclose(file);
+
+    DBG(("Node count: %i\n\n", dbg_count_nodes(e)));
+    dbg_print_tree(e, 4);
 
     ast_Cleanup(e);
 

@@ -15,9 +15,9 @@ typedef enum _Error {
     E_PARSE_UNMATCHED_CLOSE_PAR,
     E_PARSE_BAD_COMMA,
 
-	ERROR_AMOUNT
+	AMOUNT_ERRORS
 } error;
 
-extern const char *error_text[ERROR_AMOUNT];
+extern const char *error_text[AMOUNT_ERRORS];
 
 #endif

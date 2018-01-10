@@ -1,6 +1,6 @@
 #include "error.h"
 
-const char *error_text[ERROR_AMOUNT] = {
+const char *error_text[AMOUNT_ERRORS] = {
 	"Success",
 
     "AST operation not allowed",

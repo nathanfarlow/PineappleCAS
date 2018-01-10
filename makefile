@@ -16,7 +16,7 @@ TARGET   = pineapple
 
 CC       = gcc
 # compiling flags here
-CFLAGS   = -std=c89 -ansi -pedantic -g -DCOMPILE_PC -Wall -I.
+CFLAGS   = -std=c89 -ansi -pedantic -g -DCOMPILE_PC -DDEBUG -Wall -I.
 
 LINKER   = gcc
 # linking flags here
