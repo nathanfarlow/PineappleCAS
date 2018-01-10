@@ -32,11 +32,13 @@ int main(int argc, char **argv) {
 
     if (!file) {
         printf("File not found.\n");
+        fclose(file);
         return 1;
     }
 
     if (yvar_Read(&yvar, file) != 0) {
         printf("Corrupt or invalid 8xy file.\n");
+        fclose(file);
         return 1;
     }
 
@@ -44,11 +46,13 @@ int main(int argc, char **argv) {
 
     if (err != E_SUCCESS) {
         printf("Unable to parse ast, reason: %s\n", error_text[err]);
+        fclose(file);
+        yvar_Cleanup(&yvar);
         return 1;
     }
 
     fclose(file);
-
+    
     DBG(("Node count: %i\n\n", dbg_count_nodes(e)));
     dbg_print_tree(e, 4);
 

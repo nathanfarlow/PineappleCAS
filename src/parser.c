@@ -369,8 +369,10 @@ bool collapse_precedence(stack_t *operators, stack_t *expressions, TokenType typ
         for(i = 0; i < operand_count(op->type); i++) {
             ast_t *operand = stack_Pop(expressions);
 
-            if(operand == NULL)
+            if(operand == NULL) {
+                ast_Cleanup(collapsed);
                 return false;
+            }
 
             ast_ChildInsert(collapsed, operand, 0);
         }
@@ -387,7 +389,20 @@ bool collapse_all(stack_t *operators, stack_t *expressions) {
     return collapse_precedence(operators, expressions, 0);
 }
 
-#define parse_assert(expression, err) if(!(expression)) {stack_Cleanup(&operators); stack_Cleanup(&expressions); *e = err; return NULL;}
+#define parse_assert(expression, err) if(!(expression)) {   \
+    ast_t *current;                                         \
+                                                            \
+    while((current = stack_Pop(&expressions)) != NULL)      \
+        ast_Cleanup(current);                               \
+                                                            \
+    stack_Cleanup(&operators);                              \
+    stack_Cleanup(&expressions);                            \
+                                                            \
+    free(tokenizer.tokens);                                 \
+                                                            \
+    *e = err;                                               \
+    return NULL;                                            \
+}
 
 ast_t *parse(const uint8_t *equation, unsigned length, error *e) {
     tokenizer_t tokenizer = {0};
@@ -459,6 +474,9 @@ ast_t *parse(const uint8_t *equation, unsigned length, error *e) {
     parse_assert(collapse_all(&operators, &expressions), E_PARSE_BAD_OPERATOR);
 
     root = stack_Pop(&expressions);
+
+    parse_assert(operators.top == 0, E_GENERIC);
+    parse_assert(expressions.top == 0, E_GENERIC);
 
     stack_Cleanup(&operators);
     stack_Cleanup(&expressions);

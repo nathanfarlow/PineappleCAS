@@ -3,6 +3,8 @@
 const char *error_text[AMOUNT_ERRORS] = {
 	"Success",
 
+	"Generic failure - Please report!",
+
     "AST operation not allowed",
     "AST index out of bounds",
 
