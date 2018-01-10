@@ -194,35 +194,13 @@ error tokenize(tokenizer_t *t, const uint8_t *equation, unsigned length) {
     return err;
 }
 
-/*
-Determine if we should insert a multiply operator for a symbol/number with the next token.
-For example: 5(2 + 3) and 5x
-*/
-bool should_multiply_by_next_token(tokenizer_t *tokenizer, unsigned index) {
-
-    if(index + 1 < tokenizer->amount) {
-        token_t next = tokenizer->tokens[index + 1];
-
-                /*5-3*/
-        return  next.type == TI_NEGATE
-                /*5int(2.5)*/
-            ||  (next.type >= TI_INT && next.type <= TI_TANH_INV)
-                /*5(2 + x)*/
-            ||  next.type == TI_OPEN_PAR
-                /*5x or x5*/
-            ||  (next.type == TI_NUMBER || next.type == TI_SYMBOL);
-
-    }
-
-    return false;
-}
-
 #define is_type_unary_operator(type)    (type >= TI_NEGATE && type <= TI_CUBE)
 #define is_type_binary_operator(type)   (type >= TI_PLUS && type <= TI_ROOT)
 
 #define is_type_unary_function(type)    (type >= TI_INT && type <= TI_TANH_INV)
 #define is_type_nnary_function(type)    (type == TI_LOG_BASE)
 #define is_type_function(type)          (is_type_unary_function(type) || is_type_nnary_function(type))
+
 
 uint8_t precedence(TokenType type) {
     switch(type) {
@@ -242,6 +220,29 @@ uint8_t precedence(TokenType type) {
     }
 }
 
+/*
+Determine if we should insert a multiply operator for a symbol/number with the next token.
+For example: 5(2 + 3) and 5x
+*/
+bool should_multiply_by_next_token(tokenizer_t *tokenizer, unsigned index) {
+
+    if(index + 1 < tokenizer->amount) {
+        token_t next = tokenizer->tokens[index + 1];
+
+                /*5(2 + x)*/
+        return  next.type == TI_OPEN_PAR
+                /*5x or x5. We can infer two number tokens will never follow each other.*/
+            ||  (next.type == TI_NUMBER || next.type == TI_SYMBOL
+                /*Crazy, but technically valid TI syntax*/
+            ||  next.type == TI_NEGATE
+                /*5int(2.5)*/
+            ||  is_type_function(next.type));
+    }
+
+    return false;
+}
+
+/*How many parameters for the function or operator*/
 uint8_t operand_count(TokenType type) {
     if(    (type >= TI_NEGATE && type <= TI_CUBE)
         || (type >= TI_INT && type <= TI_TANH_INV))
