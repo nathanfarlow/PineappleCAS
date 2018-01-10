@@ -52,17 +52,6 @@ typedef struct _Tokenizer {
     token_t *tokens;
 } tokenizer_t;
 
-void tokenizer_Cleanup(tokenizer_t *t) {
-    /*
-    unsigned i;
-    for(i = 0; i < t->amount; i++) {
-        if(t->tokens[i].type == TI_NUMBER)
-            num_Cleanup(t->tokens[i].op.number);
-    }
-    */
-    free(t->tokens);
-}
-
 /*'0' through '9' and including '.'*/
 #define is_num(byte) ((byte >= 0x30 && byte <= 0x39) || byte == token_table[TI_PERIOD].bytes[0])
 
@@ -302,8 +291,8 @@ void translate(ast_t *e) {
         break;
     case TI_LOG_BASE:
         e->op.operator.type = OP_LOG;
-        /*Swap the operands
-        ast_ChildAppend(e, ast_ChildRemoveIndex(e, 0));*/
+        /*Swap the operands*/
+        ast_ChildAppend(e, ast_ChildRemoveIndex(e, 0));
         break;
     case TI_INT:        e->op.operator.type = OP_INT; break;
     case TI_ABS:        e->op.operator.type = OP_ABS; break;
@@ -473,7 +462,7 @@ ast_t *parse(const uint8_t *equation, unsigned length, error *e) {
     stack_Cleanup(&operators);
     stack_Cleanup(&expressions);
 
-    tokenizer_Cleanup(&tokenizer);
+    free(tokenizer.tokens);
 
     return root;
 }
