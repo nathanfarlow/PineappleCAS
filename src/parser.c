@@ -210,7 +210,6 @@ Determine if we should insert a multiply operator for a symbol/number with the n
 For example: 5(2 + 3) and 5x
 */
 bool should_multiply_by_next_token(tokenizer_t *tokenizer, unsigned index) {
-    token_t current = tokenizer->tokens[index];
 
     if(index + 1 < tokenizer->amount) {
         token_t next = tokenizer->tokens[index + 1];
@@ -222,7 +221,7 @@ bool should_multiply_by_next_token(tokenizer_t *tokenizer, unsigned index) {
                 /*5(2 + x)*/
             ||  next.type == TI_OPEN_PAR
                 /*5x or x5*/
-            ||  ((next.type == TI_NUMBER || next.type == TI_SYMBOL) && next.type != current.type);
+            ||  (next.type == TI_NUMBER || next.type == TI_SYMBOL);
 
     }
 
@@ -301,7 +300,11 @@ void translate(ast_t *e) {
         e->op.operator.type = OP_POW;
         ast_ChildAppend(e, ast_MakeNumber(num_Create("3")));
         break;
-    case TI_LOG_BASE:   e->op.operator.type = OP_LOG; break;
+    case TI_LOG_BASE:
+        e->op.operator.type = OP_LOG;
+        /*Swap the operands
+        ast_ChildAppend(e, ast_ChildRemoveIndex(e, 0));*/
+        break;
     case TI_INT:        e->op.operator.type = OP_INT; break;
     case TI_ABS:        e->op.operator.type = OP_ABS; break;
     case TI_SQRT:
@@ -364,6 +367,11 @@ bool collapse_precedence(stack_t *operators, stack_t *expressions, TokenType typ
             break;
 
         op = stack_Pop(operators);
+
+        /*Occurs when we collapse_all() at the end with not enough closing
+        parentheses. This is an acceptable TI format, so we accept it too.*/
+        if(op->type == TI_OPEN_PAR)
+            continue;
 
         /*Store the token type into the operand type. This will
         Be fixed in make_operator*/
