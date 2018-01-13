@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include "../debug.h"
 
-#define is_type_communative(type) (type >= OP_ADD && type <= OP_DIV)
+#define is_type_communative(type) (type == OP_ADD || type == OP_MULT)
 #define is_type_operator(type) (type >= OP_ADD && type <= OP_LOG)
 #define is_type_function(type) (type >= OP_INT && type <= OP_TANH_INV)
 
@@ -47,7 +47,8 @@ bool simplify(ast_t *e) {
 	if(e->type != NODE_OPERATOR)
 		return false;
 
-	while((changed = fix_communative(e)));
+	while(fix_communative(e))
+		changed = true;
 
 	return changed;
 }

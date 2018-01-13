@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     dbg_print_tree(e, 4);
 
     DBG(("\n\nSimplified:\n\n"));
-    simplify(e);
+    while(simplify(e));
     dbg_print_tree(e, 4);    
 
     ast_Cleanup(e);

@@ -32,9 +32,9 @@ typedef enum {
 	AMOUNT_OPS
 } OperatorType;
 
-typedef enum {
-	SYM_INVALID,
+#define AMOUNT_SYMBOLS 29
 
+typedef enum {
 	SYM_PI, SYM_EULER, SYM_THETA,
 
 	SYM_A = 'A',
@@ -42,7 +42,9 @@ typedef enum {
 	SYM_G, SYM_H, SYM_I, SYM_J, SYM_K,
 	SYM_L, SYM_M, SYM_N, SYM_O, SYM_P,
 	SYM_Q, SYM_R, SYM_S, SYM_T, SYM_U,
-	SYM_V, SYM_W, SYM_X, SYM_Y, SYM_Z
+	SYM_V, SYM_W, SYM_X, SYM_Y, SYM_Z,
+
+	SYM_INVALID
 } Symbol;
 
 typedef struct _Node {
