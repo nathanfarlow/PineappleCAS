@@ -68,14 +68,20 @@ int main(int argc, char **argv) {
     mapping_Set('X', x);
 
     value = eval(e, &err);
-    DBG(("Eval when x=%s: %f\n\n", x->op.number->digits, value));
+    if(err == E_SUCCESS)
+        DBG(("Eval when x=%s: %f\n\n", x->op.number->digits, value));
+    else
+        DBG(("Unable to evaluate, reason: %s\n", error_text[err]));
 
     DBG(("Simplified:\n"));
     while(simplify(e));
     dbg_print_tree(e, 4);
 
     value = eval(e, &err);
-    DBG(("Eval when x=%s: %f\n\n", x->op.number->digits, value));
+    if(err == E_SUCCESS)
+        DBG(("Eval when x=%s: %f\n\n", x->op.number->digits, value));
+    else
+        DBG(("Unable to evaluate, reason: %s\n", error_text[err]));
 
     ast_Cleanup(e);
 

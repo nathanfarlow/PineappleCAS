@@ -259,7 +259,7 @@ void translate(ast_t *e) {
     case TI_PLUS:       e->op.operator.type = OP_ADD; break;
     case TI_MINUS: {
         e->op.operator.type = OP_ADD;
-        ast_ChildInsert(e, ast_MakeBinary(OP_MULT, ast_MakeNumber(num_Create("-1")), ast_ChildRemoveIndex(e, 0)), 0);
+        ast_ChildInsert(e, ast_MakeBinary(OP_MULT, ast_MakeNumber(num_Create("-1")), ast_ChildRemoveIndex(e, 1)), 0);
         break;
     }
     case TI_MULTIPLY:   e->op.operator.type = OP_MULT; break;
@@ -448,7 +448,7 @@ ast_t *parse(const uint8_t *equation, unsigned length, error *e) {
         } else if(is_type_unary_operator(tok->type)) {
             stack_Push(&operators, tok);
 
-            if(should_multiply_by_next_token(&tokenizer, i)) {
+            if(tok->type != TI_NEGATE && should_multiply_by_next_token(&tokenizer, i)) {
                 parse_assert(collapse_precedence(&operators, &expressions, TI_MULTIPLY), E_PARSE_BAD_OPERATOR);
                 stack_Push(&operators, &mult);
             }

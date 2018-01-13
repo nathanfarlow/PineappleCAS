@@ -4,6 +4,7 @@ ast_t *mappings[AMOUNT_SYMBOLS] = {0};
 
 void mapping_Init() {
 	mappings[SYM_PI] = ast_MakeNumber(num_Create("3.141592653589793"));
+ 	mappings[SYM_EULER] = ast_MakeNumber(num_Create("2.718281828459045"));
 }
 
 ast_t *mapping_Get(Symbol symbol) {
