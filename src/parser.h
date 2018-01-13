@@ -12,7 +12,8 @@ typedef enum _TokenType {
 
     TI_PLUS, TI_MINUS,
     TI_MULTIPLY, TI_DIVIDE,
-    TI_FRACTION, /*special '/' for ti pretty print*/
+    TI_FRACTION, /*special n/d for ti pretty print*/
+    TI_PROPER,   /*special Un/d for ti pretty print*/
     TI_POWER,
     TI_SCIENTIFIC,
     TI_ROOT,

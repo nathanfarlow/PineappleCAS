@@ -10,6 +10,7 @@ struct Identifier token_table[AMOUNT_TOKENS] = {
     {1, {0x70 }}, {1, {0x71 }}, /*TI_PLUS, TI_MINUS*/
     {1, {0x82 }}, {1, {0x83 }}, /*TI_MULTIPLY, TI_DIVIDES*/
     {2, {0xEF, 0x2E}},          /*TI_FRACTION*/
+    {2, {0xEF, 0x2F}},          /*TI_PROPER*/
     {1, {0xF0}},                /*TI_POWER*/
     {1, {0x3B}},                /*TI_SCIENTIFIC*/
     {1, {0xF1}},                /*TI_ROOT*/
@@ -201,7 +202,6 @@ error tokenize(tokenizer_t *t, const uint8_t *equation, unsigned length) {
 #define is_type_nnary_function(type)    (type == TI_LOG_BASE)
 #define is_type_function(type)          (is_type_unary_function(type) || is_type_nnary_function(type))
 
-
 uint8_t precedence(TokenType type) {
     switch(type) {
     case TI_PLUS: case TI_MINUS:
@@ -265,6 +265,7 @@ void translate(ast_t *e) {
     case TI_MULTIPLY:   e->op.operator.type = OP_MULT; break;
     case TI_DIVIDE:     e->op.operator.type = OP_DIV; break;
     case TI_FRACTION:   e->op.operator.type = OP_DIV; break;
+    case TI_PROPER:     e->op.operator.type = OP_ADD; break;
     case TI_POWER:      e->op.operator.type = OP_POW; break;
     case TI_SCIENTIFIC: {
         ast_t *op2;
