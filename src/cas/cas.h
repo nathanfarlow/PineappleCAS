@@ -3,7 +3,7 @@
 
 #include "../ast.h"
 
-ast_t *derivative(ast_t *e);
-ast_t *simplify(ast_t *e);
+void derivative(ast_t *e);
+bool simplify(ast_t *e);
 
 #endif

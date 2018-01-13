@@ -1,7 +1,7 @@
 #include "debug.h"
 
 const char *operators[AMOUNT_OPS] = {
-    "+", "-", "*", "/", "^", "root", "log", "int", "abs",
+    "+", /*"-",*/ "*", "/", "^", "root", "log", "int", "abs",
     "sin", "asin", "cos", "acos", "tan", "atan",
     "sinh", "asinh", "cosh", "acosh", "tanh", "atanh"
 };

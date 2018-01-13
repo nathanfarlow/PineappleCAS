@@ -12,6 +12,8 @@
 #include "../debug.h"
 #include "../parser.h"
 
+#include "../cas/cas.h"
+
 #include "yvar.h"
 
 int main(int argc, char **argv) {
@@ -55,6 +57,10 @@ int main(int argc, char **argv) {
     
     DBG(("Node count: %i\n\n", dbg_count_nodes(e)));
     dbg_print_tree(e, 4);
+
+    DBG(("\n\nSimplified:\n\n"));
+    simplify(e);
+    dbg_print_tree(e, 4);    
 
     ast_Cleanup(e);
 

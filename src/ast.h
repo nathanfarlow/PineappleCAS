@@ -6,14 +6,14 @@
 
 #include <malloc.h>
 
-#define LSIZE uint16_t
+#define LSIZE unsigned
 
 typedef enum {
 	NODE_NUMBER, NODE_SYMBOL, NODE_OPERATOR
 } NodeType;
 
 typedef enum {
-	OP_ADD, OP_SUB,
+	OP_ADD, /*OP_SUB,*/
 	OP_MULT, OP_DIV,
 
 	OP_POW, OP_ROOT,

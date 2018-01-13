@@ -1,6 +1,5 @@
 #include "cas.h"
 
-ast_t *derivative(ast_t *e)
-{
-	return NULL;
+void derivative(ast_t *e) {
+
 }

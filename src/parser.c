@@ -257,7 +257,11 @@ void translate(ast_t *e) {
 
     switch((int)e->op.operator.type) {
     case TI_PLUS:       e->op.operator.type = OP_ADD; break;
-    case TI_MINUS:      e->op.operator.type = OP_SUB; break;
+    case TI_MINUS: {
+        e->op.operator.type = OP_ADD;
+        ast_ChildInsert(e, ast_MakeBinary(OP_MULT, ast_MakeNumber(num_Create("-1")), ast_ChildRemoveIndex(e, 0)), 0);
+        break;
+    }
     case TI_MULTIPLY:   e->op.operator.type = OP_MULT; break;
     case TI_DIVIDE:     e->op.operator.type = OP_DIV; break;
     case TI_FRACTION:   e->op.operator.type = OP_DIV; break;
