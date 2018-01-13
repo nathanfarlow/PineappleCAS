@@ -19,11 +19,13 @@ simplification process. I don't know if that's really practical on the calculato
 
 typedef struct _Num {
 	uint16_t length;
+	/*null terminated*/
 	char *digits;
 } num_t;
 
 num_t *num_Create(char *digits);
 num_t *num_Copy(num_t *num);
+double num_ToDouble(num_t *num);
 void num_Cleanup(num_t *num);
 
 #endif

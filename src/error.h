@@ -18,6 +18,8 @@ typedef enum _Error {
     E_PARSE_UNMATCHED_CLOSE_PAR,
     E_PARSE_BAD_COMMA,
 
+    E_EVAL_NO_MAPPING,
+
 	AMOUNT_ERRORS
 } error;
 

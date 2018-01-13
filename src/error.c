@@ -12,5 +12,7 @@ const char *error_text[AMOUNT_ERRORS] = {
 
     "Bad operator",
     "Unmatched closing parentheses",
-    "Bad comma"
+    "Bad comma",
+
+    "No mapping for symbol",
 };

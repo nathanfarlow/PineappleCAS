@@ -3,10 +3,6 @@
 #include <stdbool.h>
 #include "../debug.h"
 
-#define is_type_communative(type) (type == OP_ADD || type == OP_MULT)
-#define is_type_operator(type) (type >= OP_ADD && type <= OP_LOG)
-#define is_type_function(type) (type >= OP_INT && type <= OP_TANH_INV)
-
 /*
 Scrambles the order of the parameters, but that's fine
 because we're going to put them in canonical form anyway.

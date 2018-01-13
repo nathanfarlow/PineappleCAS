@@ -13,6 +13,7 @@
 #include "../parser.h"
 
 #include "../cas/cas.h"
+#include "../cas/mapping.h"
 
 #include "yvar.h"
 
@@ -24,6 +25,9 @@ int main(int argc, char **argv) {
     yvar_t yvar;
 
     ast_t *e;
+    ast_t *x;
+
+    double value;
 
     if (argc <= 1) {
         printf("Usage: pineapple.exe /path/to/your/yvar.8xy\n");
@@ -55,14 +59,27 @@ int main(int argc, char **argv) {
 
     fclose(file);
     
-    DBG(("Node count: %i\n\n", dbg_count_nodes(e)));
+    DBG(("Node count: %i\n", dbg_count_nodes(e)));
     dbg_print_tree(e, 4);
 
-    DBG(("\n\nSimplified:\n\n"));
+    x = ast_MakeNumber(num_Create(argc > 2 ? argv[2] : "2.53"));
+
+    mapping_Init();
+    mapping_Set('X', x);
+
+    value = eval(e, &err);
+    DBG(("Eval when x=%s: %f\n\n", x->op.number->digits, value));
+
+    DBG(("Simplified:\n"));
     while(simplify(e));
-    dbg_print_tree(e, 4);    
+    dbg_print_tree(e, 4);
+
+    value = eval(e, &err);
+    DBG(("Eval when x=%s: %f\n\n", x->op.number->digits, value));
 
     ast_Cleanup(e);
+
+    mapping_Cleanup();
 
     yvar_Cleanup(&yvar);
 
