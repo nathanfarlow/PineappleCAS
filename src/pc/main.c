@@ -38,7 +38,6 @@ int main(int argc, char **argv) {
 
     if (!file) {
         printf("File not found.\n");
-        fclose(file);
         return 1;
     }
 
