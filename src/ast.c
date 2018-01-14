@@ -44,6 +44,31 @@ ast_t *ast_MakeBinary(OperatorType type, ast_t *left, ast_t *right) {
 	return ret;
 }
 
+ast_t *ast_Copy(ast_t *e) {
+	if(e == NULL)
+		return NULL;
+
+	switch(e->type) {
+	case NODE_NUMBER:
+		return ast_MakeNumber(num_Copy(e->op.number));
+	case NODE_SYMBOL:
+		return ast_MakeSymbol(e->op.symbol);
+	case NODE_OPERATOR: {
+		ast_t *copy, *child;
+
+		copy = ast_MakeOperator(e->op.operator.type);
+		child = e->op.operator.base;
+
+		for(child = e->op.operator.base; child != NULL; child = child->next)
+			ast_ChildAppend(copy, ast_Copy(child));
+
+		return copy;
+	}
+	}
+
+	return NULL;
+}
+
 void ast_Cleanup(ast_t *e) {
 	if(e == NULL)
 		return;

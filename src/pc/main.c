@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
         DBG(("Unable to evaluate, reason: %s\n", error_text[err]));
 
     DBG(("Simplified:\n"));
-    while(simplify(e));
+    simplify(e);
     dbg_print_tree(e, 4);
 
     value = eval(e, &err);

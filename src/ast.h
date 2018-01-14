@@ -79,6 +79,8 @@ ast_t *ast_MakeOperator(OperatorType type);
 ast_t *ast_MakeUnary(OperatorType type, ast_t *operand);
 ast_t *ast_MakeBinary(OperatorType type, ast_t *left, ast_t *right);
 
+ast_t *ast_Copy(ast_t *e);
+
 void ast_Cleanup(ast_t *e);
 
 /*Functions dealing with the children of operator asts*/
