@@ -18,9 +18,9 @@ simplification process. I don't know if that's really practical on the calculato
 #include <stdint.h>
 
 typedef struct _Num {
-	uint16_t length;
-	/*null terminated*/
-	char *digits;
+    uint16_t length;
+    /*null terminated*/
+    char *digits;
 } num_t;
 
 num_t *num_Create(char *digits);

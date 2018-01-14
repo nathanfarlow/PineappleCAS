@@ -9,66 +9,66 @@
 #define LSIZE unsigned
 
 typedef enum {
-	NODE_NUMBER, NODE_SYMBOL, NODE_OPERATOR
+    NODE_NUMBER, NODE_SYMBOL, NODE_OPERATOR
 } NodeType;
 
 typedef enum {
-	OP_ADD, /*OP_SUB,*/
-	OP_MULT, OP_DIV,
+    OP_ADD, /*OP_SUB,*/
+    OP_MULT, OP_DIV,
 
-	OP_POW, OP_ROOT,
-	OP_LOG,
+    OP_POW, OP_ROOT,
+    OP_LOG,
 
-	OP_INT, OP_ABS,
+    OP_INT, OP_ABS,
 
-	OP_SIN, OP_SIN_INV,
-	OP_COS, OP_COS_INV,
-	OP_TAN, OP_TAN_INV,
+    OP_SIN, OP_SIN_INV,
+    OP_COS, OP_COS_INV,
+    OP_TAN, OP_TAN_INV,
 
-	OP_SINH, OP_SINH_INV,
-	OP_COSH, OP_COSH_INV,
-	OP_TANH, OP_TANH_INV,
+    OP_SINH, OP_SINH_INV,
+    OP_COSH, OP_COSH_INV,
+    OP_TANH, OP_TANH_INV,
 
-	AMOUNT_OPS
+    AMOUNT_OPS
 } OperatorType;
 
 #define AMOUNT_SYMBOLS 29
 
 typedef enum {
-	SYM_PI, SYM_EULER, SYM_THETA,
+    SYM_PI, SYM_EULER, SYM_THETA,
 
-	SYM_A = 'A',
-	SYM_B, SYM_C, SYM_D, SYM_E, SYM_F,
-	SYM_G, SYM_H, SYM_I, SYM_J, SYM_K,
-	SYM_L, SYM_M, SYM_N, SYM_O, SYM_P,
-	SYM_Q, SYM_R, SYM_S, SYM_T, SYM_U,
-	SYM_V, SYM_W, SYM_X, SYM_Y, SYM_Z,
+    SYM_A = 'A',
+    SYM_B, SYM_C, SYM_D, SYM_E, SYM_F,
+    SYM_G, SYM_H, SYM_I, SYM_J, SYM_K,
+    SYM_L, SYM_M, SYM_N, SYM_O, SYM_P,
+    SYM_Q, SYM_R, SYM_S, SYM_T, SYM_U,
+    SYM_V, SYM_W, SYM_X, SYM_Y, SYM_Z,
 
-	SYM_INVALID
+    SYM_INVALID
 } Symbol;
 
 typedef struct _Node {
 
-	NodeType type;
-	/*For the linked list implementation*/
-	struct _Node *next;
+    NodeType type;
+    /*For the linked list implementation*/
+    struct _Node *next;
 
-	union {
-		/*NODE_NUMBER*/
-		num_t *number;
+    union {
+        /*NODE_NUMBER*/
+        num_t *number;
 
-		/*NODE_SYMBOL*/
-		Symbol symbol;
+        /*NODE_SYMBOL*/
+        Symbol symbol;
 
-		/*NODE_OPERATOR*/
-		struct {
-			OperatorType type;
+        /*NODE_OPERATOR*/
+        struct {
+            OperatorType type;
 
-			/*The base node for the linked list*/
-			struct _Node *base;
+            /*The base node for the linked list*/
+            struct _Node *base;
 
-		} operator;
-	} op;
+        } operator;
+    } op;
 
 } ast_t;
 

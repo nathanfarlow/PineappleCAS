@@ -1,8 +1,8 @@
 /*
-	PineappleCAS: the multi-purpose CAS specifically for the TI-84+ CE
+    PineappleCAS: the multi-purpose CAS specifically for the TI-84+ CE
 
-	Authors:
-	Nathan Farlow
+    Authors:
+    Nathan Farlow
 */
 
 #ifdef COMPILE_PC
