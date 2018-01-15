@@ -2,10 +2,10 @@
 #define ERROR_H_
 
 typedef enum _Error {
-	E_SUCCESS,
+    E_SUCCESS,
 
-	/*Because of bad programming*/
-	E_GENERIC,
+    /*Because of bad programming*/
+    E_GENERIC,
 
     /*trying to add nodes to a NODE_NUMBER for instance*/
     E_AST_NOT_ALLOWED,
@@ -20,7 +20,7 @@ typedef enum _Error {
 
     E_EVAL_NO_MAPPING,
 
-	AMOUNT_ERRORS
+    AMOUNT_ERRORS
 } error;
 
 extern const char *error_text[AMOUNT_ERRORS];
