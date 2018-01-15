@@ -6,8 +6,8 @@ const char *operators[AMOUNT_OPS] = {
     "sinh", "asinh", "cosh", "acosh", "tanh", "atanh"
 };
 
-const char *symbols[SYM_A] = {
-    "INVALID", "pi", "e", "theta"
+const char *symbols[SYM_THETA + 1] = {
+    "pi", "e", "theta"
 };
 
 void _print_tree(ast_t *e, unsigned indent, unsigned index) {
