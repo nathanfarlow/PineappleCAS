@@ -1,1 +1,7 @@
 language: C
+
+sudo: false
+os: linux
+
+script:
+  - make
