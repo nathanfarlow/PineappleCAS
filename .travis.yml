@@ -4,4 +4,4 @@ sudo: false
 os: linux
 
 script:
-  - make
+  - make -f pc.makefile
