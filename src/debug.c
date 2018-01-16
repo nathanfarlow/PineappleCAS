@@ -16,10 +16,12 @@ void _print_tree(ast_t *e, unsigned indent, unsigned index) {
         DBG((" "));
 
     switch(e->type) {
-    case NODE_NUMBER:
-        DBG(("NUMBER: %.*s\n", e->op.number->length, e->op.number->digits));
+    case NODE_NUMBER: {
+        char *num = num_ToString(e->op.number, 10);
+        DBG(("NUMBER: %s\n", num));
+        free(num);
         break;
-    case NODE_SYMBOL:
+    } case NODE_SYMBOL:
         if(e->op.symbol < SYM_A)
             DBG(("SYMBOL: %s\n", symbols[e->op.symbol]));
         else

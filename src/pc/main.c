@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
     ast_t *e;
     ast_t *x;
 
-	double value;
+    double value;
 
     if (argc <= 1) {
         printf("Usage: pineapple.exe /path/to/your/yvar.8xy\n");
@@ -65,14 +65,14 @@ int main(int argc, char **argv) {
     DBG(("Node count: %i\n", dbg_count_nodes(e)));
     dbg_print_tree(e, 4);
 
-    x = ast_MakeNumber(num_Create(argc > 2 ? argv[2] : "2.53"));
+    x = ast_MakeNumber(num_CreateDecimal("2.53"));
 
     mapping_Init();
     mapping_Set('X', x);
 
-    value = eval(e, &err);
+    value = approximate(e, &err);
     if(err == E_SUCCESS)
-        DBG(("Eval when x=%s: %f\n\n", x->op.number->digits, value));
+        DBG(("Eval: %f\n\n", value));
     else
         DBG(("Unable to evaluate, reason: %s\n", error_text[err]));
 
@@ -80,9 +80,9 @@ int main(int argc, char **argv) {
     simplify(e);
     dbg_print_tree(e, 4);
 
-    value = eval(e, &err);
+    value = approximate(e, &err);
     if(err == E_SUCCESS)
-        DBG(("Eval when x=%s: %f\n\n", x->op.number->digits, value));
+        DBG(("Eval: %f\n\n", value));
     else
         DBG(("Unable to evaluate, reason: %s\n", error_text[err]));
 
