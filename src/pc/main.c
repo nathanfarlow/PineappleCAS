@@ -34,7 +34,11 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+#ifdef _WIN32
+	fopen_s(&file, argv[1], "rb");
+#else
     file = fopen(argv[1], "rb");
+#endif
 
     if (!file) {
         printf("File not found.\n");

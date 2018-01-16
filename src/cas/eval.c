@@ -3,6 +3,7 @@
 
 #include <math.h>
 
+#ifndef _WIN32
 
 double asinh(double x) {
     return log(x + sqrt(1 + pow(x, 2)));
@@ -15,6 +16,8 @@ double acosh(double x) {
 double atanh(double x) {
     return (log(1 + x) - log(1 - x)) / 2;
 }
+
+#endif
 
 #define is_nnary(type) (type >= OP_ADD && type <= OP_LOG)
 
