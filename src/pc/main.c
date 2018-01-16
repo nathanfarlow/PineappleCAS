@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
     ast_t *e;
     ast_t *x;
 
-    double value;
+	double value;
 
     if (argc <= 1) {
         printf("Usage: pineapple.exe /path/to/your/yvar.8xy\n");
