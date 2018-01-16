@@ -1,6 +1,5 @@
 obj/
 bin/
-tests/
 
 *.sublime-project
 *.sublime-workspace
