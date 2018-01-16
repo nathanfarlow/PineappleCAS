@@ -62,20 +62,33 @@ num_t *read_num(const uint8_t *equation, unsigned index, unsigned length, unsign
     unsigned size = 0;
     unsigned i;
 
+    char *buffer;
+    bool is_decimal = false;
+
     for(i = index; i < length; i++) {
         if(is_num(equation[i])) size++;
         else break;
     }
 
     num = malloc(sizeof(num_t));
-
-    num->length = size;
-    num->digits = malloc(num->length);
+    buffer = malloc(size + 1);
 
     /*Copy digits, but replace Ti's '.' with ascii '.'*/
     for (i = 0; i < size; i++) {
-        num->digits[i] = equation[i + index] == token_table[TI_PERIOD].bytes[0] ? '.' : equation[i + index];
+        char digit = equation[i + index];
+        if(digit == token_table[TI_PERIOD].bytes[0]) {
+            buffer[i] = '.';
+            is_decimal = true;
+        } else {
+            buffer[i] = digit;
+        }
     }
+
+    buffer[size] = '\0';
+
+    num = is_decimal ? num_CreateDecimal(buffer) : num_CreateInteger(buffer);
+
+    free(buffer);
 
     *consumed = size;
 
@@ -259,7 +272,7 @@ void translate(ast_t *e) {
     case TI_PLUS:       e->op.operator.type = OP_ADD; break;
     case TI_MINUS: {
         e->op.operator.type = OP_ADD;
-        ast_ChildInsert(e, ast_MakeBinary(OP_MULT, ast_MakeNumber(num_Create("-1")), ast_ChildRemoveIndex(e, 1)), 0);
+        ast_ChildInsert(e, ast_MakeBinary(OP_MULT, ast_MakeNumber(num_CreateInteger("-1")), ast_ChildRemoveIndex(e, 1)), 0);
         break;
     }
     case TI_MULTIPLY:   e->op.operator.type = OP_MULT; break;
@@ -272,7 +285,7 @@ void translate(ast_t *e) {
         
         e->op.operator.type = OP_MULT;
 
-        op2 = ast_MakeBinary(OP_POW, ast_MakeNumber(num_Create("10")), ast_ChildGet(e, 1));
+        op2 = ast_MakeBinary(OP_POW, ast_MakeNumber(num_CreateInteger("10")), ast_ChildGet(e, 1));
         ast_ChildRemoveIndex(e, 1);
         ast_ChildAppend(e, op2);
 
@@ -281,19 +294,19 @@ void translate(ast_t *e) {
     case TI_ROOT:       e->op.operator.type = OP_ROOT; break;
     case TI_NEGATE:
         e->op.operator.type = OP_MULT;
-        ast_ChildInsert(e, ast_MakeNumber(num_Create("-1")), 0);
+        ast_ChildInsert(e, ast_MakeNumber(num_CreateInteger("-1")), 0);
         break;
     case TI_RECIPROCAL:
         e->op.operator.type = OP_POW;
-        ast_ChildAppend(e, ast_MakeNumber(num_Create("-1")));
+        ast_ChildAppend(e, ast_MakeNumber(num_CreateInteger("-1")));
         break;
     case TI_SQUARE:
         e->op.operator.type = OP_POW;
-        ast_ChildAppend(e, ast_MakeNumber(num_Create("2")));
+        ast_ChildAppend(e, ast_MakeNumber(num_CreateInteger("2")));
         break;
     case TI_CUBE:
         e->op.operator.type = OP_POW;
-        ast_ChildAppend(e, ast_MakeNumber(num_Create("3")));
+        ast_ChildAppend(e, ast_MakeNumber(num_CreateInteger("3")));
         break;
     case TI_LOG_BASE:
         e->op.operator.type = OP_LOG;
@@ -304,11 +317,11 @@ void translate(ast_t *e) {
     case TI_ABS:        e->op.operator.type = OP_ABS; break;
     case TI_SQRT:
         e->op.operator.type = OP_ROOT;
-        ast_ChildInsert(e, ast_MakeNumber(num_Create("2")), 0);
+        ast_ChildInsert(e, ast_MakeNumber(num_CreateInteger("2")), 0);
         break;
     case TI_CUBED_ROOT:
         e->op.operator.type = OP_ROOT;
-        ast_ChildInsert(e, ast_MakeNumber(num_Create("3")), 0);
+        ast_ChildInsert(e, ast_MakeNumber(num_CreateInteger("3")), 0);
         break;
     case TI_LN:
         e->op.operator.type = OP_LOG;
@@ -320,11 +333,11 @@ void translate(ast_t *e) {
         break;
     case TI_LOG:
         e->op.operator.type = OP_LOG;
-        ast_ChildInsert(e, ast_MakeNumber(num_Create("10")), 0);
+        ast_ChildInsert(e, ast_MakeNumber(num_CreateInteger("10")), 0);
         break;
     case TI_10_TO_POWER:
         e->op.operator.type = OP_POW;
-        ast_ChildInsert(e, ast_MakeNumber(num_Create("10")), 0);
+        ast_ChildInsert(e, ast_MakeNumber(num_CreateInteger("10")), 0);
         break;
     case TI_SIN:        e->op.operator.type = OP_SIN; break;
     case TI_SIN_INV:    e->op.operator.type = OP_SIN_INV; break;

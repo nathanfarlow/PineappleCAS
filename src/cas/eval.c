@@ -21,7 +21,7 @@ double atanh(double x) {
 
 #define is_nnary(type) (type >= OP_ADD && type <= OP_LOG)
 
-double eval(ast_t *e, error *err) {
+double approximate(ast_t *e, error *err) {
     *err = E_SUCCESS;
 
     switch(e->type) {
@@ -36,7 +36,7 @@ double eval(ast_t *e, error *err) {
             return 0;
         }
 
-        result = eval(mapping, err);
+        result = approximate(mapping, err);
 
         if(*err != E_SUCCESS)
             return 0;
@@ -56,8 +56,8 @@ double eval(ast_t *e, error *err) {
                 for(current = e->op.operator.base; current != NULL; current = current->next) {
                     switch(type) {
 
-                    case OP_ADD:  total += eval(current, err); break;
-                    case OP_MULT: total *= eval(current, err); break;
+                    case OP_ADD:  total += approximate(current, err); break;
+                    case OP_MULT: total *= approximate(current, err); break;
 
                     default: break;
                     }
@@ -71,8 +71,8 @@ double eval(ast_t *e, error *err) {
             } else {
                 double left, right;
 
-                left = eval(e->op.operator.base, err);
-                right = eval(e->op.operator.base->next, err);
+                left = approximate(e->op.operator.base, err);
+                right = approximate(e->op.operator.base->next, err);
 
                 if(*err != E_SUCCESS) return 0;
 
@@ -80,7 +80,7 @@ double eval(ast_t *e, error *err) {
 
                 case OP_DIV:    return left / right;
                 case OP_POW:    return pow(left, right);
-                case OP_ROOT:   return pow(right, 1 / left);
+                case OP_ROOT:   return right < 0 ? -1 * pow(-1 * right, 1.0 / left) : pow(right, 1.0 / left);
                 case OP_LOG:    return log(right) / log(left);
 
                 default: break;
@@ -89,7 +89,7 @@ double eval(ast_t *e, error *err) {
             }
 
         } else {
-            double x = eval(e->op.operator.base, err);
+            double x = approximate(e->op.operator.base, err);
 
             if(*err != E_SUCCESS) return 0;
 

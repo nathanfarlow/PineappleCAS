@@ -11,6 +11,7 @@ void derivative(ast_t *e);
 
 bool simplify(ast_t *e);
 
-double eval(ast_t *e, error *err);
+/*Approximates results for testing only*/
+double approximate(ast_t *e, error *err);
 
 #endif
