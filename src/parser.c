@@ -68,7 +68,6 @@ num_t *read_num(const uint8_t *equation, unsigned index, unsigned length, unsign
         else break;
     }
 
-    num = malloc(sizeof(num_t));
     buffer = malloc(size + 1);
 
     /*Copy digits, but replace Ti's '.' with ascii '.'*/
