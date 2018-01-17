@@ -10,13 +10,17 @@
 #ifdef COMPILE_PC
 #define DBG(args) (printf args)
 #define LOG(args) (printf("LOG: %s:%d ", __FILE__, __LINE__), printf args, printf("\n"))
-#endif
-
 #else
 
-#define DBG(args)
-#define LOG(args)
+#define _TICE
+#include <debug.h>
 
+void ti_debug(const char *format, ...);
+
+#define DBG(args) (ti_debug args)
+#define LOG(args) (ti_debug("LOG: %s:%d ", __FILE__, __LINE__), ti_debug args, ti_debug("\n"))
+
+#endif
 #endif
 
 void dbg_print_tree(ast_t *e, unsigned indent);

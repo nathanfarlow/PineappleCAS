@@ -9,7 +9,7 @@
 
 #include <stdlib.h>
 
-#include "../debug.h"
+#include "../pineapple_debug.h"
 #include "../parser.h"
 
 #include "../cas/cas.h"

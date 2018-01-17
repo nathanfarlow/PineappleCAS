@@ -1,6 +1,5 @@
 #include "num.h"
 
-#include <malloc.h>
 #include <string.h>
 #include <stdlib.h> /*for atof*/
 

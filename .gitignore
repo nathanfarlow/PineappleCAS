@@ -1,5 +1,7 @@
-obj/
-bin/
+obj*/
+bin*/
+
+tests/test*.8xy
 
 *.sublime-project
 *.sublime-workspace

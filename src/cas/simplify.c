@@ -1,7 +1,6 @@
 #include "cas.h"
 
 #include <stdbool.h>
-#include "../debug.h"
 
 /*
 Scrambles the order of the parameters, but that's fine

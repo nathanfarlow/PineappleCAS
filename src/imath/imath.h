@@ -44,10 +44,9 @@ typedef unsigned long      mp_usmall; /* must be an unsigned type */
  * whether we build from the makefile or by embedding imath in another project.
  */
 #undef  USE_64BIT_WORDS
-#define USE_64BIT_WORDS
 #ifdef  USE_64BIT_WORDS
 typedef uint32_t           mp_digit;
-typedef uint64_t           mp_word;
+typedef uint32_t           mp_word;
 #else
 typedef uint16_t           mp_digit;
 typedef uint32_t           mp_word;
@@ -82,6 +81,14 @@ extern const mp_result MP_MINERR;
 #define MP_SMALL_MAX    LONG_MAX
 #define MP_USMALL_MIN   ULONG_MIN
 #define MP_USMALL_MAX   ULONG_MAX
+
+#ifndef UINT16_MAX
+#define UINT16_MAX (65535U)
+#endif
+
+#ifndef UINT32_MAX
+#define UINT32_MAX (4294967295UL)
+#endif
 
 #ifdef USE_64BIT_WORDS
 #  define MP_DIGIT_MAX   (UINT32_MAX * UINT64_C(1))

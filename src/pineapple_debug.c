@@ -1,4 +1,19 @@
-#include "debug.h"
+#include "pineapple_debug.h"
+
+#ifdef DEBUG
+#ifndef COMPILE_PC
+
+void ti_debug(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    dbg_sprintf(dbgout, format, args);
+
+    va_end(args);
+}
+
+#endif
+#endif
 
 const char *operators[AMOUNT_OPS] = {
     "+", /*"-",*/ "*", "/", "^", "root", "log", "int", "abs",

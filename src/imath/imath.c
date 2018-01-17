@@ -2752,7 +2752,7 @@ STATIC int       s_reduce(mp_int x, mp_int m, mp_int mu, mp_int q1, mp_int q2)
 STATIC mp_result s_embar(mp_int a, mp_int b, mp_int m, mp_int mu, mp_int c)
 {
   mp_digit  *db, *dbt, umu, d;
-  mp_result res;
+  mp_result res = 0;
   DECLARE_TEMP(3);
 
   umu = MP_USED(mu); db = MP_DIGITS(b); dbt = db + MP_USED(b) - 1;

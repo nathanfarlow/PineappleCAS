@@ -2,8 +2,6 @@
 
 #include "stack.h"
 
-#include "debug.h"
-
 struct Identifier token_table[AMOUNT_TOKENS] = {
     {0, {0}}, {0, {0}},         /*TI_NUMBER, TI_SYMBOL*/
 

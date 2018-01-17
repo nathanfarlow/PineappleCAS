@@ -4,7 +4,7 @@
 #include "num.h"
 #include "error.h"
 
-#include <malloc.h>
+#include <stdlib.h> /*For malloc*/
 
 #define LSIZE unsigned
 
