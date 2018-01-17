@@ -9,7 +9,7 @@
 
 #include <stdlib.h>
 
-#include "../pineapple_debug.h"
+#include "../dbg.h"
 #include "../parser.h"
 
 #include "../cas/cas.h"
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
     if(err == E_SUCCESS)
         DBG(("Eval: %f\n\n", value));
     else
-        DBG(("Unable to evaluate, reason: %s\n", error_text[err]));
+        DBG(("Unable to evaluate, reason: %s\n\n", error_text[err]));
 
     DBG(("Simplified:\n"));
     simplify(e);
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
     if(err == E_SUCCESS)
         DBG(("Eval: %f\n\n", value));
     else
-        DBG(("Unable to evaluate, reason: %s\n", error_text[err]));
+        DBG(("Unable to evaluate, reason: %s\n\n", error_text[err]));
 
     ast_Cleanup(e);
 

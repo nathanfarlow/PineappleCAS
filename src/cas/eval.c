@@ -72,8 +72,8 @@ double approximate(ast_t *e, error *err) {
                 double left, right;
 
                 left = approximate(e->op.operator.base, err);
+                if(*err != E_SUCCESS) return 0;
                 right = approximate(e->op.operator.base->next, err);
-
                 if(*err != E_SUCCESS) return 0;
 
                 switch(type) {

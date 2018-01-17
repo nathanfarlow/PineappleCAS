@@ -1,4 +1,4 @@
-#include "pineapple_debug.h"
+#include "dbg.h"
 
 #ifdef DEBUG
 #ifndef COMPILE_PC

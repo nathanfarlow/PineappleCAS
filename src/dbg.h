@@ -28,6 +28,12 @@ void ti_debug(const char *format, ...);
 #define LOG(args) (ti_debug("LOG: %s:%d ", __FILENAME__, __LINE__), ti_debug args, ti_debug("\n"))
 
 #endif
+
+#else
+
+#define DBG(args)
+#define LOG(args)
+
 #endif
 
 void dbg_print_tree(ast_t *e, unsigned indent);
