@@ -524,7 +524,7 @@ mp_result mp_rat_to_decimal(mp_rat r, mp_size radix, mp_size prec,
   mpz_t temp[3];
   mp_result res;
   char *start = str;
-  mp_size len, lead_0, left = limit, last = 0;
+  mp_size len, lead_0, left = limit; int last = 0;
     
   SETUP(mp_int_init_copy(TEMP(last), MP_NUMER_P(r)), last);
   SETUP(mp_int_init(TEMP(last)), last);
@@ -635,8 +635,7 @@ mp_result mp_rat_to_decimal(mp_rat r, mp_size radix, mp_size prec,
   res = mp_int_to_string(TEMP(1), radix, start, left);
 
  CLEANUP:
-  /*Crashes with --last >= 0, TODO check for mem leak*/
-  while (--last > 0)
+  while (--last >= 0)
     mp_int_clear(TEMP(last));
   
   return res;
