@@ -7,7 +7,7 @@ void ti_debug(const char *format, ...) {
     va_list args;
     va_start(args, format);
 
-    dbg_sprintf(dbgout, format, args);
+    vsprintf(dbgout, format, args);
 
     va_end(args);
 }
