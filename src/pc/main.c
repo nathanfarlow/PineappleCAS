@@ -95,4 +95,6 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+#else
+typedef int make_iso_compilers_happy;
 #endif
