@@ -105,7 +105,7 @@ static bool simplify_rational(ast_t *e) {
     return changed;
 }
 
-static bool simplify_math_communative(ast_t *e) {
+static bool simplify_constants_communative(ast_t *e) {
     unsigned i, changed = 0;
     bool has_rat = false;
     mpz_t int_accumulator;
@@ -172,8 +172,12 @@ static bool simplify_math_communative(ast_t *e) {
     if(has_rat)
         ret->num.rational = rat_accumulator;
     else {
-        ret->num.integer = int_accumulator;
         mp_rat_clear(&rat_accumulator);
+
+        mp_int_init(&ret->num.integer);
+        mp_int_copy(&int_accumulator, &ret->num.integer);
+
+        mp_int_clear(&int_accumulator);
     }
 
     if(ast_ChildLength(e) == 0) {
@@ -188,7 +192,7 @@ static bool simplify_math_communative(ast_t *e) {
 }
 
 /*Simplifies expressions like 5 + 5 to 10*/
-static bool simplify_math(ast_t *e) {
+static bool simplify_constants(ast_t *e) {
     bool changed = false;
     ast_t *current;
 
@@ -196,18 +200,18 @@ static bool simplify_math(ast_t *e) {
         return false;
 
     if(is_type_communative(e->op.operator.type)) {
-        changed |= simplify_math_communative(e);
+        changed |= simplify_constants_communative(e);
     } else {
         /*Simplify divide*/
     }
 
     for(current = e->op.operator.base; current != NULL; current = current->next) {
-        changed |= simplify_math(current);
+        changed |= simplify_constants(current);
     }
 
     return changed;
 }
-#include "../dbg.h"
+
 static bool simplify_rational_num(ast_t *e) {
     bool changed = false;
     ast_t *current;
@@ -257,7 +261,7 @@ static bool _simplify(ast_t *e) {
     while(simplify_rational(e))
         changed = true;
 
-    while(simplify_math(e))
+    while(simplify_constants(e))
         changed = true;
 
     while(simplify_rational_num(e))
