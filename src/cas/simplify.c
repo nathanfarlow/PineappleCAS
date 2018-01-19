@@ -105,6 +105,144 @@ static bool simplify_rational(ast_t *e) {
     return changed;
 }
 
+static bool simplify_math_communative(ast_t *e) {
+    unsigned i, changed = 0;
+    bool has_rat = false;
+    mpz_t int_accumulator;
+    mpq_t rat_accumulator;
+    num_t *ret;
+
+    if(e->op.operator.type == OP_MULT) {
+        mp_int_init_value(&int_accumulator, 1);
+        mp_rat_init(&rat_accumulator);
+        mp_rat_set_value(&rat_accumulator, 1, 1);
+
+        for(i = 0; i < ast_ChildLength(e); i++) {
+            ast_t *child = ast_ChildGet(e, i);
+
+            if(child->type == NODE_NUMBER) {
+
+                if(child->op.number->is_decimal) {
+                    mp_rat_mul(&rat_accumulator, &child->op.number->num.rational, &rat_accumulator);
+                    has_rat = true;
+                } else {
+                    mp_int_mul(&int_accumulator, &child->op.number->num.integer, &int_accumulator);
+                }
+
+                ast_Cleanup(ast_ChildRemoveIndex(e, i));
+                i--;
+                changed++;
+            }
+        }
+
+        if(has_rat)
+            mp_rat_mul_int(&rat_accumulator, &int_accumulator, &rat_accumulator);
+
+    } else /*OP_ADD*/ {
+        mp_int_init_value(&int_accumulator, 0);
+        mp_rat_init(&rat_accumulator);
+        mp_rat_zero(&rat_accumulator);
+
+        for(i = 0; i < ast_ChildLength(e); i++) {
+            ast_t *child = ast_ChildGet(e, i);
+
+            if(child->type == NODE_NUMBER) {
+
+                if(child->op.number->is_decimal) {
+                    mp_rat_add(&rat_accumulator, &child->op.number->num.rational, &rat_accumulator);
+                    has_rat = true;
+                } else {
+                    mp_int_add(&int_accumulator, &child->op.number->num.integer, &int_accumulator);
+                }
+
+                ast_Cleanup(ast_ChildRemoveIndex(e, i));
+                i--;
+                changed++;
+            }
+        }
+
+        if(has_rat)
+            mp_rat_add_int(&rat_accumulator, &int_accumulator, &rat_accumulator);
+    }
+
+    ret = malloc(sizeof(num_t));
+    ret->is_decimal = has_rat;
+
+    if(has_rat)
+        ret->num.rational = rat_accumulator;
+    else {
+        ret->num.integer = int_accumulator;
+        mp_rat_clear(&rat_accumulator);
+    }
+
+    if(ast_ChildLength(e) == 0) {
+        e->type = NODE_NUMBER;
+        e->op.number = ret;
+    } else {
+        ast_ChildAppend(e, ast_MakeNumber(ret));
+    }
+
+    return changed > 1;
+}
+
+/*Simplifies expressions like 5 + 5 to 10*/
+static bool simplify_math(ast_t *e) {
+    bool changed = false;
+    ast_t *current;
+
+    if(e->type != NODE_OPERATOR)
+        return false;
+
+    if(is_type_communative(e->op.operator.type)) {
+        changed |= simplify_math_communative(e);
+    } else {
+        /*Simplify divide*/
+    }
+
+    for(current = e->op.operator.base; current != NULL; current = current->next) {
+        changed |= simplify_math(current);
+    }
+
+    return changed;
+}
+
+static bool simplify_rational_num(ast_t *e) {
+    bool changed = false;
+    ast_t *current;
+
+    if(e->type == NODE_NUMBER) {
+
+        if(e->op.number->is_decimal) {
+            num_t *numer, *denom;
+
+            numer = malloc(sizeof(num_t));
+            numer->is_decimal = false;
+            numer->num.integer = e->op.number->num.rational.num;
+
+            denom = malloc(sizeof(num_t));
+            denom->is_decimal = false;
+            denom->num.integer = e->op.number->num.rational.den;
+
+            /*num_Cleanup(e->op.number);*/
+
+            e->type = NODE_OPERATOR;
+            e->op.operator.type = OP_DIV;
+
+            ast_ChildAppend(e, ast_MakeNumber(numer));
+            ast_ChildAppend(e, ast_MakeNumber(denom));
+
+            changed = true;
+        }
+
+    } else if(e->type == NODE_OPERATOR) {
+        for(current = e->op.operator.base; current != NULL; current = current->next) {
+            changed |= simplify_rational_num(current);
+        }
+    }
+
+    return changed;
+}
+
 static bool _simplify(ast_t *e) {
     bool changed = false;
 
@@ -112,6 +250,12 @@ static bool _simplify(ast_t *e) {
         changed = true;
 
     while(simplify_rational(e))
+        changed = true;
+
+    while(simplify_math(e))
+        changed = true;
+
+    while(simplify_rational_num(e))
         changed = true;
 
     return changed;
