@@ -139,7 +139,8 @@ static bool simplify_math_communative(ast_t *e) {
             mp_rat_mul_int(&rat_accumulator, &int_accumulator, &rat_accumulator);
 
     } else /*OP_ADD*/ {
-        mp_int_init_value(&int_accumulator, 0);
+        mp_int_init(&int_accumulator);
+        mp_int_zero(&int_accumulator);
         mp_rat_init(&rat_accumulator);
         mp_rat_zero(&rat_accumulator);
 
@@ -154,7 +155,7 @@ static bool simplify_math_communative(ast_t *e) {
                 } else {
                     mp_int_add(&int_accumulator, &child->op.number->num.integer, &int_accumulator);
                 }
-
+                
                 ast_Cleanup(ast_ChildRemoveIndex(e, i));
                 i--;
                 changed++;
@@ -178,6 +179,7 @@ static bool simplify_math_communative(ast_t *e) {
     if(ast_ChildLength(e) == 0) {
         e->type = NODE_NUMBER;
         e->op.number = ret;
+        e->op.operator.base = NULL;
     } else {
         ast_ChildAppend(e, ast_MakeNumber(ret));
     }
@@ -205,7 +207,7 @@ static bool simplify_math(ast_t *e) {
 
     return changed;
 }
-
+#include "../dbg.h"
 static bool simplify_rational_num(ast_t *e) {
     bool changed = false;
     ast_t *current;
@@ -217,16 +219,19 @@ static bool simplify_rational_num(ast_t *e) {
 
             numer = malloc(sizeof(num_t));
             numer->is_decimal = false;
-            numer->num.integer = e->op.number->num.rational.num;
+            mp_int_init(&numer->num.integer);
+            mp_rat_numer(&e->op.number->num.rational, &numer->num.integer);
 
             denom = malloc(sizeof(num_t));
             denom->is_decimal = false;
-            denom->num.integer = e->op.number->num.rational.den;
+            mp_int_init(&denom->num.integer);
+            mp_rat_denom(&e->op.number->num.rational, &denom->num.integer);
 
-            /*num_Cleanup(e->op.number);*/
+            num_Cleanup(e->op.number);
 
             e->type = NODE_OPERATOR;
             e->op.operator.type = OP_DIV;
+            e->op.operator.base = NULL;
 
             ast_ChildAppend(e, ast_MakeNumber(numer));
             ast_ChildAppend(e, ast_MakeNumber(denom));
@@ -263,9 +268,6 @@ static bool _simplify(ast_t *e) {
 
 bool simplify(ast_t *e) {
     bool changed = false;
-
-    if(e->type != NODE_OPERATOR)
-        return false;
 
     while(_simplify(e))
         changed = true;

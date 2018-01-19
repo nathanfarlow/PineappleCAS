@@ -32,7 +32,7 @@ void _print_tree(ast_t *e, unsigned indent, unsigned index) {
 
     switch(e->type) {
     case NODE_NUMBER: {
-        char *num = num_ToString(e->op.number, 10);
+        char *num = num_ToString(e->op.number, 6);
         DBG(("NUMBER: %s\n", num));
         free(num);
         break;

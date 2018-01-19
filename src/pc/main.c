@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 
     value = approximate(e, &err);
     if(err == E_SUCCESS)
-        DBG(("Eval: %.17g\n\n", value));
+        DBG(("Eval: %f\n\n", value));
     else
         DBG(("Unable to evaluate, reason: %s\n\n", error_text[err]));
 
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
 
     value = approximate(e, &err);
     if(err == E_SUCCESS)
-        DBG(("Eval: %.17g\n\n", value));
+        DBG(("Eval: %f\n\n", value));
     else
         DBG(("Unable to evaluate, reason: %s\n\n", error_text[err]));
 
