@@ -69,6 +69,93 @@ ast_t *ast_Copy(ast_t *e) {
     return NULL;
 }
 
+static bool has_used(unsigned *buffer, unsigned top, unsigned index) {
+    unsigned i;
+
+    for(i = 0; i < top; i++) {
+        if(buffer[i] == index)
+            return true;
+    }
+
+    return false;
+}
+
+bool ast_Compare(ast_t *a, ast_t *b) {
+    if(a == b)
+        return true;
+
+    if(a->type != b->type)
+        return false;
+
+    switch(a->type) {
+    case NODE_NUMBER:
+        if(a->op.number->is_decimal != b->op.number->is_decimal)
+            return false;
+
+        if(a->op.number->is_decimal)
+            return mp_rat_compare(&a->op.number->num.rational, &b->op.number->num.rational) == 0;
+        else
+            return mp_int_compare(&a->op.number->num.integer, &b->op.number->num.integer) == 0;
+    case NODE_SYMBOL:
+        return a->op.symbol == b->op.symbol;
+    case NODE_OPERATOR: {
+        unsigned length;
+
+        if(a->op.operator.type != b->op.operator.type)
+            return false;
+
+        if((length = ast_ChildLength(a)) != ast_ChildLength(b))
+            return false;
+        
+        if(a->op.operator.type == OP_MULT || a->op.operator.type == OP_ADD) {
+            unsigned a_index, b_index;
+            unsigned top = 0;
+
+            bool had_match = true;
+
+
+            unsigned *buffer = malloc(sizeof(unsigned) * length);
+
+            for(a_index = 0; a_index < length && had_match; a_index++) {
+
+                ast_t *a_child = ast_ChildGet(a, a_index);
+                had_match = false;
+
+                for(b_index = 0; b_index < length; b_index++) {
+                    ast_t *b_child;
+
+                    if(!has_used(buffer, top, b_index)) {
+                        b_child = ast_ChildGet(b, b_index);
+
+                        if(ast_Compare(a_child, b_child)) {
+                            had_match = true;
+                            buffer[top++] = b_index;
+                        }
+                    }
+                }
+            }
+
+            free(buffer);
+
+            return had_match;
+        } else {
+            unsigned i;
+
+            for(i = 0; i < length; i++) {
+                if(!ast_Compare(ast_ChildGet(a, i), ast_ChildGet(b, i)))
+                    return false;
+            }
+
+            return true;
+        }
+
+        
+    }
+    }
+
+    return false;
+}
+
 void ast_Cleanup(ast_t *e) {
     if(e == NULL)
         return;

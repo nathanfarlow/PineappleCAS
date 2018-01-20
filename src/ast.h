@@ -80,6 +80,7 @@ ast_t *ast_MakeUnary(OperatorType type, ast_t *operand);
 ast_t *ast_MakeBinary(OperatorType type, ast_t *left, ast_t *right);
 
 ast_t *ast_Copy(ast_t *e);
+bool ast_Compare(ast_t *a, ast_t *b);
 
 void ast_Cleanup(ast_t *e);
 
