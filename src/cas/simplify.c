@@ -307,6 +307,8 @@ static bool simplify_constants(ast_t *e) {
             break;
         case OP_ABS:
             break;
+        default:
+            break;
         }
     }
 
