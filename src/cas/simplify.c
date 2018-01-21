@@ -94,6 +94,9 @@ static bool simplify_rational(ast_t *e) {
 
                 ast_Cleanup(child);
 
+                simplify_rational(mult);
+                simplify_rational(ast_ChildGetLast(e));
+
                 changed = true;
                 i--;
             }
