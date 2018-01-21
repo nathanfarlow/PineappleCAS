@@ -198,9 +198,9 @@ static bool simplify_constants_communative(ast_t *e) {
     }
 
     if(ast_ChildLength(e) == 0) {
+        e->op.operator.base = NULL;
         e->type = NODE_NUMBER;
         e->op.number = ret;
-        e->op.operator.base = NULL;
         changed = true;
     } else {
         /*Don't append if we are multiplying by 1 or adding 0*/
@@ -260,6 +260,7 @@ static bool simplify_constants(ast_t *e) {
                 ast_Cleanup(a);
                 ast_Cleanup(b);
 
+                e->op.operator.base = NULL;
                 e->type = NODE_NUMBER;
                 e->op.number = num_CreateInteger("1");
 
@@ -276,6 +277,7 @@ static bool simplify_constants(ast_t *e) {
                     ast_Cleanup(a);
                     ast_Cleanup(b);
 
+                    e->op.operator.base = NULL;
                     e->type = NODE_NUMBER;
                     e->op.number = num_CreateInteger("0");
 
@@ -340,6 +342,7 @@ static bool simplify_constants(ast_t *e) {
                     ast_Cleanup(a);
                     ast_Cleanup(b);
 
+                    e->op.operator.base = NULL;
                     e->type = NODE_NUMBER;
                     e->op.number = num_CreateInteger("0");
 
@@ -392,17 +395,72 @@ static bool simplify_constants(ast_t *e) {
                 ast_Cleanup(a);
                 ast_Cleanup(b);
 
+                e->op.operator.base = NULL;
                 e->type = NODE_NUMBER;
                 e->op.number = result;
                 
                 changed = true;
             }
             break;
-        } case OP_INT:
+        } case OP_INT: {
+            ast_t *child = ast_ChildGet(e, 0);
+
+            if(child->type != NODE_NUMBER)
+                break;
+
+            if(child->op.number->is_decimal) {
+                num_t *result;
+
+                result = malloc(sizeof(num_t));
+                result->is_decimal = false;
+
+                mp_int_init(&result->num.integer);
+
+                mp_int_div(mp_rat_numer_ref(&child->op.number->num.rational), mp_rat_denom_ref(&child->op.number->num.rational), &result->num.integer, NULL);
+
+                if(mp_rat_sign(&child->op.number->num.rational) == 1) {
+                    mp_int_sub_value(&result->num.integer, 1, &result->num.integer);
+                    result->num.integer.sign = 1;
+                }
+
+                ast_Cleanup(child);
+
+                e->op.operator.base = NULL;
+                e->type = NODE_NUMBER;
+                e->op.number = result;
+            } else {
+                e->op.operator.base = NULL;
+                e->type = child->type;
+                e->op = child->op;
+
+                free(child);
+            }
+
+            changed = true;
+
             break;
-        case OP_ABS:
+        } case OP_ABS: {
+            ast_t *child = ast_ChildGet(e, 0);
+
+            if(child->type != NODE_NUMBER)
+                break;
+
+            if(child->op.number->is_decimal) {
+                mp_rat_abs(&child->op.number->num.rational, &child->op.number->num.rational);
+            } else {
+                mp_int_abs(&child->op.number->num.integer, &child->op.number->num.integer);
+            }
+
+            e->op.operator.base = NULL;
+            e->type = child->type;
+            e->op = child->op;
+
+            free(child);
+
+            changed = true;
+
             break;
-        default:
+        } default:
             break;
         }
     }
