@@ -67,9 +67,9 @@ double num_ToDouble(num_t *num) {
     char buffer[50] = { 0 };
 
     if(num->is_decimal) {
-        mp_rat_to_decimal(&num->num.rational, RADIX, 16, MP_ROUND_HALF_UP, buffer, sizeof(buffer));
+        mp_rat_to_decimal(&num->num.rational, RADIX, 16, MP_ROUND_HALF_UP, buffer, sizeof(buffer) - 1);
     } else {
-        mp_int_to_string(&num->num.integer, RADIX, buffer, sizeof(buffer));
+        mp_int_to_string(&num->num.integer, RADIX, buffer, sizeof(buffer) - 1);
     }
 
     return atof(buffer);

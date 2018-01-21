@@ -256,6 +256,18 @@ static bool simplify_constants(ast_t *e) {
             a = ast_ChildGet(e, 0);
             b = ast_ChildGet(e, 1);
 
+            if(ast_Compare(a, b)) {
+                ast_Cleanup(a);
+                ast_Cleanup(b);
+
+                e->type = NODE_NUMBER;
+                e->op.number = num_CreateInteger("1");
+
+                changed = true;
+                break;
+            }
+
+            /*If a == 0*/
             if(a->type == NODE_NUMBER) {
 
                 if((!a->op.number->is_decimal && mp_int_compare_zero(&a->op.number->num.integer) == 0)
@@ -273,6 +285,7 @@ static bool simplify_constants(ast_t *e) {
                 
             }
 
+            /*If b == 1*/
             if(b->type == NODE_NUMBER) {
                 bool is_one = false;
 
@@ -313,9 +326,79 @@ static bool simplify_constants(ast_t *e) {
                 mp_int_clear(&gcd);
             }
             break;
-        } case OP_POW:
+        } case OP_POW: {
+            ast_t * a, *b;
+            a = ast_ChildGet(e, 0);
+            b = ast_ChildGet(e, 1);
+
+            /*If a == 0*/
+            if(a->type == NODE_NUMBER) {
+
+                if((!a->op.number->is_decimal && mp_int_compare_zero(&a->op.number->num.integer) == 0)
+                    || (a->op.number->is_decimal && mp_rat_compare_zero(&a->op.number->num.rational) == 0)) {
+
+                    ast_Cleanup(a);
+                    ast_Cleanup(b);
+
+                    e->type = NODE_NUMBER;
+                    e->op.number = num_CreateInteger("0");
+
+                    changed = true;
+                    break;
+                }
+
+                /*If b == 1*/
+                if(b->type == NODE_NUMBER) {
+                    bool is_one = false;
+
+                    if(b->op.number->is_decimal) {
+                        is_one = mp_int_compare(mp_rat_numer_ref(&b->op.number->num.rational), mp_rat_denom_ref(&b->op.number->num.rational)) == 0;
+                    } else {
+                        is_one = mp_int_compare_value(&b->op.number->num.integer, 1) == 0;
+                    }
+
+                    if(is_one) {
+                        ast_Cleanup(b);
+
+                        e->type = a->type;
+                        e->op = a->op;
+
+                        free(a);
+
+                        changed = true;
+                        break;
+                    }
+
+                }
+
+            }
+
+            if(a->type != NODE_NUMBER || b->type != NODE_NUMBER)
+                break;
+
+            if(!a->op.number->is_decimal && !b->op.number->is_decimal) {
+                num_t *result;
+
+                /*Only evaluate numbers up to the 10th power.*/
+                if(mp_int_compare_value(&b->op.number->num.integer, 10) > 0)
+                    break;
+
+                result = malloc(sizeof(num_t));
+                result->is_decimal = false;
+                mp_int_init(&result->num.integer);
+
+                mp_int_expt_full(&a->op.number->num.integer, &b->op.number->num.integer, &result->num.integer);
+
+                ast_Cleanup(a);
+                ast_Cleanup(b);
+
+                e->type = NODE_NUMBER;
+                e->op.number = result;
+                
+                changed = true;
+            }
             break;
-        case OP_INT:
+        } case OP_INT:
             break;
         case OP_ABS:
             break;
