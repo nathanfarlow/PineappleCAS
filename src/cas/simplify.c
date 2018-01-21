@@ -349,29 +349,28 @@ static bool simplify_constants(ast_t *e) {
                     changed = true;
                     break;
                 }
+            }
 
-                /*If b == 1*/
-                if(b->type == NODE_NUMBER) {
-                    bool is_one = false;
+            /*If b == 1*/
+            if(b->type == NODE_NUMBER) {
+                bool is_one = false;
 
-                    if(b->op.number->is_decimal) {
-                        is_one = mp_int_compare(mp_rat_numer_ref(&b->op.number->num.rational), mp_rat_denom_ref(&b->op.number->num.rational)) == 0;
-                    } else {
-                        is_one = mp_int_compare_value(&b->op.number->num.integer, 1) == 0;
-                    }
+                if(b->op.number->is_decimal) {
+                    is_one = mp_int_compare(mp_rat_numer_ref(&b->op.number->num.rational), mp_rat_denom_ref(&b->op.number->num.rational)) == 0;
+                } else {
+                    is_one = mp_int_compare_value(&b->op.number->num.integer, 1) == 0;
+                }
 
-                    if(is_one) {
-                        ast_Cleanup(b);
+                if(is_one) {
+                    ast_Cleanup(b);
 
-                        e->type = a->type;
-                        e->op = a->op;
+                    e->type = a->type;
+                    e->op = a->op;
 
-                        free(a);
+                    free(a);
 
-                        changed = true;
-                        break;
-                    }
-
+                    changed = true;
+                    break;
                 }
 
             }
@@ -401,6 +400,78 @@ static bool simplify_constants(ast_t *e) {
                 
                 changed = true;
             }
+            break;
+        } case OP_ROOT: {
+            ast_t * a, *b;
+            a = ast_ChildGet(e, 0);
+            b = ast_ChildGet(e, 1);
+
+            /*If b == 0*/
+            if(b->type == NODE_NUMBER) {
+
+                if((!b->op.number->is_decimal && mp_int_compare_zero(&b->op.number->num.integer) == 0)
+                    || (b->op.number->is_decimal && mp_rat_compare_zero(&b->op.number->num.rational) == 0)) {
+
+                    ast_Cleanup(a);
+                    ast_Cleanup(b);
+
+                    e->op.operator.base = NULL;
+                    e->type = NODE_NUMBER;
+                    e->op.number = num_CreateInteger("0");
+
+                    changed = true;
+                    break;
+                }
+            }
+
+            /*If a == 1*/
+            if(a->type == NODE_NUMBER) {
+                bool is_one = false;
+
+                if(a->op.number->is_decimal) {
+                    is_one = mp_int_compare(mp_rat_numer_ref(&a->op.number->num.rational), mp_rat_denom_ref(&a->op.number->num.rational)) == 0;
+                } else {
+                    is_one = mp_int_compare_value(&a->op.number->num.integer, 1) == 0;
+                }
+
+                if(is_one) {
+                    ast_Cleanup(a);
+
+                    e->type = b->type;
+                    e->op = b->op;
+
+                    free(b);
+
+                    changed = true;
+                    break;
+                }
+
+            }
+
+            /*If b == 1*/
+            if(b->type == NODE_NUMBER) {
+                bool is_one = false;
+
+                if(b->op.number->is_decimal) {
+                    is_one = mp_int_compare(mp_rat_numer_ref(&b->op.number->num.rational), mp_rat_denom_ref(&b->op.number->num.rational)) == 0;
+                } else {
+                    is_one = mp_int_compare_value(&b->op.number->num.integer, 1) == 0;
+                }
+
+                if(is_one) {
+                    ast_Cleanup(a);
+
+                    e->type = b->type;
+                    e->op = b->op;
+
+                    free(b);
+
+                    changed = true;
+                    break;
+                }
+
+            }
+
             break;
         } case OP_INT: {
             ast_t *child = ast_ChildGet(e, 0);
@@ -509,7 +580,7 @@ static bool simplify_rational_num(ast_t *e) {
 }
 
 static bool simplify_identities(ast_t *e) {
-    ast_t *current;
+    ast_t *current, *op;
     bool changed = false;
 
     if(e->type != NODE_OPERATOR)
@@ -519,12 +590,27 @@ static bool simplify_identities(ast_t *e) {
         changed |= simplify_identities(current);
     }
 
+    op = e->op.operator.base;
+
     switch(e->op.operator.type) {
-    case OP_POW: break;
-    case OP_ROOT: break;
-    case OP_LOG: break;
-    case OP_INT: break;
-    case OP_ABS: break;
+    case OP_LOG: {
+        ast_t *a, *b;
+        a = ast_ChildGet(e, 0);
+        b = ast_ChildGet(e, 1);
+
+        if(ast_Compare(a, b)) {
+            ast_Cleanup(a);
+            ast_Cleanup(b);
+
+            e->op.operator.base = NULL;
+            e->type = NODE_NUMBER;
+            e->op.number = num_CreateInteger("1");
+
+            changed = true;
+        }
+        break;
+    }
+    /*TODO*/
     case OP_SIN: break;
     case OP_SIN_INV: break;
     case OP_COS: break;
