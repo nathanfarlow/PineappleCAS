@@ -106,9 +106,9 @@ static bool simplify_rational(ast_t *e) {
 }
 
 static bool simplify_constants_communative(ast_t *e) {
-    unsigned i, changed = 0;
+    unsigned i, numbers = 0;
     bool has_rat = false;
-    bool should_append = false;
+    bool changed = false;
     mpz_t int_accumulator;
     mpq_t rat_accumulator;
     num_t *ret;
@@ -142,7 +142,7 @@ static bool simplify_constants_communative(ast_t *e) {
 
                 ast_Cleanup(ast_ChildRemoveIndex(e, i));
                 i--;
-                changed++;
+                numbers++;
             }
         }
 
@@ -169,13 +169,16 @@ static bool simplify_constants_communative(ast_t *e) {
                 
                 ast_Cleanup(ast_ChildRemoveIndex(e, i));
                 i--;
-                changed++;
+                numbers++;
             }
         }
 
         if(has_rat)
             mp_rat_add_int(&rat_accumulator, &int_accumulator, &rat_accumulator);
     }
+
+    if(numbers > 1)
+        changed = true;
 
     ret = malloc(sizeof(num_t));
     ret->is_decimal = has_rat;
@@ -195,8 +198,10 @@ static bool simplify_constants_communative(ast_t *e) {
         e->type = NODE_NUMBER;
         e->op.number = ret;
         e->op.operator.base = NULL;
+        changed = true;
     } else {
         /*Don't append if we are multiplying by 1 or adding 0*/
+        bool should_append = false;
 
         if(e->op.operator.type == OP_MULT) {
             if(ret->is_decimal) {
@@ -214,11 +219,15 @@ static bool simplify_constants_communative(ast_t *e) {
             }
         }
 
-        if(should_append)
+        if(should_append) {
             ast_ChildAppend(e, ast_MakeNumber(ret));
+        } else {
+            changed = numbers == 1;
+            num_Cleanup(ret);
+        }
     }
 
-    return changed > 1;
+    return changed;
 }
 
 /*Simplifies expressions like 5 + 5 to 10*/
