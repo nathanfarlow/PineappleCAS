@@ -23,7 +23,7 @@ static bool simplify_communative(ast_t *e) {
             && child->type == NODE_OPERATOR 
             && child->op.operator.type == e->op.operator.type) {
             
-            ast_ChildAppend(e, child->op.operator.base);
+            ast_ChildGetLast(e)->next = child->op.operator.base;
 
             ast_ChildRemoveIndex(e, i);
             child->op.operator.base = NULL;
@@ -580,7 +580,7 @@ static bool simplify_rational_num(ast_t *e) {
 }
 
 static bool simplify_identities(ast_t *e) {
-    ast_t *current, *op;
+    ast_t *current;
     bool changed = false;
 
     if(e->type != NODE_OPERATOR)
@@ -589,8 +589,6 @@ static bool simplify_identities(ast_t *e) {
     for(current = e->op.operator.base; current != NULL; current = current->next) {
         changed |= simplify_identities(current);
     }
-
-    op = e->op.operator.base;
 
     switch(e->op.operator.type) {
     case OP_LOG: {
@@ -629,6 +627,123 @@ static bool simplify_identities(ast_t *e) {
     return changed;
 }
 
+/*Rewrite X * X^2 as X^1 * X^2*/
+static void _transform_multiplecation(ast_t *e) {
+    unsigned i;
+
+    if(e->type != NODE_OPERATOR)
+        return;
+
+    if(e->op.operator.type != OP_MULT)
+        return;
+
+    for(i = 0; i < ast_ChildLength(e); i++) {
+        ast_t *current = ast_ChildGet(e, i);
+        if((current->type == NODE_OPERATOR && current->op.operator.type != OP_POW) || current->type == NODE_SYMBOL) {
+            ast_t *temp = malloc(sizeof(ast_t));
+
+            temp->type = current->type;
+            temp->op = current->op;
+            temp->next = NULL;
+            
+            current->type = NODE_OPERATOR;
+            current->op.operator.type = OP_POW;
+            current->op.operator.base = NULL;
+            
+            ast_ChildAppend(current, temp);
+            ast_ChildAppend(current, ast_MakeNumber(num_CreateInteger("1")));
+
+            _transform_multiplecation(temp);
+        } else {
+            _transform_multiplecation(current);
+        }
+    }
+}
+
+/*Rewrite X + 2*X as 1*X + 2*X*/
+static void _transform_addition(ast_t *e) {
+    ast_t *current;
+
+    if(e->type != NODE_OPERATOR)
+        return;
+
+    if(e->op.operator.type != OP_ADD)
+        return;
+
+    for(current = e->op.operator.base; current != NULL; current = current->next) {
+        if((current->type == NODE_OPERATOR && current->op.operator.type != OP_MULT) || current->type == NODE_SYMBOL) {
+            ast_t *temp = malloc(sizeof(ast_t));
+
+            temp->type = current->type;
+            temp->op = current->op;
+            temp->next = NULL;
+
+            current->type = NODE_OPERATOR;
+            current->op.operator.type = OP_MULT;
+            current->op.operator.base = NULL;
+
+            ast_ChildAppend(current, ast_MakeNumber(num_CreateInteger("1")));
+            ast_ChildAppend(current, temp);
+
+            _transform_addition(temp);
+        } else {
+            _transform_addition(current);
+        }
+    }
+}
+
+static bool simplify_like_terms(ast_t *e) {
+    bool changed = false;
+    unsigned x, y, len;
+
+    if(e->type != NODE_OPERATOR)
+        return false;
+
+    if(e->op.operator.type == OP_MULT) {
+        _transform_multiplecation(e);
+
+        for(x = 0; x < (len = ast_ChildLength(e)); x++) {
+            ast_t *a = ast_ChildGet(e, x);
+
+            if(a->type != NODE_OPERATOR || a->op.operator.type != OP_POW)
+                continue;
+
+            for(y = 0; y < len; y++) {
+                ast_t *b;
+                if(x == y)
+                    continue;
+                b = ast_ChildGet(e, y);
+
+                if(b->type != NODE_OPERATOR || b->op.operator.type != OP_POW)
+                    continue;
+
+                if(ast_Compare(ast_ChildGet(a, 0), ast_ChildGet(b, 0))) {
+                    ast_t *add;
+
+                    add = ast_MakeBinary(OP_ADD, ast_ChildRemoveIndex(a, 1), ast_ChildRemoveIndex(b, 1));
+
+                    ast_ChildAppend(a, add);
+                    ast_Cleanup(ast_ChildRemoveIndex(e, y));
+
+                    changed = true;
+                    break;
+                }
+            }
+        }
+
+        while(simplify_constants(e));
+    } else if(e->op.operator.type == OP_ADD) {
+        _transform_addition(e);
+
+        while(simplify_constants(e));
+    }
+
+    for(x = 0; x < ast_ChildLength(e); x++)
+        changed |= simplify_like_terms(ast_ChildGet(e, x));
+
+    return changed;
+}
+
 static bool _simplify(ast_t *e) {
     bool changed = false;
 
@@ -645,6 +760,9 @@ static bool _simplify(ast_t *e) {
         changed = true;
     
     while(simplify_identities(e))
+        changed = true;
+
+    while(simplify_like_terms(e))
         changed = true;
 
     return changed;

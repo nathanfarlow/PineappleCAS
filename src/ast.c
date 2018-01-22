@@ -193,6 +193,8 @@ error ast_ChildAppend(ast_t *parent, ast_t *child) {
         parent->op.operator.base = child;
     else
         last->next = child;
+
+    child->next = NULL;
     
     return E_SUCCESS;
 }
