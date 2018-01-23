@@ -708,6 +708,8 @@ static bool simplify_identities(ast_t *e) {
                 e->op = simp->op;
 
                 free(simp);
+
+                ast_Cleanup(a);
                 ast_Cleanup(b);
 
                 changed = true;
