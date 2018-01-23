@@ -735,6 +735,52 @@ static bool simplify_like_terms(ast_t *e) {
     } else if(e->op.operator.type == OP_ADD) {
         _transform_addition(e);
 
+        for(x = 0; x < (len = ast_ChildLength(e)); x++) {
+            ast_t *a = ast_ChildGet(e, x);
+
+            if(a->type != NODE_OPERATOR || a->op.operator.type != OP_MULT)
+                continue;
+
+            for(y = 0; y < ast_ChildLength(e); y++) {
+                unsigned i, j;
+                ast_t *b;
+
+                if(x == y)
+                    continue;
+                b = ast_ChildGet(e, y);
+
+                if(b->type != NODE_OPERATOR || b->op.operator.type != OP_MULT)
+                    continue;
+
+                for(i = 0; i < ast_ChildLength(a); i++) {
+                    ast_t *f = ast_ChildGet(a, i);
+                    for(j = 0; j < ast_ChildLength(b); j++) {
+                        ast_t *g = ast_ChildGet(b, j);
+
+                        if(f->type != NODE_NUMBER && g->type != NODE_NUMBER && ast_Compare(f, g)) {
+                            ast_Cleanup(ast_ChildRemove(b, g));
+                            ast_ChildRemove(a, f);
+                            ast_ChildRemove(e, a);
+
+                            a->op.operator.type = OP_ADD;
+                            ast_ChildGetLast(a)->next = b->op.operator.base;
+                            b->op.operator.base = NULL;
+
+                            ast_ChildInsert(e, ast_MakeBinary(OP_MULT, a, f), 0);
+
+                            ast_Cleanup(ast_ChildRemoveIndex(e, y));
+
+                            x--;
+
+                            changed = true;
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         while(simplify_constants(e));
     }
 
@@ -744,7 +790,7 @@ static bool simplify_like_terms(ast_t *e) {
     return changed;
 }
 
-static bool _simplify(ast_t *e) {
+bool simplify(ast_t *e) {
     bool changed = false;
 
     while(simplify_communative(e))
@@ -758,20 +804,11 @@ static bool _simplify(ast_t *e) {
 
     while(simplify_rational_num(e))
         changed = true;
-    
+
     while(simplify_identities(e))
         changed = true;
 
     while(simplify_like_terms(e))
-        changed = true;
-
-    return changed;
-}
-
-bool simplify(ast_t *e) {
-    bool changed = false;
-
-    while(_simplify(e))
         changed = true;
 
     return changed;
