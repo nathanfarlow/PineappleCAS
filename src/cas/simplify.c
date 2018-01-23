@@ -591,7 +591,24 @@ static bool simplify_identities(ast_t *e) {
     }
 
     switch(e->op.operator.type) {
-    case OP_LOG: {
+    case OP_POW: {
+        ast_t *a, *b;
+        a = ast_ChildGet(e, 0);
+        b = ast_ChildGet(e, 1);
+
+        if(b->type == NODE_OPERATOR && b->op.operator.type == OP_LOG) {
+            if(ast_Compare(a, ast_ChildGet(b, 0))) {
+                ast_t *simp = ast_ChildRemoveIndex(b, 1);
+
+                e->type = simp->type;
+                e->op = simp->op;
+
+                free(simp);
+                ast_Cleanup(b);
+            }
+        }
+        break;
+    } case OP_LOG: {
         ast_t *a, *b;
         a = ast_ChildGet(e, 0);
         b = ast_ChildGet(e, 1);
@@ -605,6 +622,16 @@ static bool simplify_identities(ast_t *e) {
             e->op.number = num_CreateInteger("1");
 
             changed = true;
+        } else if(b->type == NODE_OPERATOR && b->op.operator.type == OP_POW) {
+            if(ast_Compare(a, ast_ChildGet(b, 0))) {
+                ast_t *simp = ast_ChildRemoveIndex(b, 1);
+
+                e->type = simp->type;
+                e->op = simp->op;
+
+                free(simp);
+                ast_Cleanup(b);
+            }
         }
         break;
     }
