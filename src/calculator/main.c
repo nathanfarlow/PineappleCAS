@@ -12,6 +12,7 @@
 
 #include "../ast.h"
 #include "../parser.h"
+#include "../export.h"
 
 #include "../cas/cas.h"
 #include "../cas/mapping.h"
@@ -43,37 +44,18 @@ void main() {
         if(err != E_SUCCESS) {
             LOG(("Couldn't parse equation, reason: %s", error_text[err]));
         } else {
-            double value;
-            char buffer[50];
+            unsigned binary_len;
+            uint8_t *binary;
 
-            ast_t *x = ast_MakeNumber(num_CreateDecimal("2.53"));
-
-            dbg_print_tree(e, 4);
-
-            mapping_Init();
-            mapping_Set('X', x);
-
-            value = approximate(e, &err);
-            if(err == E_SUCCESS) {
-                ftoa(value, buffer, 10);
-                DBG(("Eval: %s\n\n", buffer));
-            } else {
-                DBG(("Unable to evaluate, reason: %s\n\n", error_text[err]));
-            }
+            ti_var_t y2;
 
             simplify(e);
 
-            DBG(("Simplified:\n"));
-            dbg_print_tree(e, 4);
+            binary = export_to_binary(e, &binary_len, &err);
 
-            value = approximate(e, &err);
-            if(err == E_SUCCESS) {
-                ftoa(value, buffer, 10);
-                DBG(("Eval: %s\n", buffer));
-            } else {
-                DBG(("Unable to evaluate, reason: %s\n\n", error_text[err]));
-            }
-
+            y2 = ti_OpenVar(ti_Y2, "w", TI_EQU_TYPE);
+            ti_Write(binary, binary_len, 1, y2);
+            ti_Close(y2);
         }
 
         ast_Cleanup(e);

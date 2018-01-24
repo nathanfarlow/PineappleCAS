@@ -12,6 +12,8 @@
 #include "../dbg.h"
 #include "../parser.h"
 
+#include "../export.h"
+
 #include "../cas/cas.h"
 #include "../cas/mapping.h"
 
