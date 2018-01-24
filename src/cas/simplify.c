@@ -608,7 +608,7 @@ static bool simplify_rational_num(ast_t *e) {
     return changed;
 }
 
-static bool simplify_identities(ast_t *e) {
+static bool simplify_identities(ast_t *e, bool absolute_value) {
     ast_t *current;
     bool changed = false;
 
@@ -616,7 +616,7 @@ static bool simplify_identities(ast_t *e) {
         return false;
 
     for(current = e->op.operator.base; current != NULL; current = current->next) {
-        changed |= simplify_identities(current);
+        changed |= simplify_identities(current, absolute_value);
     }
 
     switch(e->op.operator.type) {
@@ -667,7 +667,28 @@ static bool simplify_identities(ast_t *e) {
 
         if(b->type == NODE_OPERATOR && b->op.operator.type == OP_POW) {
             if(ast_Compare(a, ast_ChildGet(b, 1))) {
-                ast_t *simp = ast_ChildRemoveIndex(b, 0);
+                ast_t *simp;
+                
+                if(a->type == NODE_NUMBER && !a->op.number->is_decimal && mp_int_is_even(&a->op.number->num.integer)) {
+
+                    if(absolute_value) {
+
+                        ast_ChildRemoveIndex(e, 0);
+                        ast_ChildRemoveIndex(e, 0);
+
+                        e->op.operator.type = OP_ABS;
+                        ast_ChildAppend(e, ast_ChildRemoveIndex(b, 0));
+
+                        ast_Cleanup(a);
+                        ast_Cleanup(b);
+
+                        changed = true;
+                    }
+
+                    break;
+                }
+
+                simp = ast_ChildRemoveIndex(b, 0);
 
                 e->type = simp->type;
                 e->op = simp->op;
@@ -912,7 +933,7 @@ bool simplify(ast_t *e) {
     while(simplify_rational_num(e))
         changed = true;
 
-    while(simplify_identities(e))
+    while(simplify_identities(e, true))
         changed = true;
 
     while(simplify_constants(e))
