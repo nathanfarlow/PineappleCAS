@@ -51,6 +51,6 @@ struct Identifier {
 
 extern struct Identifier token_table[AMOUNT_TOKENS];
 
-ast_t *parse(const uint8_t *equation, unsigned length, error *e);
+ast_t *parse(const uint8_t *equation, unsigned length, error_t *e);
 
 #endif

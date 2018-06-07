@@ -85,8 +85,8 @@ bool ast_Compare(ast_t *a, ast_t *b);
 void ast_Cleanup(ast_t *e);
 
 /*Functions dealing with the children of operator asts*/
-error ast_ChildAppend(ast_t *parent, ast_t *child);
-error ast_ChildInsert(ast_t *parent, ast_t *child, LSIZE index);
+error_t ast_ChildAppend(ast_t *parent, ast_t *child);
+error_t ast_ChildInsert(ast_t *parent, ast_t *child, LSIZE index);
 
 ast_t *ast_ChildGet(ast_t *parent, LSIZE index);
 ast_t *ast_ChildGetLast(ast_t *parent);

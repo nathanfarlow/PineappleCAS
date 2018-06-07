@@ -160,7 +160,7 @@ token_t read_token(const uint8_t *equation, unsigned index, unsigned length, uns
     return tok;
 }
 
-error _tokenize(token_t *tokens, const uint8_t *equation, unsigned length, unsigned *tok_amount) {
+error_t _tokenize(token_t *tokens, const uint8_t *equation, unsigned length, unsigned *tok_amount) {
     unsigned token_index = 0;
     unsigned i = 0;
 
@@ -189,8 +189,8 @@ error _tokenize(token_t *tokens, const uint8_t *equation, unsigned length, unsig
     return E_SUCCESS;
 }
 
-error tokenize(tokenizer_t *t, const uint8_t *equation, unsigned length) {
-    error err;
+error_t tokenize(tokenizer_t *t, const uint8_t *equation, unsigned length) {
+    error_t err;
 
     /*Determine the amount of tokens to malloc()*/
     err = _tokenize(NULL, equation, length, &t->amount);
@@ -419,7 +419,7 @@ bool collapse_all(stack_t *operators, stack_t *expressions) {
     return NULL;                                            \
 }
 
-ast_t *parse(const uint8_t *equation, unsigned length, error *e) {
+ast_t *parse(const uint8_t *equation, unsigned length, error_t *e) {
     tokenizer_t tokenizer = {0};
     stack_t operators, expressions;
     ast_t *root;

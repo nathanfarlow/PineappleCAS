@@ -21,7 +21,7 @@ double atanh(double x) {
 
 #define is_nnary(type) (type >= OP_ADD && type <= OP_LOG)
 
-double approximate(ast_t *e, error *err) {
+double approximate(ast_t *e, error_t *err) {
     *err = E_SUCCESS;
 
     switch(e->type) {

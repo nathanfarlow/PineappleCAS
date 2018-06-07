@@ -31,7 +31,7 @@ void main() {
     y1 = ti_OpenVar(ti_Y1, "r", TI_EQU_TYPE);
 
     if(y1) {
-        error err;
+        error_t err;
         ast_t *e;
 
         data = ti_GetDataPtr(y1);

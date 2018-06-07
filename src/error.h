@@ -21,7 +21,7 @@ typedef enum _Error {
     E_EVAL_NO_MAPPING,
 
     AMOUNT_ERRORS
-} error;
+} error_t;
 
 extern const char *error_text[AMOUNT_ERRORS];
 

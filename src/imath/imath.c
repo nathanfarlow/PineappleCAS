@@ -902,8 +902,10 @@ mp_result mp_int_div(mp_int a, mp_int b, mp_int q, mp_int r)
     if (q && (res = mp_int_copy(a, q)) != MP_OK) goto CLEANUP;
     if (r && (res = mp_int_copy(a, r)) != MP_OK) goto CLEANUP;
 
-    if (q) s_qdiv(q, (mp_size) lg); qout = q;
-    if (r) s_qmod(r, (mp_size) lg); rout = r;
+    if (q) s_qdiv(q, (mp_size) lg);
+    qout = q;
+    if (r) s_qmod(r, (mp_size) lg);
+    rout = r;
   }
 
   /* Recompute signs for output */
@@ -2191,7 +2193,7 @@ STATIC int       s_kmul(mp_digit *da, mp_digit *db, mp_digit *dc,
       size_a >= multiply_threshold &&
       size_b > bot_size) {
 
-    mp_digit *t1, *t2, *t3, carry;
+    mp_digit *i_hate_this_compiler1, *i_hate_this_compiler2, *i_hate_this_compiler3, carry;
 
     mp_digit *a_top = da + bot_size;
     mp_digit *b_top = db + bot_size;
@@ -2205,45 +2207,45 @@ STATIC int       s_kmul(mp_digit *da, mp_digit *db, mp_digit *dc,
        one buffer needs space for the completed product; twice the space is
        plenty.
      */
-    if ((t1 = s_alloc(4 * buf_size)) == NULL) return 0;
-    t2 = t1 + buf_size;
-    t3 = t2 + buf_size;
-    ZERO(t1, 4 * buf_size);
+    if ((i_hate_this_compiler1 = s_alloc(4 * buf_size)) == NULL) return 0;
+    i_hate_this_compiler2 = i_hate_this_compiler1 + buf_size;
+    i_hate_this_compiler3 = i_hate_this_compiler2 + buf_size;
+    ZERO(i_hate_this_compiler1, 4 * buf_size);
 
-    /* t1 and t2 are initially used as temporaries to compute the inner product
+    /* i_hate_this_compiler1 and i_hate_this_compiler2 are initially used as temporaries to compute the inner product
        (a1 + a0)(b1 + b0) = a1b1 + a1b0 + a0b1 + a0b0
      */
-    carry = s_uadd(da, a_top, t1, bot_size, at_size);      /* t1 = a1 + a0 */
-    t1[bot_size] = carry;
+    carry = s_uadd(da, a_top, i_hate_this_compiler1, bot_size, at_size);      /* i_hate_this_compiler1 = a1 + a0 */
+    i_hate_this_compiler1[bot_size] = carry;
 
-    carry = s_uadd(db, b_top, t2, bot_size, bt_size);      /* t2 = b1 + b0 */
-    t2[bot_size] = carry;
+    carry = s_uadd(db, b_top, i_hate_this_compiler2, bot_size, bt_size);      /* i_hate_this_compiler2 = b1 + b0 */
+    i_hate_this_compiler2[bot_size] = carry;
 
-    (void) s_kmul(t1, t2, t3, bot_size + 1, bot_size + 1); /* t3 = t1 * t2 */
+    (void) s_kmul(i_hate_this_compiler1, i_hate_this_compiler2, i_hate_this_compiler3, bot_size + 1, bot_size + 1); /* i_hate_this_compiler3 = i_hate_this_compiler1 * i_hate_this_compiler2 */
 
-    /* Now we'll get t1 = a0b0 and t2 = a1b1, and subtract them out so that
-       we're left with only the pieces we want:  t3 = a1b0 + a0b1
+    /* Now we'll get i_hate_this_compiler1 = a0b0 and i_hate_this_compiler2 = a1b1, and subtract them out so that
+       we're left with only the pieces we want:  i_hate_this_compiler3 = a1b0 + a0b1
      */
-    ZERO(t1, buf_size);
-    ZERO(t2, buf_size);
-    (void) s_kmul(da, db, t1, bot_size, bot_size);     /* t1 = a0 * b0 */
-    (void) s_kmul(a_top, b_top, t2, at_size, bt_size); /* t2 = a1 * b1 */
+    ZERO(i_hate_this_compiler1, buf_size);
+    ZERO(i_hate_this_compiler2, buf_size);
+    (void) s_kmul(da, db, i_hate_this_compiler1, bot_size, bot_size);     /* i_hate_this_compiler1 = a0 * b0 */
+    (void) s_kmul(a_top, b_top, i_hate_this_compiler2, at_size, bt_size); /* i_hate_this_compiler2 = a1 * b1 */
 
-    /* Subtract out t1 and t2 to get the inner product */
-    s_usub(t3, t1, t3, buf_size + 2, buf_size);
-    s_usub(t3, t2, t3, buf_size + 2, buf_size);
+    /* Subtract out i_hate_this_compiler1 and i_hate_this_compiler2 to get the inner product */
+    s_usub(i_hate_this_compiler3, i_hate_this_compiler1, i_hate_this_compiler3, buf_size + 2, buf_size);
+    s_usub(i_hate_this_compiler3, i_hate_this_compiler2, i_hate_this_compiler3, buf_size + 2, buf_size);
 
     /* Assemble the output value */
-    COPY(t1, dc, buf_size);
-    carry = s_uadd(t3, dc + bot_size, dc + bot_size,
+    COPY(i_hate_this_compiler1, dc, buf_size);
+    carry = s_uadd(i_hate_this_compiler3, dc + bot_size, dc + bot_size,
 		   buf_size + 1, buf_size);
     assert(carry == 0);
 
-    carry = s_uadd(t2, dc + 2*bot_size, dc + 2*bot_size,
+    carry = s_uadd(i_hate_this_compiler2, dc + 2*bot_size, dc + 2*bot_size,
 		   buf_size, buf_size);
     assert(carry == 0);
 
-    s_free(t1); /* note t2 and t3 are just internal pointers to t1 */
+    s_free(i_hate_this_compiler1); /* note i_hate_this_compiler2 and i_hate_this_compiler3 are just internal pointers to i_hate_this_compiler1 */
   }
   else {
     s_umul(da, db, dc, size_a, size_b);
@@ -2282,45 +2284,45 @@ STATIC int       s_ksqr(mp_digit *da, mp_digit *dc, mp_size size_a)
   if (multiply_threshold && size_a > multiply_threshold) {
     mp_size  bot_size = (size_a + 1) / 2;
     mp_digit *a_top = da + bot_size;
-    mp_digit *t1, *t2, *t3, carry;
+    mp_digit *i_hate_this_compiler1, *i_hate_this_compiler2, *i_hate_this_compiler3, carry;
     mp_size  at_size = size_a - bot_size;
     mp_size  buf_size = 2 * bot_size;
 
-    if ((t1 = s_alloc(4 * buf_size)) == NULL) return 0;
-    t2 = t1 + buf_size;
-    t3 = t2 + buf_size;
-    ZERO(t1, 4 * buf_size);
+    if ((i_hate_this_compiler1 = s_alloc(4 * buf_size)) == NULL) return 0;
+    i_hate_this_compiler2 = i_hate_this_compiler1 + buf_size;
+    i_hate_this_compiler3 = i_hate_this_compiler2 + buf_size;
+    ZERO(i_hate_this_compiler1, 4 * buf_size);
 
-    (void) s_ksqr(da, t1, bot_size);    /* t1 = a0 ^ 2 */
-    (void) s_ksqr(a_top, t2, at_size);  /* t2 = a1 ^ 2 */
+    (void) s_ksqr(da, i_hate_this_compiler1, bot_size);    /* i_hate_this_compiler1 = a0 ^ 2 */
+    (void) s_ksqr(a_top, i_hate_this_compiler2, at_size);  /* i_hate_this_compiler2 = a1 ^ 2 */
 
-    (void) s_kmul(da, a_top, t3, bot_size, at_size);  /* t3 = a0 * a1 */
+    (void) s_kmul(da, a_top, i_hate_this_compiler3, bot_size, at_size);  /* i_hate_this_compiler3 = a0 * a1 */
 
-    /* Quick multiply t3 by 2, shifting left (can't overflow) */
+    /* Quick multiply i_hate_this_compiler3 by 2, shifting left (can't overflow) */
     {
       int i, top = bot_size + at_size;
       mp_word w, save = 0;
 
       for (i = 0; i < top; ++i) {
-	w = t3[i];
+	w = i_hate_this_compiler3[i];
 	w = (w << 1) | save;
-	t3[i] = LOWER_HALF(w);
+	i_hate_this_compiler3[i] = LOWER_HALF(w);
 	save = UPPER_HALF(w);
       }
-      t3[i] = LOWER_HALF(save);
+      i_hate_this_compiler3[i] = LOWER_HALF(save);
     }
 
     /* Assemble the output value */
-    COPY(t1, dc, 2 * bot_size);
-    carry = s_uadd(t3, dc + bot_size, dc + bot_size,
+    COPY(i_hate_this_compiler1, dc, 2 * bot_size);
+    carry = s_uadd(i_hate_this_compiler3, dc + bot_size, dc + bot_size,
 		   buf_size + 1, buf_size);
     assert(carry == 0);
 
-    carry = s_uadd(t2, dc + 2*bot_size, dc + 2*bot_size,
+    carry = s_uadd(i_hate_this_compiler2, dc + 2*bot_size, dc + 2*bot_size,
 		   buf_size, buf_size);
     assert(carry == 0);
 
-    s_free(t1); /* note that t2 and t2 are internal pointers only */
+    s_free(i_hate_this_compiler1); /* note that i_hate_this_compiler2 and i_hate_this_compiler2 are internal pointers only */
 
   } 
   else {
@@ -2903,7 +2905,8 @@ STATIC mp_result s_udiv_knuth(mp_int u, mp_int v) {
      add the leading zero to v here to ensure that the multiplication will
      produce the full n+1 digit result.
    */
-  if (!s_pad(v, n+1)) return MP_MEMORY; v->digits[n] = 0;
+  if (!s_pad(v, n+1)) return MP_MEMORY;
+  v->digits[n] = 0;
 
   /* Initialize temporary variables q and t.
      q allocates space for m+1 digits to store the quotient digits

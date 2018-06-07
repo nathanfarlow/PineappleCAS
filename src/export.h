@@ -5,6 +5,6 @@
 
 #include "ast.h"
 
-uint8_t *export_to_binary(ast_t *e, unsigned *len, error *err);
+uint8_t *export_to_binary(ast_t *e, unsigned *len, error_t *err);
 
 #endif

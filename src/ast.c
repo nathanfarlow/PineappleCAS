@@ -181,7 +181,7 @@ void ast_Cleanup(ast_t *e) {
     free(e);
 }
 
-error ast_ChildAppend(ast_t *parent, ast_t *child) {
+error_t ast_ChildAppend(ast_t *parent, ast_t *child) {
     ast_t *last;
 
     if(parent->type != NODE_OPERATOR)
@@ -232,7 +232,7 @@ ast_t *ast_ChildGetLast(ast_t *parent) {
     return NULL;
 }
 
-error ast_ChildInsert(ast_t *parent, ast_t *child, LSIZE index) {
+error_t ast_ChildInsert(ast_t *parent, ast_t *child, LSIZE index) {
     LSIZE i;
     ast_t *current;
 

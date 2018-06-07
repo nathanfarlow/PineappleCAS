@@ -21,7 +21,7 @@
 
 int main(int argc, char **argv) {
 
-    error err;
+    error_t err;
 
     FILE *file;
     yvar_t yvar;

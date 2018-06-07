@@ -35,7 +35,7 @@ static uint8_t precedence(ast_t *e) {
 #define need_paren(parent, child) ((parent->type == NODE_OPERATOR && is_type_operator(parent->op.operator.type) && precedence(child) <= precedence(parent)) || precedence(child) < precedence(parent))
 
 /*Returns length of buffer. Writes to buffer is buffer != NULL*/
-static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, error *err) {
+static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, error_t *err) {
     
     switch(e->type) {
     case NODE_NUMBER: {
@@ -221,7 +221,7 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, error *err) 
     return index;
 }
 
-uint8_t *export_to_binary(ast_t *e, unsigned *len, error *err) {
+uint8_t *export_to_binary(ast_t *e, unsigned *len, error_t *err) {
     uint8_t *data;
 
     *err = E_SUCCESS;
