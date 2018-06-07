@@ -7,7 +7,7 @@ PineappleCAS uses the imath library for arbitrary precision math: https://github
 ## TODO
 - [X] Parse expression
 - [X] Implement arbitrary precision math
-- [X] Simplify expression
+- [ ] Simplify expression
 - [ ] Export expression
 - [ ] Solve derivative
 - [ ] Factor
