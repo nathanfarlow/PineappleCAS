@@ -128,9 +128,9 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, error_t *err
 
             add_token(e->op.operator.type == OP_DIV ? TI_FRACTION : TI_POWER);
 
-            if(e->op.operator.type == OP_POW && b->type != NODE_NUMBER || need_paren(e, b)) add_token(TI_OPEN_PAR);
+            if((e->op.operator.type == OP_POW && b->type != NODE_NUMBER) || need_paren(e, b)) add_token(TI_OPEN_PAR);
             index = _to_binary(b, data, index, err);
-            if(e->op.operator.type == OP_POW && b->type != NODE_NUMBER || need_paren(e, b)) add_token(TI_CLOSE_PAR);
+            if((e->op.operator.type == OP_POW && b->type != NODE_NUMBER) || need_paren(e, b)) add_token(TI_CLOSE_PAR);
 
             break;
         } case OP_ROOT: {
@@ -207,6 +207,7 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, error_t *err
                 case OP_COSH_INV:   add_token(TI_COSH_INV); break;
                 case OP_TANH:       add_token(TI_TANH);     break;
                 case OP_TANH_INV:   add_token(TI_TANH_INV); break;
+                default: break;
             }
         
             index = _to_binary(ast_ChildGet(e, 0), data, index, err);
