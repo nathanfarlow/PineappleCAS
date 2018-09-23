@@ -19,7 +19,12 @@ double atanh(double x) {
 
 #endif
 
-#define is_nnary(type) (type >= OP_ADD && type <= OP_LOG)
+static unsigned factorial(unsigned x) {
+    unsigned total = 1;
+    for (; x > 0; x--)
+        total *= x;
+    return total;
+}
 
 double approximate(ast_t *e, error_t *err) {
     *err = E_SUCCESS;
@@ -46,7 +51,7 @@ double approximate(ast_t *e, error_t *err) {
     } case NODE_OPERATOR: {
         OperatorType type = e->op.operator.type;
 
-        if(is_nnary(type)) {
+        if(is_op_nary(type)) {
 
             if(is_type_communative(type)) {
                 ast_t *current;
@@ -94,6 +99,7 @@ double approximate(ast_t *e, error_t *err) {
             if(*err != E_SUCCESS) return 0;
 
             switch(type) {
+            case OP_FACTORIAL:  return (double)factorial((unsigned)x);
             case OP_INT:        return (int)x;
             case OP_ABS:        return fabs(x);
 

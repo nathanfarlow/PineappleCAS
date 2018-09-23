@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
     DBG(("Node count: %i\n", dbg_count_nodes(e)));
     dbg_print_tree(e, 4);
 
-    x = ast_MakeNumber(num_CreateDecimal("2.53"));
+    x = ast_MakeNumber(num_CreateInteger("3"));
 
     mapping_Init();
     mapping_Set('X', x);

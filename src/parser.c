@@ -2,6 +2,7 @@
 
 #include "stack.h"
 
+/*http://tibasicdev.wikidot.com/one-byte-tokens*/
 struct Identifier token_table[AMOUNT_TOKENS] = {
     {0, {0}}, {0, {0}},         /*TI_NUMBER, TI_SYMBOL*/
 
@@ -15,6 +16,7 @@ struct Identifier token_table[AMOUNT_TOKENS] = {
 
     {1, {0xB0}},                            /*TI_NEGATE*/
     {1, {0x0C}}, {1, {0x0D}}, {1, {0x0F}},  /*TI_RECIPROCAL, TI_SQUARE, TI_CUBE*/
+    {1, {0x2D}},                            /*TI_FACTORIAL*/
 
     {2, {0xEF, 0x34}},          /*TI_LOG_BASE*/
 
@@ -205,13 +207,14 @@ error_t tokenize(tokenizer_t *t, const uint8_t *equation, unsigned length) {
     return err;
 }
 
-#define is_type_unary_operator(type)    (type >= TI_NEGATE && type <= TI_CUBE)
+#define is_type_unary_operator(type)    (type >= TI_NEGATE && type <= TI_FACTORIAL)
 #define is_type_binary_operator(type)   (type >= TI_PLUS && type <= TI_ROOT)
 
 #define is_type_unary_function(type)    (type >= TI_INT && type <= TI_TANH_INV)
-#define is_type_nnary_function(type)    (type == TI_LOG_BASE)
-#define is_type_function(type)          (is_type_unary_function(type) || is_type_nnary_function(type))
+#define is_type_nary_function(type)     (type == TI_LOG_BASE)
+#define is_type_function(type)          (is_type_unary_function(type) || is_type_nary_function(type))
 
+/*Larger = Higher precedence*/
 uint8_t precedence(TokenType type) {
     switch(type) {
     case TI_PLUS: case TI_MINUS:
@@ -219,9 +222,9 @@ uint8_t precedence(TokenType type) {
     case TI_MULTIPLY: case TI_NEGATE:
     case TI_DIVIDE: case TI_FRACTION:
         return 10;
-    case TI_POWER: case TI_RECIPROCAL:
+    case TI_POWER:  case TI_RECIPROCAL:
     case TI_SQUARE: case TI_CUBE:
-    case TI_ROOT:
+    case TI_ROOT:   case TI_FACTORIAL:
         return 15;
     case TI_SCIENTIFIC:
         return 20;
@@ -254,10 +257,9 @@ bool should_multiply_by_next_token(tokenizer_t *tokenizer, unsigned index) {
 
 /*How many parameters for the function or operator*/
 uint8_t operand_count(TokenType type) {
-    if(    (type >= TI_NEGATE && type <= TI_CUBE)
-        || (type >= TI_INT && type <= TI_TANH_INV))
+    if(is_type_unary_operator(type) || is_type_unary_function(type))
         return 1;
-    if((type >= TI_PLUS && type <= TI_ROOT) || type == TI_LOG_BASE)
+    if(is_type_binary_operator(type) || is_type_nary_function(type))
         return 2;
     return 0;
 }
@@ -305,6 +307,7 @@ void translate(ast_t *e) {
         e->op.operator.type = OP_POW;
         ast_ChildAppend(e, ast_MakeNumber(num_CreateInteger("3")));
         break;
+    case TI_FACTORIAL:  e->op.operator.type = OP_FACTORIAL; break;
     case TI_LOG_BASE:
         e->op.operator.type = OP_LOG;
         /*Swap the operands*/
@@ -365,7 +368,7 @@ bool collapse_precedence(stack_t *operators, stack_t *expressions, TokenType typ
         if(type == TI_CLOSE_PAR && ((token_t*)stack_Peek(operators))->type == TI_OPEN_PAR)
             break;
         /*Break when we meet the function that the , belongs to*/
-        else if(type == TI_COMMA && is_type_nnary_function(((token_t*)stack_Peek(operators))->type))
+        else if(type == TI_COMMA && is_type_nary_function(((token_t*)stack_Peek(operators))->type))
             break;
         /*Break if the precedence is lower than the type*/
         else if(type != TI_CLOSE_PAR && type != TI_COMMA && precedence(((token_t*)stack_Peek(operators))->type) < precedence(type))
@@ -457,6 +460,7 @@ ast_t *parse(const uint8_t *equation, unsigned length, error_t *e) {
             }
 
         } else if(is_type_unary_operator(tok->type)) {
+            parse_assert(collapse_precedence(&operators, &expressions, tok->type), E_PARSE_BAD_OPERATOR);
             stack_Push(&operators, tok);
 
             if(tok->type != TI_NEGATE && should_multiply_by_next_token(&tokenizer, i)) {
@@ -472,8 +476,8 @@ ast_t *parse(const uint8_t *equation, unsigned length, error_t *e) {
             stack_Push(&operators, tok);
         } else if(tok->type == TI_CLOSE_PAR) {
             parse_assert(collapse_precedence(&operators, &expressions, TI_CLOSE_PAR), E_PARSE_BAD_OPERATOR);
-
             parse_assert(operators.top > 0 && ((token_t*)stack_Peek(&operators))->type == TI_OPEN_PAR, E_PARSE_UNMATCHED_CLOSE_PAR);
+
             stack_Pop(&operators);
 
             if(should_multiply_by_next_token(&tokenizer, i)) {

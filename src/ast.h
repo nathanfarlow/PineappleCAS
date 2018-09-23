@@ -12,12 +12,19 @@ typedef enum {
     NODE_NUMBER, NODE_SYMBOL, NODE_OPERATOR
 } NodeType;
 
+#define is_op_nary(type) (type >= OP_ADD && type <= OP_LOG)
+#define is_op_unary(type) (!is_nary(type))
+
 typedef enum {
-    OP_ADD, /*OP_SUB,*/
+    /*nary*/
+    OP_ADD,
     OP_MULT, OP_DIV,
 
     OP_POW, OP_ROOT,
     OP_LOG,
+
+    /*Unary*/
+    OP_FACTORIAL,
 
     OP_INT, OP_ABS,
 
@@ -44,7 +51,7 @@ typedef enum {
     SYM_Q, SYM_R, SYM_S, SYM_T, SYM_U,
     SYM_V, SYM_W, SYM_X, SYM_Y, SYM_Z,
 
-    SYM_INVALID
+    SYM_INVALID,
 } Symbol;
 
 typedef struct _Node {
