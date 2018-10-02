@@ -28,7 +28,6 @@ int main(int argc, char **argv) {
 
     if(result != TEST_SUCCESS) {
         printf("Error reading test file\n");
-        printf("%i\n", result);
         return -1;
     }
 
