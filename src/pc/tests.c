@@ -15,7 +15,7 @@
 #include "../cas/cas.h"
 #include "../cas/mapping.h"
 
-//Read string until ':' and discard ':'
+/*Read string until ':' and discard ':'*/
 TestResult read_string(FILE *f, char *buffer) {
 
     unsigned i;
@@ -42,7 +42,7 @@ TestResult read_string(FILE *f, char *buffer) {
                             if(result != TEST_SUCCESS) return result;
 
 TestResult test_ReadFile(char *file, TestModule **modules, unsigned *size) {
-    FILE *f;
+    FILE *f = NULL;
     TestResult result;
 
     unsigned index;
@@ -50,14 +50,14 @@ TestResult test_ReadFile(char *file, TestModule **modules, unsigned *size) {
 #ifdef _WIN32
     fopen_s(&f, file, "rb");
 #else
-    file = fopen(file, "rb");
+    f = fopen(file, "rb");
 #endif
 
     if(f == NULL)
         return TEST_IO_ERROR;
 
 
-    //Count the newlines in the file lol
+    /*Count the newlines in the file lol*/
     *size = 1;
     while(!feof(f)) *size += (fgetc(f) == '\n');
 
@@ -78,7 +78,7 @@ TestResult test_ReadFile(char *file, TestModule **modules, unsigned *size) {
         READ_STRING_TO((*modules)[index].input);
         READ_STRING_TO((*modules)[index].output);
         READ_STRING_TO((*modules)[index].precision);
-        //discard new lines
+        /*discard new lines*/
         do {
             c = fgetc(f);
         } while(c == '\n' || c == '\r');
@@ -91,7 +91,7 @@ TestResult test_ReadFile(char *file, TestModule **modules, unsigned *size) {
 
 
 TestResult test_Run(TestModule *t) {
-    FILE *f;
+    FILE *f = NULL;
 
     yvar_t yvar;
     ast_t *e, *x;
@@ -99,6 +99,7 @@ TestResult test_Run(TestModule *t) {
     error_t err;
 
     double value;
+    int precision;
 
     char buffer[BUF_SIZE + 10] = {0};
 #ifdef _WIN32
@@ -108,7 +109,7 @@ TestResult test_Run(TestModule *t) {
 #else
     strcat(buffer, "tests/");
     strncat(buffer, t->file, BUF_SIZE);
-    file = fopen(buffer, "rb");
+    f = fopen(buffer, "rb");
 #endif
 
     if(f == NULL)
@@ -132,7 +133,7 @@ TestResult test_Run(TestModule *t) {
 
     x = ast_MakeNumber(num_CreateDecimal(t->input));
 
-    //TODO: need to remove this system later on
+    /*TODO: need to remove this system later on*/
     mapping_Set('X', x);
 
     value = approximate(e, &err);
@@ -144,7 +145,7 @@ TestResult test_Run(TestModule *t) {
         return TEST_BAD_PARSING;
     }
 
-    int precision = atoi(t->precision);
+    precision = atoi(t->precision);
     if(precision < 0) {
         ast_Cleanup(e);
         mapping_Cleanup();
@@ -152,12 +153,16 @@ TestResult test_Run(TestModule *t) {
         return TEST_BAD_FORMAT;
     }
     
-    sprintf_s(buffer, BUF_SIZE, "%lf", value);
+#ifdef _WIN32
+    sprintf_s(buffer, BUF_SIZE, "%f", value);
+#else
+    sprintf(buffer, "%f", value);
+#endif
 
     ast_Cleanup(e);
     yvar_Cleanup(&yvar);
 
-    if(strncmp(buffer, t->output, min(BUF_SIZE, precision)) != 0)
+    if(strncmp(buffer, t->output, (BUF_SIZE < precision ? BUF_SIZE : precision)) != 0)
         return TEST_INCORRECT;
 
     return TEST_SUCCESS;

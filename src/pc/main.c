@@ -28,10 +28,11 @@ int main(int argc, char **argv) {
 
     if(result != TEST_SUCCESS) {
         printf("Error reading test file\n");
-        return;
+        printf("%i\n", result);
+        return -1;
     }
 
-    //Todo: need to remove this system
+    /*Todo: need to remove this system*/
     mapping_Init();
 
     for(i = 0; i < size; i++) {

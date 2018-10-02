@@ -21,7 +21,7 @@ typedef enum {
     TEST_BAD_PARSING,
 
     /*Wrong answer*/
-    TEST_INCORRECT,
+    TEST_INCORRECT
 } TestResult;
 
 TestResult test_ReadFile(char *file, TestModule **modules, unsigned *size);
