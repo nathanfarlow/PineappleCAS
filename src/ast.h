@@ -51,7 +51,7 @@ typedef enum {
     SYM_Q, SYM_R, SYM_S, SYM_T, SYM_U,
     SYM_V, SYM_W, SYM_X, SYM_Y, SYM_Z,
 
-    SYM_INVALID,
+    SYM_INVALID
 } Symbol;
 
 typedef struct _Node {

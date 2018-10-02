@@ -15,7 +15,7 @@
 #include "../cas/cas.h"
 #include "../cas/mapping.h"
 
-//Read string until ':' and discard ':'
+/*Read string until ':' and discard ':'*/
 TestResult read_string(FILE *f, char *buffer) {
 
     unsigned i;
@@ -57,7 +57,7 @@ TestResult test_ReadFile(char *file, TestModule **modules, unsigned *size) {
         return TEST_IO_ERROR;
 
 
-    //Count the newlines in the file lol
+    /*Count the newlines in the file lol*/
     *size = 1;
     while(!feof(f)) *size += (fgetc(f) == '\n');
 
@@ -78,7 +78,7 @@ TestResult test_ReadFile(char *file, TestModule **modules, unsigned *size) {
         READ_STRING_TO((*modules)[index].input);
         READ_STRING_TO((*modules)[index].output);
         READ_STRING_TO((*modules)[index].precision);
-        //discard new lines
+        /*discard new lines*/
         do {
             c = fgetc(f);
         } while(c == '\n' || c == '\r');
@@ -132,7 +132,7 @@ TestResult test_Run(TestModule *t) {
 
     x = ast_MakeNumber(num_CreateDecimal(t->input));
 
-    //TODO: need to remove this system later on
+    /*TODO: need to remove this system later on*/
     mapping_Set('X', x);
 
     value = approximate(e, &err);
