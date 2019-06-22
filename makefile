@@ -8,7 +8,6 @@
 # ----------------------------
 
 NAME        ?= PCAS
-DEBUGMODE   ?= DEBUG
 COMPRESSED  ?= YES
 ICON        ?= iconc.png
 DESCRIPTION ?= "PineappleCAS"
