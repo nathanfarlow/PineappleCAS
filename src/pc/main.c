@@ -10,45 +10,90 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#if  defined(_WIN32) && defined(DEBUG)
-#include <vld.h>
-#endif
+#include <string.h>
 
-#include "tests.h"
-#include "../cas/mapping.h"
+#include "../ast.h"
+#include "../parser.h"
+
+#include "../dbg.h"
+
+#include "../cas/cas.h"
+
+/*Trim null terminated string*/
+uint8_t *trim(char *input, unsigned *len) {
+    unsigned i, trimmed_len = 0, trim_index = 0;
+    uint8_t *trimmed;
+
+    for(i = 0; i < strlen(input) + 1; i++) {
+        if(input[i] != ' ' && input[i] != '\t')
+            trimmed_len++;
+    }
+
+    trimmed = malloc(trimmed_len * sizeof(uint8_t));
+
+    for(i = 0; i < strlen(input) + 1; i++) {
+        if(input[i] != ' ' && input[i] != '\t')
+            trimmed[trim_index++] = (uint8_t)input[i];
+    }
+
+    *len = trimmed_len - 1; /*Don't include null byte*/
+
+    return trimmed;
+}
 
 int main(int argc, char **argv) {
 
-    TestModule *modules;
-    unsigned size;
-    TestResult result;
-    unsigned i;
+    uint8_t *trimmed;
+    unsigned trimmed_len;
 
-    result = test_ReadFile("tests/testfile", &modules, &size);
+    error_t err;
+    ast_t *e;
 
-    if(result != TEST_SUCCESS) {
-        printf("Error reading test file\n");
+    uint8_t *output;
+    unsigned output_len;
+
+    if(argc <= 1) {
+        printf("Usage: ./pineapple \"sin(2) + 3\"\n");
         return -1;
     }
 
-    /*Todo: need to remove this system*/
-    mapping_Init();
+    trimmed = trim(argv[1], &trimmed_len);
 
-    for(i = 0; i < size; i++) {
+    printf("Parsing \"%s\"\n", trimmed);
 
-        result = test_Run(&modules[i]);
-        if(result == TEST_SUCCESS) {
-            printf("%s succeeded.\n", modules[i].name);
-        }
-        else {
-            printf("%s failed.\n", modules[i].name);
+    e = parse(trimmed, trimmed_len, STR_TABLE, &err);
+
+    printf("%s\n", error_text[err]);
+
+    if(err == E_SUCCESS && e != NULL) {
+
+        printf("\n");
+        dbg_print_tree(e, 4);
+
+        printf("\n");
+
+        printf("Simplifying...\n\n");
+
+        simplify(e);
+
+        dbg_print_tree(e, 4);
+
+        printf("\n");
+
+        output = export_to_binary(e, &output_len, STR_TABLE, &err);
+
+        if(err == E_SUCCESS && output != NULL) {
+            printf("Output: ");
+            printf("%.*s\n", output_len, output);
+
+
+            free(output);
         }
 
     }
 
-    mapping_Cleanup();
-
-    free(modules);
+    free(trimmed);
+    ast_Cleanup(e);
 
     return 0;
 }

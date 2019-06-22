@@ -3,46 +3,86 @@
 #include "stack.h"
 
 /*http://tibasicdev.wikidot.com/one-byte-tokens*/
-struct Identifier token_table[AMOUNT_TOKENS] = {
-    {0, {0}}, {0, {0}},         /*TI_NUMBER, TI_SYMBOL*/
+struct Identifier TI_TABLE[AMOUNT_TOKENS] = {
+    {0, {0}}, {0, {0}},         /*TOK_NUMBER, TOK_SYMBOL*/
 
-    {1, {0x70 }}, {1, {0x71 }}, /*TI_PLUS, TI_MINUS*/
-    {1, {0x82 }}, {1, {0x83 }}, /*TI_MULTIPLY, TI_DIVIDES*/
-    {2, {0xEF, 0x2E}},          /*TI_FRACTION*/
-    {2, {0xEF, 0x2F}},          /*TI_PROPER*/
-    {1, {0xF0}},                /*TI_POWER*/
-    {1, {0x3B}},                /*TI_SCIENTIFIC*/
-    {1, {0xF1}},                /*TI_ROOT*/
+    {1, {0x70}}, {1, {0x71}},   /*TOK_PLUS, TOK_MINUS*/
+    {1, {0x82}}, {1, {0x83}},   /*TOK_MULTIPLY, TOK_DIVIDE*/
+    {2, {0xEF, 0x2E}},          /*TOK_FRACTION*/
+    {2, {0xEF, 0x2F}},          /*TOK_PROPER*/
+    {1, {0xF0}},                /*TOK_POWER*/
+    {1, {0x3B}},                /*TOK_SCIENTIFIC*/
+    {1, {0xF1}},                /*TOK_ROOT*/
 
-    {1, {0xB0}},                            /*TI_NEGATE*/
-    {1, {0x0C}}, {1, {0x0D}}, {1, {0x0F}},  /*TI_RECIPROCAL, TI_SQUARE, TI_CUBE*/
-    {1, {0x2D}},                            /*TI_FACTORIAL*/
+    {1, {0xB0}},                            /*TOK_NEGATE*/
+    {1, {0x0C}}, {1, {0x0D}}, {1, {0x0F}},  /*TOK_RECIPROCAL, TOK_SQUARE, TOK_CUBE*/
+    {1, {0x2D}},                            /*TOK_FACTORIAL*/
 
-    {2, {0xEF, 0x34}},          /*TI_LOG_BASE*/
+    {2, {0xEF, 0x34}},          /*TOK_LOG_BASE*/
 
-    {1, {0xB1}}, {1, {0xB2}},   /*TI_INT, TI_ABS*/
-    {1, {0xBC}}, {1, {0xBD}},   /*TI_SQRT, TI_CUBED_ROOT*/
-    {1, {0xBE}}, {1, {0xBF}},   /*TI_LN, TI_E_TO_POWER*/
-    {1, {0xC0}}, {1, {0xC1}},   /*TI_LOG, TI_10_TO_POWER*/
-    {1, {0xC2}}, {1, {0xC3}},   /*TI_SIN, TI_SIN_INV*/
-    {1, {0xC4}}, {1, {0xC5}},   /*TI_COS, TI_COS_INV*/
-    {1, {0xC6}}, {1, {0xC7}},   /*TI_TAN, TI_TAN_INV*/
-    {1, {0xC8}}, {1, {0xC9}},   /*TI_SINH, TI_SINH_INV*/
-    {1, {0xCA}}, {1, {0xCB}},   /*TI_COSH, TI_COSH_INV*/
-    {1, {0xCC}}, {1, {0xCD}},   /*TI_TANH, TI_TANH_INV*/
+    {1, {0xB1}}, {1, {0xB2}},   /*TOK_INT, TOK_ABS*/
+    {1, {0xBC}}, {1, {0xBD}},   /*TOK_SQRT, TOK_CUBED_ROOT*/
+    {1, {0xBE}}, {1, {0xBF}},   /*TOK_LN, TOK_E_TO_POWER*/
+    {1, {0xC0}}, {1, {0xC1}},   /*TOK_LOG, TOK_10_TO_POWER*/
+    {1, {0xC2}}, {1, {0xC3}},   /*TOK_SIN, TOK_SIN_INV*/
+    {1, {0xC4}}, {1, {0xC5}},   /*TOK_COS, TOK_COS_INV*/
+    {1, {0xC6}}, {1, {0xC7}},   /*TOK_TAN, TOK_TAN_INV*/
+    {1, {0xC8}}, {1, {0xC9}},   /*TOK_SINH, TOK_SINH_INV*/
+    {1, {0xCA}}, {1, {0xCB}},   /*TOK_COSH, TOK_COSH_INV*/
+    {1, {0xCC}}, {1, {0xCD}},   /*TOK_TANH, TOK_TANH_INV*/
 
-    {1, {0x10}}, {1, {0x11}},   /*TI_OPEN_PAR, TI_CLOSE_PAR*/
-    {1, {0x2B}}, {1, {0x3A}},   /*TI_COMMA, TI_PERIOD*/
+    {1, {0x10}}, {1, {0x11}},   /*TOK_OPEN_PAR, TOK_CLOSE_PAR*/
+    {1, {0x2B}}, {1, {0x3A}},   /*TOK_COMMA, TOK_PERIOD*/
 
-    {2, {0xBB, 0x31}},          /*TI_E*/
-    {1, {0xAC}}, {1, {0x5B}}    /*TI_PI, TI_THETA*/
+    {2, {0xBB, 0x31}},          /*TOK_E*/
+    {1, {0xAC}}, {1, {0x5B}}    /*TOK_PI, TOK_THETA*/
 };
+
+#ifdef COMPILE_PC
+
+struct Identifier STR_TABLE[AMOUNT_TOKENS] = {
+    {0, {0}}, {0, {0}},             /*TOK_NUMBER, TOK_SYMBOL*/
+
+    {1, "+"}, {1, "_"},             /*TOK_PLUS, TOK_MINUS*/
+    {1, "*"}, {1, "/"},             /*TOK_MULTIPLY, TOK_DIVIDE*/
+
+    {1, "/"},                       /*TOK_FRACTION*/
+    {1, "+"},                       /*TOK_PROPER*/
+    {1, "^"},                       /*TOK_POWER*/
+    {3, "[E]"},                     /*TOK_SCIENTIFIC*/
+    {5, "root("},                   /*TOK_ROOT*/
+
+    {1, "-"},                               /*TOK_NEGATE*/
+    {5, "^(-1)"}, {2, "^2"}, {2, "^3"},     /*TOK_RECIPROCAL, TOK_SQUARE, TOK_CUBE*/
+    {1, "!"},                               /*TOK_FACTORIAL*/
+
+    {5, "logb("},                   /*TOK_LOG_BASE*/
+
+    {4, "int("}, {4, "abs("},       /*TOK_INT, TOK_ABS*/
+    {5, "sqrt("}, {7, "cbroot("},   /*TOK_SQRT, TOK_CUBED_ROOT*/
+    {3, "ln("}, {3, "e^("},         /*TOK_LN, TOK_E_TO_POWER*/
+    {4, "log("}, {4, "10^("},       /*TOK_LOG, TOK_10_TO_POWER*/
+    {4, "sin("}, {5, "asin("},      /*TOK_SIN, TOK_SIN_INV*/
+    {4, "cos("}, {5, "acos("},      /*TOK_COS, TOK_COS_INV*/
+    {4, "tan("}, {5, "atan("},      /*TOK_TAN, TOK_TAN_INV*/
+    {5, "sinh("}, {6, "asinh("},    /*TOK_SINH, TOK_SINH_INV*/
+    {5, "cosh("}, {6, "acosh("},    /*TOK_SINH, TOK_SINH_INV*/
+    {5, "tanh("}, {6, "atanh("},    /*TOK_TANH, TOK_TANH_INV*/
+
+    {1, "("}, {1, ")"},             /*TOK_OPEN_PAR, TOK_CLOSE_PAR*/
+    {1, ","}, {1, "."},             /*TOK_COMMA, TOK_PERIOD*/
+
+    {1, "e"},                       /*TOK_E*/
+    {2, "pi"}, {5, "theta"}         /*TOK_PI, TOK_THETA*/
+};
+
+#endif
 
 typedef struct _Token {
     TokenType type;
 
     union {
-        num_t *number;
+        mp_rat num;
         Symbol symbol;
     } op;
 
@@ -54,16 +94,15 @@ typedef struct _Tokenizer {
 } tokenizer_t;
 
 /*'0' through '9' and including '.'*/
-#define is_num(byte) ((byte >= 0x30 && byte <= 0x39) || byte == token_table[TI_PERIOD].bytes[0])
+#define is_num(byte) ((byte >= 0x30 && byte <= 0x39) || byte == lookup[TOK_PERIOD].bytes[0])
 
-num_t *read_num(const uint8_t *equation, unsigned index, unsigned length, unsigned *consumed) {
-    num_t *num;
+mp_rat read_num(const uint8_t *equation, unsigned index, unsigned length, struct Identifier *lookup, unsigned *consumed) {
+    mp_rat num;
 
     unsigned size = 0;
     unsigned i;
 
     char *buffer;
-    bool is_decimal = false;
 
     for(i = index; i < length; i++) {
         if(is_num(equation[i])) size++;
@@ -74,18 +113,18 @@ num_t *read_num(const uint8_t *equation, unsigned index, unsigned length, unsign
 
     /*Copy digits, but replace Ti's '.' with ascii '.'*/
     for (i = 0; i < size; i++) {
+
         char digit = equation[i + index];
-        if(digit == token_table[TI_PERIOD].bytes[0]) {
+
+        if(digit == lookup[TOK_PERIOD].bytes[0])
             buffer[i] = '.';
-            is_decimal = true;
-        } else {
+        else
             buffer[i] = digit;
-        }
     }
 
     buffer[size] = '\0';
 
-    num = is_decimal ? num_CreateDecimal(buffer) : num_CreateInteger(buffer);
+    num = num_FromString(buffer);
 
     free(buffer);
 
@@ -94,11 +133,11 @@ num_t *read_num(const uint8_t *equation, unsigned index, unsigned length, unsign
     return num;
 }
 
-TokenType read_type(const uint8_t *equation, unsigned index, unsigned length, unsigned *consumed) {
+TokenType read_type(const uint8_t *equation, unsigned index, unsigned length, struct Identifier *lookup, unsigned *consumed) {
     unsigned identifier_index;
 
-    for(identifier_index = TI_PLUS; identifier_index < AMOUNT_TOKENS; identifier_index++) {
-        struct Identifier current = token_table[identifier_index];
+    for(identifier_index = TOK_PLUS; identifier_index < AMOUNT_TOKENS; identifier_index++) {
+        struct Identifier current = lookup[identifier_index];
         bool matches = true;
         unsigned i;
 
@@ -118,10 +157,10 @@ TokenType read_type(const uint8_t *equation, unsigned index, unsigned length, un
         }
     }
 
-    return TI_INVALID;
+    return TOK_INVALID;
 }
 
-Symbol read_symbol(const uint8_t *equation, unsigned index, unsigned length, unsigned *consumed) {
+Symbol read_symbol(const uint8_t *equation, unsigned index, unsigned length, struct Identifier *lookup, unsigned *consumed) {
 
     /*Symbol letter enum values are mapped to their ascii code (SYM_B == 'B')*/
     if(equation[index] >= 'A' && equation[index] <= 'Z') {
@@ -129,40 +168,40 @@ Symbol read_symbol(const uint8_t *equation, unsigned index, unsigned length, uns
         return equation[index];
     }
 
-    switch(read_type(equation, index, length, consumed)) {
-    case TI_EULER:  return SYM_EULER;
-    case TI_PI:     return SYM_PI;
-    case TI_THETA:  return SYM_THETA;
+    switch(read_type(equation, index, length, lookup, consumed)) {
+    case TOK_EULER: return SYM_EULER;
+    case TOK_PI:    return SYM_PI;
+    case TOK_THETA: return SYM_THETA;
     default:        return SYM_INVALID;
     }
 
 }
 
-token_t read_token(const uint8_t *equation, unsigned index, unsigned length, unsigned *consumed) {
+token_t read_token(const uint8_t *equation, unsigned index, unsigned length, struct Identifier *lookup, unsigned *consumed) {
     token_t tok;
 
     if(is_num(equation[index])) {
 
-        tok.type = TI_NUMBER;
-        tok.op.number = read_num(equation, index, length, consumed);
+        tok.type = TOK_NUMBER;
+        tok.op.num = read_num(equation, index, length, lookup, consumed);
 
-    } else if(read_symbol(equation, index, length, consumed) != SYM_INVALID) {
+    } else if(read_symbol(equation, index, length, lookup, consumed) != SYM_INVALID) {
 
-        tok.type = TI_SYMBOL;
-        tok.op.symbol = read_symbol(equation, index, length, consumed);
+        tok.type = TOK_SYMBOL;
+        tok.op.symbol = read_symbol(equation, index, length, lookup, consumed);
 
     } else {
-        tok.type = read_type(equation, index, length, consumed);
+        tok.type = read_type(equation, index, length, lookup, consumed);
 
         /*Skip over invalid bytes if choose to not catch error*/
-        if(tok.type == TI_INVALID)
+        if(tok.type == TOK_INVALID)
             *consumed = 1;
     }
 
     return tok;
 }
 
-error_t _tokenize(token_t *tokens, const uint8_t *equation, unsigned length, unsigned *tok_amount) {
+error_t _tokenize(token_t *tokens, const uint8_t *equation, unsigned length, unsigned *tok_amount, struct Identifier *lookup) {
     unsigned token_index = 0;
     unsigned i = 0;
 
@@ -170,16 +209,16 @@ error_t _tokenize(token_t *tokens, const uint8_t *equation, unsigned length, uns
         token_t tok;
         unsigned consumed;
 
-        tok = read_token(equation, i, length, &consumed);
+        tok = read_token(equation, i, length, lookup, &consumed);
 
-        if(tok.type == TI_INVALID)
+        if(tok.type == TOK_INVALID)
             return E_TOK_INVALID;
 
         if(tokens != NULL) {
             tokens[token_index] = tok;
-        } else if(tok.type == TI_NUMBER) {
+        } else if(tok.type == TOK_NUMBER) {
             /*Clean up the number if it's not being saved*/
-            num_Cleanup(tok.op.number);
+            num_Cleanup(tok.op.num);
         }
 
         token_index++;
@@ -191,42 +230,35 @@ error_t _tokenize(token_t *tokens, const uint8_t *equation, unsigned length, uns
     return E_SUCCESS;
 }
 
-error_t tokenize(tokenizer_t *t, const uint8_t *equation, unsigned length) {
+error_t tokenize(tokenizer_t *t, const uint8_t *equation, unsigned length, struct Identifier *lookup) {
     error_t err;
 
     /*Determine the amount of tokens to malloc()*/
-    err = _tokenize(NULL, equation, length, &t->amount);
+    err = _tokenize(NULL, equation, length, &t->amount, lookup);
 
     if(err != E_SUCCESS)
         return err;
 
     /*Malloc and fill tokens*/
     t->tokens = malloc(t->amount * sizeof(token_t));
-    err = _tokenize(t->tokens, equation, length, &t->amount);
+    err = _tokenize(t->tokens, equation, length, &t->amount, lookup);
 
     return err;
 }
 
-#define is_type_unary_operator(type)    (type >= TI_NEGATE && type <= TI_FACTORIAL)
-#define is_type_binary_operator(type)   (type >= TI_PLUS && type <= TI_ROOT)
-
-#define is_type_unary_function(type)    (type >= TI_INT && type <= TI_TANH_INV)
-#define is_type_nary_function(type)     (type == TI_LOG_BASE)
-#define is_type_function(type)          (is_type_unary_function(type) || is_type_nary_function(type))
-
 /*Larger = Higher precedence*/
 uint8_t precedence(TokenType type) {
     switch(type) {
-    case TI_PLUS: case TI_MINUS:
+    case TOK_PLUS: case TOK_MINUS:
         return 5;
-    case TI_MULTIPLY: case TI_NEGATE:
-    case TI_DIVIDE: case TI_FRACTION:
+    case TOK_MULTIPLY: case TOK_NEGATE:
+    case TOK_DIVIDE: case TOK_FRACTION:
         return 10;
-    case TI_POWER:  case TI_RECIPROCAL:
-    case TI_SQUARE: case TI_CUBE:
-    case TI_ROOT:   case TI_FACTORIAL:
+    case TOK_POWER:  case TOK_RECIPROCAL:
+    case TOK_SQUARE: case TOK_CUBE:
+    case TOK_ROOT:   case TOK_FACTORIAL:
         return 15;
-    case TI_SCIENTIFIC:
+    case TOK_SCIENTIFIC:
         return 20;
     default:
         return 0;
@@ -243,13 +275,13 @@ bool should_multiply_by_next_token(tokenizer_t *tokenizer, unsigned index) {
         token_t next = tokenizer->tokens[index + 1];
 
                 /*5(2 + x)*/
-        return  next.type == TI_OPEN_PAR
+        return  next.type == TOK_OPEN_PAR
                 /*5x or x5. We can infer two number tokens will never follow each other.*/
-            ||  (next.type == TI_NUMBER || next.type == TI_SYMBOL
+            ||  (next.type == TOK_NUMBER || next.type == TOK_SYMBOL
                 /*Crazy, but technically valid TI syntax*/
-            ||  next.type == TI_NEGATE
+            ||  next.type == TOK_NEGATE
                 /*5int(2.5)*/
-            ||  is_type_function(next.type));
+            ||  is_tok_function(next.type));
     }
 
     return false;
@@ -257,9 +289,9 @@ bool should_multiply_by_next_token(tokenizer_t *tokenizer, unsigned index) {
 
 /*How many parameters for the function or operator*/
 uint8_t operand_count(TokenType type) {
-    if(is_type_unary_operator(type) || is_type_unary_function(type))
+    if(is_tok_unary_operator(type) || is_tok_unary_function(type))
         return 1;
-    if(is_type_binary_operator(type) || is_type_nary_function(type))
+    if(is_tok_binary_operator(type) || is_tok_nary_function(type))
         return 2;
     return 0;
 }
@@ -267,90 +299,90 @@ uint8_t operand_count(TokenType type) {
 /*Changes the TokenType into the OperatorType and fixes operands*/
 void translate(ast_t *e) {
 
-    switch((int)e->op.operator.type) {
-    case TI_PLUS:       e->op.operator.type = OP_ADD; break;
-    case TI_MINUS: {
-        e->op.operator.type = OP_ADD;
-        ast_ChildInsert(e, ast_MakeBinary(OP_MULT, ast_MakeNumber(num_CreateInteger("-1")), ast_ChildRemoveIndex(e, 1)), 0);
+    switch((int)optype(e)) {
+    case TOK_PLUS:       optype(e) = OP_ADD; break;
+    case TOK_MINUS: {
+        optype(e) = OP_ADD;
+        ast_ChildInsert(e, ast_MakeBinary(OP_MULT, ast_MakeNumber(num_FromInt(-1)), ast_ChildRemoveIndex(e, 1)), 0);
         break;
     }
-    case TI_MULTIPLY:   e->op.operator.type = OP_MULT; break;
-    case TI_DIVIDE:     e->op.operator.type = OP_DIV; break;
-    case TI_FRACTION:   e->op.operator.type = OP_DIV; break;
-    case TI_PROPER:     e->op.operator.type = OP_ADD; break;
-    case TI_POWER:      e->op.operator.type = OP_POW; break;
-    case TI_SCIENTIFIC: {
+    case TOK_MULTIPLY:   optype(e) = OP_MULT; break;
+    case TOK_DIVIDE:     optype(e) = OP_DIV; break;
+    case TOK_FRACTION:   optype(e) = OP_DIV; break;
+    case TOK_PROPER:     optype(e) = OP_ADD; break;
+    case TOK_POWER:      optype(e) = OP_POW; break;
+    case TOK_SCIENTIFIC: {
         ast_t *op2;
         
-        e->op.operator.type = OP_MULT;
+        optype(e) = OP_MULT;
 
-        op2 = ast_MakeBinary(OP_POW, ast_MakeNumber(num_CreateInteger("10")), ast_ChildGet(e, 1));
+        op2 = ast_MakeBinary(OP_POW, ast_MakeNumber(num_FromInt(10)), ast_ChildGet(e, 1));
         ast_ChildRemoveIndex(e, 1);
         ast_ChildAppend(e, op2);
 
         break;   
     }
-    case TI_ROOT:       e->op.operator.type = OP_ROOT; break;
-    case TI_NEGATE:
-        e->op.operator.type = OP_MULT;
-        ast_ChildInsert(e, ast_MakeNumber(num_CreateInteger("-1")), 0);
+    case TOK_ROOT:       optype(e) = OP_ROOT; break;
+    case TOK_NEGATE:
+        optype(e) = OP_MULT;
+        ast_ChildInsert(e, ast_MakeNumber(num_FromInt(-1)), 0);
         break;
-    case TI_RECIPROCAL:
-        e->op.operator.type = OP_POW;
-        ast_ChildAppend(e, ast_MakeNumber(num_CreateInteger("-1")));
+    case TOK_RECIPROCAL:
+        optype(e) = OP_POW;
+        ast_ChildAppend(e, ast_MakeNumber(num_FromInt(-1)));
         break;
-    case TI_SQUARE:
-        e->op.operator.type = OP_POW;
-        ast_ChildAppend(e, ast_MakeNumber(num_CreateInteger("2")));
+    case TOK_SQUARE:
+        optype(e) = OP_POW;
+        ast_ChildAppend(e, ast_MakeNumber(num_FromInt(2)));
         break;
-    case TI_CUBE:
-        e->op.operator.type = OP_POW;
-        ast_ChildAppend(e, ast_MakeNumber(num_CreateInteger("3")));
+    case TOK_CUBE:
+        optype(e) = OP_POW;
+        ast_ChildAppend(e, ast_MakeNumber(num_FromInt(3)));
         break;
-    case TI_FACTORIAL:  e->op.operator.type = OP_FACTORIAL; break;
-    case TI_LOG_BASE:
-        e->op.operator.type = OP_LOG;
+    case TOK_FACTORIAL:  optype(e) = OP_FACTORIAL; break;
+    case TOK_LOG_BASE:
+        optype(e) = OP_LOG;
         /*Swap the operands*/
         ast_ChildAppend(e, ast_ChildRemoveIndex(e, 0));
         break;
-    case TI_INT:        e->op.operator.type = OP_INT; break;
-    case TI_ABS:        e->op.operator.type = OP_ABS; break;
-    case TI_SQRT:
-        e->op.operator.type = OP_ROOT;
-        ast_ChildInsert(e, ast_MakeNumber(num_CreateInteger("2")), 0);
+    case TOK_INT:        optype(e) = OP_INT; break;
+    case TOK_ABS:        optype(e) = OP_ABS; break;
+    case TOK_SQRT:
+        optype(e) = OP_ROOT;
+        ast_ChildInsert(e, ast_MakeNumber(num_FromInt(2)), 0);
         break;
-    case TI_CUBED_ROOT:
-        e->op.operator.type = OP_ROOT;
-        ast_ChildInsert(e, ast_MakeNumber(num_CreateInteger("3")), 0);
+    case TOK_CUBED_ROOT:
+        optype(e) = OP_ROOT;
+        ast_ChildInsert(e, ast_MakeNumber(num_FromInt(3)), 0);
         break;
-    case TI_LN:
-        e->op.operator.type = OP_LOG;
+    case TOK_LN:
+        optype(e) = OP_LOG;
         ast_ChildInsert(e, ast_MakeSymbol(SYM_EULER), 0);
         break;
-    case TI_E_TO_POWER:
-        e->op.operator.type = OP_POW;
+    case TOK_E_TO_POWER:
+        optype(e) = OP_POW;
         ast_ChildInsert(e, ast_MakeSymbol(SYM_EULER), 0);
         break;
-    case TI_LOG:
-        e->op.operator.type = OP_LOG;
-        ast_ChildInsert(e, ast_MakeNumber(num_CreateInteger("10")), 0);
+    case TOK_LOG:
+        optype(e) = OP_LOG;
+        ast_ChildInsert(e, ast_MakeNumber(num_FromInt(10)), 0);
         break;
-    case TI_10_TO_POWER:
-        e->op.operator.type = OP_POW;
-        ast_ChildInsert(e, ast_MakeNumber(num_CreateInteger("10")), 0);
+    case TOK_10_TO_POWER:
+        optype(e) = OP_POW;
+        ast_ChildInsert(e, ast_MakeNumber(num_FromInt(10)), 0);
         break;
-    case TI_SIN:        e->op.operator.type = OP_SIN; break;
-    case TI_SIN_INV:    e->op.operator.type = OP_SIN_INV; break;
-    case TI_COS:        e->op.operator.type = OP_COS; break;
-    case TI_COS_INV:    e->op.operator.type = OP_COS_INV; break;
-    case TI_TAN:        e->op.operator.type = OP_TAN; break;
-    case TI_TAN_INV:    e->op.operator.type = OP_TAN_INV; break;
-    case TI_SINH:       e->op.operator.type = OP_SINH; break;
-    case TI_SINH_INV:   e->op.operator.type = OP_SINH_INV; break;
-    case TI_COSH:       e->op.operator.type = OP_COSH; break;
-    case TI_COSH_INV:   e->op.operator.type = OP_COSH_INV; break;
-    case TI_TANH:       e->op.operator.type = OP_TANH; break;
-    case TI_TANH_INV:   e->op.operator.type = OP_TANH_INV; break;
+    case TOK_SIN:        optype(e) = OP_SIN; break;
+    case TOK_SIN_INV:    optype(e) = OP_SIN_INV; break;
+    case TOK_COS:        optype(e) = OP_COS; break;
+    case TOK_COS_INV:    optype(e) = OP_COS_INV; break;
+    case TOK_TAN:        optype(e) = OP_TAN; break;
+    case TOK_TAN_INV:    optype(e) = OP_TAN_INV; break;
+    case TOK_SINH:       optype(e) = OP_SINH; break;
+    case TOK_SINH_INV:   optype(e) = OP_SINH_INV; break;
+    case TOK_COSH:       optype(e) = OP_COSH; break;
+    case TOK_COSH_INV:   optype(e) = OP_COSH_INV; break;
+    case TOK_TANH:       optype(e) = OP_TANH; break;
+    case TOK_TANH_INV:   optype(e) = OP_TANH_INV; break;
 
     default:
         break;
@@ -365,20 +397,20 @@ bool collapse_precedence(stack_t *operators, stack_t *expressions, TokenType typ
         unsigned i;
 
         /*Break when we meet the corresponding (*/
-        if(type == TI_CLOSE_PAR && ((token_t*)stack_Peek(operators))->type == TI_OPEN_PAR)
+        if(type == TOK_CLOSE_PAR && ((token_t*)stack_Peek(operators))->type == TOK_OPEN_PAR)
             break;
         /*Break when we meet the function that the , belongs to*/
-        else if(type == TI_COMMA && is_type_nary_function(((token_t*)stack_Peek(operators))->type))
+        else if(type == TOK_COMMA && is_tok_nary_function(((token_t*)stack_Peek(operators))->type))
             break;
         /*Break if the precedence is lower than the type*/
-        else if(type != TI_CLOSE_PAR && type != TI_COMMA && precedence(((token_t*)stack_Peek(operators))->type) < precedence(type))
+        else if(type != TOK_CLOSE_PAR && type != TOK_COMMA && precedence(((token_t*)stack_Peek(operators))->type) < precedence(type))
             break;
 
         op = stack_Pop(operators);
 
         /*Occurs when we collapse_all() at the end with not enough closing
         parentheses. This is an acceptable TI format, so we accept it too.*/
-        if(op->type == TI_OPEN_PAR)
+        if(op->type == TOK_OPEN_PAR)
             continue;
 
         /*Store the token type into the operand type. This will
@@ -422,18 +454,18 @@ bool collapse_all(stack_t *operators, stack_t *expressions) {
     return NULL;                                            \
 }
 
-ast_t *parse(const uint8_t *equation, unsigned length, error_t *e) {
+ast_t *parse(const uint8_t *equation, unsigned length, struct Identifier *lookup, error_t *e) {
     tokenizer_t tokenizer = {0};
     stack_t operators, expressions;
     ast_t *root;
 
     /*Create instances to push on the stacks as pointers*/
-    token_t mult =      {TI_MULTIPLY};
-    token_t open_par =  {TI_OPEN_PAR};
+    token_t mult =      {TOK_MULTIPLY};
+    token_t open_par =  {TOK_OPEN_PAR};
 
     unsigned i;
 
-    *e = tokenize(&tokenizer, equation, length);
+    *e = tokenize(&tokenizer, equation, length, lookup);
 
     if(*e != E_SUCCESS)
         return NULL;
@@ -444,49 +476,49 @@ ast_t *parse(const uint8_t *equation, unsigned length, error_t *e) {
     for(i = 0; i < tokenizer.amount; i++) {
         token_t *tok = &tokenizer.tokens[i];
 
-        if(tok->type == TI_OPEN_PAR) {
+        if(tok->type == TOK_OPEN_PAR) {
             stack_Push(&operators, tok);
-        } else if(tok->type == TI_NUMBER || tok->type == TI_SYMBOL) {
+        } else if(tok->type == TOK_NUMBER || tok->type == TOK_SYMBOL) {
 
-            if(tok->type == TI_NUMBER) {
-                stack_Push(&expressions, ast_MakeNumber(tok->op.number));
+            if(tok->type == TOK_NUMBER) {
+                stack_Push(&expressions, ast_MakeNumber(tok->op.num));
             } else {
                 stack_Push(&expressions, ast_MakeSymbol(tok->op.symbol));
             }
 
             if(should_multiply_by_next_token(&tokenizer, i)) {
-                parse_assert(collapse_precedence(&operators, &expressions, TI_MULTIPLY), E_PARSE_BAD_OPERATOR);
+                parse_assert(collapse_precedence(&operators, &expressions, TOK_MULTIPLY), E_PARSE_BAD_OPERATOR);
                 stack_Push(&operators, &mult);
             }
 
-        } else if(is_type_unary_operator(tok->type)) {
+        } else if(is_tok_unary_operator(tok->type)) {
             parse_assert(collapse_precedence(&operators, &expressions, tok->type), E_PARSE_BAD_OPERATOR);
             stack_Push(&operators, tok);
 
-            if(tok->type != TI_NEGATE && should_multiply_by_next_token(&tokenizer, i)) {
-                parse_assert(collapse_precedence(&operators, &expressions, TI_MULTIPLY), E_PARSE_BAD_OPERATOR);
+            if(tok->type != TOK_NEGATE && should_multiply_by_next_token(&tokenizer, i)) {
+                parse_assert(collapse_precedence(&operators, &expressions, TOK_MULTIPLY), E_PARSE_BAD_OPERATOR);
                 stack_Push(&operators, &mult);
             }
-        } else if(is_type_binary_operator(tok->type)) {
+        } else if(is_tok_binary_operator(tok->type)) {
             parse_assert(collapse_precedence(&operators, &expressions, tok->type), E_PARSE_BAD_OPERATOR);
             stack_Push(&operators, tok);
-        } else if(is_type_function(tok->type)) {
+        } else if(is_tok_function(tok->type)) {
             /*Insert a ( to correspond with the other closing ) following the parameters*/
             stack_Push(&operators, &open_par);
             stack_Push(&operators, tok);
-        } else if(tok->type == TI_CLOSE_PAR) {
-            parse_assert(collapse_precedence(&operators, &expressions, TI_CLOSE_PAR), E_PARSE_BAD_OPERATOR);
-            parse_assert(operators.top > 0 && ((token_t*)stack_Peek(&operators))->type == TI_OPEN_PAR, E_PARSE_UNMATCHED_CLOSE_PAR);
+        } else if(tok->type == TOK_CLOSE_PAR) {
+            parse_assert(collapse_precedence(&operators, &expressions, TOK_CLOSE_PAR), E_PARSE_BAD_OPERATOR);
+            parse_assert(operators.top > 0 && ((token_t*)stack_Peek(&operators))->type == TOK_OPEN_PAR, E_PARSE_UNMATCHED_CLOSE_PAR);
 
             stack_Pop(&operators);
 
             if(should_multiply_by_next_token(&tokenizer, i)) {
-                parse_assert(collapse_precedence(&operators, &expressions, TI_MULTIPLY), E_PARSE_BAD_OPERATOR);
+                parse_assert(collapse_precedence(&operators, &expressions, TOK_MULTIPLY), E_PARSE_BAD_OPERATOR);
                 stack_Push(&operators, &mult);
             }
-        } else if(tok->type == TI_COMMA) {
-            parse_assert(collapse_precedence(&operators, &expressions, TI_COMMA), E_PARSE_BAD_OPERATOR);
-            parse_assert(operators.top > 0 && is_type_function(((token_t*)stack_Peek(&operators))->type), E_PARSE_BAD_COMMA);
+        } else if(tok->type == TOK_COMMA) {
+            parse_assert(collapse_precedence(&operators, &expressions, TOK_COMMA), E_PARSE_BAD_OPERATOR);
+            parse_assert(operators.top > 0 && is_tok_function(((token_t*)stack_Peek(&operators))->type), E_PARSE_BAD_COMMA);
         }
     }
 

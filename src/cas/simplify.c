@@ -2,43 +2,79 @@
 
 #include <stdbool.h>
 
-/*
-Scrambles the order of the parameters, but that's fine
-because we're going to put them in canonical form anyway.
 
-Returns true if the structure of the ast was changed
+/*
+    Flattens multiplication and addition nodes
+
+    Scrambles the order of the parameters, but that's fine
+    because we're going to put them in canonical form anyway.
 */
-static bool simplify_communative(ast_t *e) {
+static bool simplify_commutative(ast_t *e) {
     unsigned i;
     bool changed = false;
 
     if(e->type != NODE_OPERATOR)
         return false;
 
+    if(ast_ChildLength(e) == 1
+        && (optype(e) == OP_MULT || optype(e) == OP_ADD)) {
+        replace_node(e, opbase(e));
+        return simplify_commutative(e);
+    }
+
     for(i = 0; i < ast_ChildLength(e); i++) {
 
         ast_t *child = ast_ChildGet(e, i);
 
-        if(is_type_communative(e->op.operator.type)
-            && child->type == NODE_OPERATOR 
-            && child->op.operator.type == e->op.operator.type) {
+        /*If this child is the same type as parent and
+        the parent's type is commutative*/
+        if(child->type == NODE_OPERATOR 
+            && is_op_commutative(optype(e))
+            && optype(child) == optype(e)) {
             
+            /*Append children of child to end of parent*/
             ast_ChildGetLast(e)->next = child->op.operator.base;
-
+            /*Remove child node*/
             ast_ChildRemoveIndex(e, i);
+            /*Remove reference to our new children so we can dealloc it*/
             child->op.operator.base = NULL;
             ast_Cleanup(child);
 
             changed = true;
             i--;
         } else {
-            changed |= simplify_communative(child);
+            changed |= simplify_commutative(child);
         }
     }
 
     return changed;
 }
 
+/*Change a to b and delete b*/
+void replace_node(ast_t *a, ast_t *b) {
+
+    if(a->type == NODE_OPERATOR) {
+
+        while(opbase(a) != NULL) {
+            ast_t *child = ast_ChildRemoveIndex(a, 0);
+            if(child != b)
+                ast_Cleanup(child);
+        }
+
+    } else if(a->type == NODE_NUMBER) {
+        num_Cleanup(a->op.num);
+    }
+
+    a->type = b->type;
+    a->op = b->op;
+
+    free(b);
+}
+
+/*
+    Simplifies rational functions.
+    A/B/C/D becomes A/(BCD)
+*/
 static bool simplify_rational(ast_t *e) {
     unsigned i;
     bool changed = false;
@@ -49,57 +85,84 @@ static bool simplify_rational(ast_t *e) {
     for(i = 0; i < ast_ChildLength(e); i++) {
         ast_t *child = ast_ChildGet(e, i);
 
-        if(child->type == NODE_OPERATOR && child->op.operator.type == OP_DIV) {
+        if(isoptype(child, OP_DIV)) {
+            ast_t *child_num, *child_den;
 
-            if(e->op.operator.type == OP_DIV) {
+            child_num = ast_ChildGet(child, 0);
+            child_den = ast_ChildGet(child, 1);
 
+            if(optype(e) == OP_DIV) {
+                ast_t *e_num, *e_den;
+
+                e_num = ast_ChildGet(e, 0);
+                e_den = ast_ChildGet(e, 1);
+
+                /*
+                    If the child that is a division node is the numerator of this division node
+                    (A/B)/C = A/(B*C)
+                */
                 if(i == 0) {
-                    /*case 1*/
-                    ast_ChildRemoveIndex(e, i);
 
-                    ast_ChildInsert(e, ast_ChildRemoveIndex(child, 0), 0);
-                    ast_ChildAppend(e, ast_MakeBinary(OP_MULT,  ast_ChildRemoveIndex(child, 0), ast_ChildRemoveIndex(e, 1)));
+                    ast_t *new_num, *new_den;
 
-                    ast_Cleanup(child);
+                    new_num = ast_Copy(child_num);
+                    new_den = ast_MakeBinary(OP_MULT,
+                                                     ast_Copy(child_den),
+                                                     ast_Copy(e_den));
+
+                    replace_node(e, ast_MakeBinary(OP_DIV, new_num, new_den));
 
                     changed = true;
+                    /*Decrement i so we continue to simplify this node*/
                     i--;
-                } else {
-                    /*case 2*/
-                    ast_ChildRemoveIndex(e, i);
+                }
+                /*
+                    If the child that is a division node is the denominator of this division node
+                    A/(B/C) = (A*C)/B
+                */ 
+                else {
 
-                    ast_ChildAppend(e, ast_ChildRemoveIndex(child, 0));
-                    ast_ChildInsert(e, ast_MakeBinary(OP_MULT, ast_ChildRemoveIndex(child, 0), ast_ChildRemoveIndex(e, 0)), 0);
-                    ast_Cleanup(child);
+                    ast_t *new_num, *new_den;
+
+                    new_num = ast_MakeBinary(OP_MULT,
+                                                   ast_Copy(e_num),
+                                                   ast_Copy(child_den));
+                    new_den = ast_Copy(child_num);
+
+                    replace_node(e, ast_MakeBinary(OP_DIV, new_num, new_den));
 
                     changed = true;
                     i--;
                 }
 
-            } else if(e->op.operator.type == OP_MULT) {
-                /*case 3*/
-                ast_t *mult;
+            } 
+            /*
+                A * (B / C) = (A * B) / C
+                (A / B) * C = (C * A) / B
+            */
+            else if(optype(e) == OP_MULT) {
+                ast_t *mult, *num_copy, *den_copy;
+            
+                mult = ast_Copy(e);
+                num_copy = ast_Copy(child_num);
+                den_copy = ast_Copy(child_den);
 
-                mult = ast_MakeOperator(OP_MULT);
-                e->op.operator.type = OP_DIV;
+                /*Multiply by division denominator*/
+                ast_ChildAppend(mult, num_copy);
 
-                ast_ChildRemoveIndex(e, i);
+                /*Remove division node*/
+                ast_Cleanup(ast_ChildRemoveIndex(mult, i));
 
-                mult->op.operator.base = e->op.operator.base;
-                e->op.operator.base = NULL;
+                replace_node(e, ast_MakeBinary(OP_DIV, mult, den_copy));
 
-                ast_ChildAppend(mult, ast_ChildRemoveIndex(child, 0));
-                ast_ChildAppend(e, mult);
-                ast_ChildAppend(e, ast_ChildRemoveIndex(child, 0));
-
-                ast_Cleanup(child);
-
+                /*Continue to simplify the other multiplication nodes now that our type has changed*/
                 simplify_rational(mult);
                 simplify_rational(ast_ChildGetLast(e));
 
                 changed = true;
                 i--;
             }
+
         } else {
             changed |= simplify_rational(child);
         }
@@ -108,839 +171,158 @@ static bool simplify_rational(ast_t *e) {
     return changed;
 }
 
-static bool simplify_constants_communative(ast_t *e) {
-    unsigned i, numbers = 0;
-    bool has_rat = false;
-    bool changed = false;
-    mpz_t int_accumulator;
-    mpq_t rat_accumulator;
-    num_t *ret;
 
-    if(ast_ChildLength(e) == 1) {
-        ast_t *temp = ast_ChildGet(e, 0);
+/*Reduces every number node. Changes all roots to powers.*/
+static bool simplify_reduce(ast_t *e) {
+    ast_t *child;
 
-        e->type = temp->type;
-        e->op = temp->op;
+    if(e->type == NODE_OPERATOR) {
+        for(child = opbase(e); child != NULL; child = child->next)
+            simplify_reduce(child);
 
-        free(temp);
-        return true;
-    }
-
-    if(e->op.operator.type == OP_MULT) {
-        mp_int_init_value(&int_accumulator, 1);
-        mp_rat_init(&rat_accumulator);
-        mp_rat_set_value(&rat_accumulator, 1, 1);
-
-        for(i = 0; i < ast_ChildLength(e); i++) {
-            ast_t *child = ast_ChildGet(e, i);
-
-            if(child->type == NODE_NUMBER) {
-
-                if(child->op.number->is_decimal) {
-                    mp_rat_mul(&rat_accumulator, &child->op.number->num.rational, &rat_accumulator);
-                    has_rat = true;
-                } else {
-                    mp_int_mul(&int_accumulator, &child->op.number->num.integer, &int_accumulator);
-                }
-
-                ast_Cleanup(ast_ChildRemoveIndex(e, i));
-                i--;
-                numbers++;
-            }
-        }
-
-        if(has_rat)
-            mp_rat_mul_int(&rat_accumulator, &int_accumulator, &rat_accumulator);
-
-    } else /*OP_ADD*/ {
-        mp_int_init(&int_accumulator);
-        mp_int_zero(&int_accumulator);
-        mp_rat_init(&rat_accumulator);
-        mp_rat_zero(&rat_accumulator);
-
-        for(i = 0; i < ast_ChildLength(e); i++) {
-            ast_t *child = ast_ChildGet(e, i);
-
-            if(child->type == NODE_NUMBER) {
-
-                if(child->op.number->is_decimal) {
-                    mp_rat_add(&rat_accumulator, &child->op.number->num.rational, &rat_accumulator);
-                    has_rat = true;
-                } else {
-                    mp_int_add(&int_accumulator, &child->op.number->num.integer, &int_accumulator);
-                }
-                
-                ast_Cleanup(ast_ChildRemoveIndex(e, i));
-                i--;
-                numbers++;
-            }
-        }
-
-        if(has_rat)
-            mp_rat_add_int(&rat_accumulator, &int_accumulator, &rat_accumulator);
-    }
-
-    if(numbers > 1)
-        changed = true;
-
-    ret = malloc(sizeof(num_t));
-    ret->is_decimal = has_rat;
-
-    if(has_rat)
-        ret->num.rational = rat_accumulator;
-    else {
-        mp_rat_clear(&rat_accumulator);
-
-        mp_int_init(&ret->num.integer);
-        mp_int_copy(&int_accumulator, &ret->num.integer);
-
-        mp_int_clear(&int_accumulator);
-    }
-
-    if(ast_ChildLength(e) == 0) {
-        e->op.operator.base = NULL;
-        e->type = NODE_NUMBER;
-        e->op.number = ret;
-        changed = true;
-    } else {
-        /*Don't append if we are multiplying by 1 or adding 0*/
-        bool should_append = false;
-
-        if(e->op.operator.type == OP_MULT) {
-            if(ret->is_decimal) {
-                mp_rat_reduce(&ret->num.rational);
-                should_append = mp_rat_compare_value(&ret->num.rational, 1, 1) != 0;
-            } else {
-                should_append = mp_int_compare_value(&ret->num.integer, 1) != 0;
-            }
-        } else /*OP_MULT*/ {
-            if(ret->is_decimal) {
-                mp_rat_reduce(&ret->num.rational);
-                should_append = mp_rat_compare_zero(&ret->num.rational) != 0;
-            } else {
-                should_append = mp_int_compare_zero(&ret->num.integer) != 0;
-            }
-        }
-
-        if(should_append) {
-            ast_ChildAppend(e, ast_MakeNumber(ret));
-        } else {
-            changed = numbers == 1;
-            num_Cleanup(ret);
-        }
-    }
-
-    return changed;
-}
-
-/*Simplifies expressions like 5 + 5 to 10*/
-static bool simplify_constants(ast_t *e) {
-    bool changed = false;
-    ast_t *current;
-
-    if(e->type != NODE_OPERATOR)
-        return false;
-
-    for(current = e->op.operator.base; current != NULL; current = current->next) {
-        changed |= simplify_constants(current);
-    }
-
-    if(is_type_communative(e->op.operator.type)) {
-        changed |= simplify_constants_communative(e);
-    } else {
-        /*Simplify divide and exponents*/
-        switch(e->op.operator.type) {
-
-        case OP_DIV: {
+        if(optype(e) == OP_ROOT) {
+            /*a root of b*/
             ast_t *a, *b;
-            a = ast_ChildGet(e, 0);
-            b = ast_ChildGet(e, 1);
 
-            if(ast_Compare(a, b)) {
-                ast_Cleanup(a);
-                ast_Cleanup(b);
-
-                e->op.operator.base = NULL;
-                e->type = NODE_NUMBER;
-                e->op.number = num_CreateInteger("1");
-
-                changed = true;
-                break;
-            }
-
-            /*If a == 0*/
-            if(a->type == NODE_NUMBER) {
-
-                if((!a->op.number->is_decimal && mp_int_compare_zero(&a->op.number->num.integer) == 0)
-                    || (a->op.number->is_decimal && mp_rat_compare_zero(&a->op.number->num.rational) == 0)) {
-
-                    ast_Cleanup(a);
-                    ast_Cleanup(b);
-
-                    e->op.operator.base = NULL;
-                    e->type = NODE_NUMBER;
-                    e->op.number = num_CreateInteger("0");
-
-                    changed = true;
-                    break;
-                }
-                
-            }
-
-            /*If b == 1*/
-            if(b->type == NODE_NUMBER) {
-                bool is_one = false;
-
-                if(b->op.number->is_decimal) {
-                    is_one = mp_int_compare(mp_rat_numer_ref(&b->op.number->num.rational), mp_rat_denom_ref(&b->op.number->num.rational)) == 0;
-                } else {
-                    is_one = mp_int_compare_value(&b->op.number->num.integer, 1) == 0;
-                }
-
-                if(is_one) {
-                    ast_Cleanup(b);
-
-                    e->type = a->type;
-                    e->op = a->op;
-                    
-                    free(a);
-
-                    changed = true;
-                    break;
-                }
-
-            }
-
-            if(a->type != NODE_NUMBER || b->type != NODE_NUMBER)
-                break;
-
-            if(!a->op.number->is_decimal && !b->op.number->is_decimal) {
-                mpz_t gcd;
-                mp_int_init(&gcd);
-                mp_int_gcd(&a->op.number->num.integer, &b->op.number->num.integer, &gcd);
-
-                if(mp_int_compare_value(&gcd, 1) != 0) {
-                    mp_int_div(&a->op.number->num.integer, &gcd, &a->op.number->num.integer, NULL);
-                    mp_int_div(&b->op.number->num.integer, &gcd, &b->op.number->num.integer, NULL);
-                    changed = true;
-                }
-
-                mp_int_clear(&gcd);
-            }
-            break;
-        } case OP_POW: {
-            ast_t * a, *b;
-            a = ast_ChildGet(e, 0);
-            b = ast_ChildGet(e, 1);
-
-            /*If a == 0*/
-            if(a->type == NODE_NUMBER) {
-
-                if((!a->op.number->is_decimal && mp_int_compare_zero(&a->op.number->num.integer) == 0)
-                    || (a->op.number->is_decimal && mp_rat_compare_zero(&a->op.number->num.rational) == 0)) {
-
-                    ast_Cleanup(a);
-                    ast_Cleanup(b);
-
-                    e->op.operator.base = NULL;
-                    e->type = NODE_NUMBER;
-                    e->op.number = num_CreateInteger("0");
-
-                    changed = true;
-                    break;
-                }
-            }
-
-            /*If b == 1*/
-            if(b->type == NODE_NUMBER) {
-                bool is_one = false;
-
-                if(b->op.number->is_decimal) {
-                    is_one = mp_int_compare(mp_rat_numer_ref(&b->op.number->num.rational), mp_rat_denom_ref(&b->op.number->num.rational)) == 0;
-                } else {
-                    is_one = mp_int_compare_value(&b->op.number->num.integer, 1) == 0;
-                }
-
-                if(is_one) {
-                    ast_Cleanup(b);
-
-                    e->type = a->type;
-                    e->op = a->op;
-
-                    free(a);
-
-                    changed = true;
-                    break;
-                }
-
-            }
-
-            if(a->type != NODE_NUMBER || b->type != NODE_NUMBER)
-                break;
-
-            if(!a->op.number->is_decimal && !b->op.number->is_decimal) {
-                num_t *result;
-
-                /*Only evaluate numbers up to the 10th power.*/
-                if(mp_int_compare_value(&b->op.number->num.integer, 10) > 0)
-                    break;
-
-                result = malloc(sizeof(num_t));
-                result->is_decimal = false;
-                mp_int_init(&result->num.integer);
-
-                mp_int_expt_full(&a->op.number->num.integer, &b->op.number->num.integer, &result->num.integer);
-
-                ast_Cleanup(a);
-                ast_Cleanup(b);
-
-                e->op.operator.base = NULL;
-                e->type = NODE_NUMBER;
-                e->op.number = result;
-                
-                changed = true;
-            }
-            break;
-        } case OP_ROOT: {
-            ast_t * a, *b;
-            a = ast_ChildGet(e, 0);
-            b = ast_ChildGet(e, 1);
-
-            /*If b == 0*/
-            if(b->type == NODE_NUMBER) {
-
-                if((!b->op.number->is_decimal && mp_int_compare_zero(&b->op.number->num.integer) == 0)
-                    || (b->op.number->is_decimal && mp_rat_compare_zero(&b->op.number->num.rational) == 0)) {
-
-                    ast_Cleanup(a);
-                    ast_Cleanup(b);
-
-                    e->op.operator.base = NULL;
-                    e->type = NODE_NUMBER;
-                    e->op.number = num_CreateInteger("0");
-
-                    changed = true;
-                    break;
-                }
-            }
-
-            /*If a == 1*/
-            if(a->type == NODE_NUMBER) {
-                bool is_one = false;
-
-                if(a->op.number->is_decimal) {
-                    is_one = mp_int_compare(mp_rat_numer_ref(&a->op.number->num.rational), mp_rat_denom_ref(&a->op.number->num.rational)) == 0;
-                } else {
-                    is_one = mp_int_compare_value(&a->op.number->num.integer, 1) == 0;
-                }
-
-                if(is_one) {
-                    ast_Cleanup(a);
-
-                    e->type = b->type;
-                    e->op = b->op;
-
-                    free(b);
-
-                    changed = true;
-                    break;
-                }
-
-            }
-
-            /*If b == 1*/
-            if(b->type == NODE_NUMBER) {
-                bool is_one = false;
-
-                if(b->op.number->is_decimal) {
-                    is_one = mp_int_compare(mp_rat_numer_ref(&b->op.number->num.rational), mp_rat_denom_ref(&b->op.number->num.rational)) == 0;
-                } else {
-                    is_one = mp_int_compare_value(&b->op.number->num.integer, 1) == 0;
-                }
-
-                if(is_one) {
-                    ast_Cleanup(a);
-
-                    e->type = b->type;
-                    e->op = b->op;
-
-                    free(b);
-
-                    changed = true;
-                    break;
-                }
-
-            }
-
-            if(a->type == NODE_NUMBER && b->type == NODE_NUMBER
-                && !a->op.number->is_decimal && !b->op.number->is_decimal) {
-                mp_small out;
-                mpz_t check;
-
-                num_t *ret = malloc(sizeof(num_t));
-                ret->is_decimal = false;
-
-                mp_int_to_int(&a->op.number->num.integer, &out);
-
-                mp_int_init(&ret->num.integer);
-                mp_int_root(&b->op.number->num.integer, out, &ret->num.integer);
-
-                mp_int_init(&check);
-                mp_int_expt(&ret->num.integer, out, &check);
-
-                if(mp_int_compare(&check, &b->op.number->num.integer) == 0) {
-
-                    e->op.operator.base = NULL;
-                    e->type = NODE_NUMBER;
-                    e->op.number = ret;
-
-                    ast_Cleanup(a);
-                    ast_Cleanup(b);
-                }
-
-                mp_int_clear(&check);
-            }
-
-            break;
-        } case OP_INT: {
-            ast_t *child = ast_ChildGet(e, 0);
-
-            if(child->type != NODE_NUMBER)
-                break;
-
-            if(child->op.number->is_decimal) {
-                num_t *result;
-
-                result = malloc(sizeof(num_t));
-                result->is_decimal = false;
-
-                mp_int_init(&result->num.integer);
-
-                mp_int_div(mp_rat_numer_ref(&child->op.number->num.rational), mp_rat_denom_ref(&child->op.number->num.rational), &result->num.integer, NULL);
-
-                if(mp_rat_sign(&child->op.number->num.rational) == 1) {
-                    mp_int_sub_value(&result->num.integer, 1, &result->num.integer);
-                    result->num.integer.sign = 1;
-                }
-
-                ast_Cleanup(child);
-
-                e->op.operator.base = NULL;
-                e->type = NODE_NUMBER;
-                e->op.number = result;
-            } else {
-                e->op.operator.base = NULL;
-                e->type = child->type;
-                e->op = child->op;
-
-                free(child);
-            }
-
-            changed = true;
-
-            break;
-        } case OP_ABS: {
-            ast_t *child = ast_ChildGet(e, 0);
-
-            if(child->type != NODE_NUMBER)
-                break;
-
-            if(child->op.number->is_decimal) {
-                mp_rat_abs(&child->op.number->num.rational, &child->op.number->num.rational);
-            } else {
-                mp_int_abs(&child->op.number->num.integer, &child->op.number->num.integer);
-            }
-
-            e->op.operator.base = NULL;
-            e->type = child->type;
-            e->op = child->op;
-
-            free(child);
-
-            changed = true;
-
-            break;
-        } default:
-            break;
+            a = ast_Copy(ast_ChildGet(e, 0));
+            b = ast_Copy(ast_ChildGet(e, 1));
+
+            replace_node(e, ast_MakeBinary(OP_POW,
+                                b,
+                                ast_MakeBinary(OP_DIV,
+                                    ast_MakeNumber(num_FromInt(1)),
+                                    a
+            )));
         }
-    }
+    } else if(e->type == NODE_NUMBER && !mp_rat_is_integer(e->op.num)) {
+        mp_rat num, den;
 
-    return changed;
+        num = num_FromInt(1);
+        den = num_FromInt(1);
+
+        mp_rat_reduce(e->op.num);
+
+        mp_int_copy(&e->op.num->num, &num->num);
+        mp_int_copy(&e->op.num->den, &den->num);
+
+        replace_node(e, ast_MakeBinary(OP_DIV, ast_MakeNumber(num), ast_MakeNumber(den)));
+    }
+    
+    /*Just return false because this simplification is done in one step*/
+    return false;
 }
 
-static bool simplify_rational_num(ast_t *e) {
+/*returns negative if a < b, 0 if a=b, positive if a > b in terms of sorting order*/
+static int compare(ast_t *a, ast_t *b) {
+
+    /*NODE_NUMBER < NODE_SYMBOL < NODE_OPERATOR*/
+    if(a->type < b->type) return -1;
+    else if(a->type > b->type) return 1;
+
+    switch(a->type) {
+    case NODE_NUMBER:   return mp_rat_compare(a->op.num, b->op.num);
+    case NODE_SYMBOL:   return a->op.symbol - b->op.symbol;
+    case NODE_OPERATOR: return optype(a) - optype(b);
+    }
+
+    return -1;
+}
+
+/*
+    Order multiplication and division
+    Sorting for addition and multiplication is O(n^2) by insertion sort
+*/
+static bool simplify_canonical_form(ast_t *e) {
     bool changed = false;
-    ast_t *current;
-
-    if(e->type == NODE_NUMBER) {
-
-        if(e->op.number->is_decimal) {
-            num_t *numer, *denom;
-
-            numer = malloc(sizeof(num_t));
-            numer->is_decimal = false;
-            mp_int_init(&numer->num.integer);
-            mp_rat_numer(&e->op.number->num.rational, &numer->num.integer);
-
-            denom = malloc(sizeof(num_t));
-            denom->is_decimal = false;
-            mp_int_init(&denom->num.integer);
-            mp_rat_denom(&e->op.number->num.rational, &denom->num.integer);
-
-            num_Cleanup(e->op.number);
-
-            e->type = NODE_OPERATOR;
-            e->op.operator.type = OP_DIV;
-            e->op.operator.base = NULL;
-
-            ast_ChildAppend(e, ast_MakeNumber(numer));
-            ast_ChildAppend(e, ast_MakeNumber(denom));
-
-            changed = true;
-        }
-
-    } else if(e->type == NODE_OPERATOR) {
-        for(current = e->op.operator.base; current != NULL; current = current->next) {
-            changed |= simplify_rational_num(current);
-        }
-    }
-
-    return changed;
-}
-
-static bool simplify_identities(ast_t *e, bool absolute_value) {
-    ast_t *current;
-    bool changed = false;
-
-    if(e->type != NODE_OPERATOR)
-        return false;
-
-    for(current = e->op.operator.base; current != NULL; current = current->next) {
-        changed |= simplify_identities(current, absolute_value);
-    }
-
-    switch(e->op.operator.type) {
-    case OP_POW: {
-        ast_t *a, *b;
-        a = ast_ChildGet(e, 0);
-        b = ast_ChildGet(e, 1);
-
-        if(b->type == NODE_OPERATOR && b->op.operator.type == OP_LOG) {
-            if(ast_Compare(a, ast_ChildGet(b, 0))) {
-                ast_t *simp = ast_ChildRemoveIndex(b, 1);
-
-                e->type = simp->type;
-                e->op = simp->op;
-
-                free(simp);
-
-                ast_Cleanup(a);
-                ast_Cleanup(b);
-
-                changed = true;
-                break;
-            }
-        }
-
-        if(a->type == NODE_OPERATOR && a->op.operator.type == OP_ROOT) {
-            if(ast_Compare(b, ast_ChildGet(a, 0))) {
-                ast_t *simp = ast_ChildRemoveIndex(a, 1);
-
-                e->type = simp->type;
-                e->op = simp->op;
-
-                free(simp);
-
-                ast_Cleanup(a);
-                ast_Cleanup(b);
-
-                changed = true;
-                break;
-            }
-        }
-
-        break;
-    } case OP_ROOT: {
-        ast_t *a, *b;
-        a = ast_ChildGet(e, 0);
-        b = ast_ChildGet(e, 1);
-
-        if(b->type == NODE_OPERATOR && b->op.operator.type == OP_POW) {
-            if(ast_Compare(a, ast_ChildGet(b, 1))) {
-                ast_t *simp;
-                
-                if(a->type == NODE_NUMBER && !a->op.number->is_decimal && mp_int_is_even(&a->op.number->num.integer)) {
-
-                    if(absolute_value) {
-
-                        ast_ChildRemoveIndex(e, 0);
-                        ast_ChildRemoveIndex(e, 0);
-
-                        e->op.operator.type = OP_ABS;
-                        ast_ChildAppend(e, ast_ChildRemoveIndex(b, 0));
-
-                        ast_Cleanup(a);
-                        ast_Cleanup(b);
-
-                        changed = true;
-                    }
-
-                    break;
-                }
-
-                simp = ast_ChildRemoveIndex(b, 0);
-
-                e->type = simp->type;
-                e->op = simp->op;
-
-                free(simp);
-
-                ast_Cleanup(a);
-                ast_Cleanup(b);
-
-                changed = true;
-                break;
-            }
-        }
-
-        break;
-    } case OP_LOG: {
-        ast_t *a, *b;
-        a = ast_ChildGet(e, 0);
-        b = ast_ChildGet(e, 1);
-
-        if(ast_Compare(a, b)) {
-            ast_Cleanup(a);
-            ast_Cleanup(b);
-
-            e->op.operator.base = NULL;
-            e->type = NODE_NUMBER;
-            e->op.number = num_CreateInteger("1");
-
-            changed = true;
-            break;
-        }
-
-        if(b->type == NODE_OPERATOR && b->op.operator.type == OP_POW) {
-            if(ast_Compare(a, ast_ChildGet(b, 0))) {
-                ast_t *simp = ast_ChildRemoveIndex(b, 1);
-
-                e->type = simp->type;
-                e->op = simp->op;
-
-                free(simp);
-
-                ast_Cleanup(a);
-                ast_Cleanup(b);
-
-                changed = true;
-            }
-        }
-
-        break;
-    }
-    /*TODO*/
-    case OP_SIN: break;
-    case OP_SIN_INV: break;
-    case OP_COS: break;
-    case OP_COS_INV: break;
-    case OP_TAN: break;
-    case OP_TAN_INV: break;
-    case OP_SINH: break;
-    case OP_SINH_INV: break;
-    case OP_COSH: break;
-    case OP_COSH_INV: break;
-    case OP_TANH: break;
-    case OP_TANH_INV: break;
-    default: break;
-    }
-
-    return changed;
-}
-
-/*Rewrite X * X^2 as X^1 * X^2*/
-static void _transform_multiplecation(ast_t *e) {
     unsigned i;
 
-    if(e->type != NODE_OPERATOR)
-        return;
+    if(isoptype(e, OP_POW)) {
+        ast_t *base, *power;
 
-    if(e->op.operator.type != OP_MULT)
-        return;
+        base = ast_ChildGet(e, 0);
+        power = ast_ChildGet(e, 1);
+
+        if(isoptype(power, OP_DIV) && is_ast_int(ast_ChildGet(power, 0), 1)) {
+                replace_node(e, ast_MakeBinary(OP_ROOT,
+                                                ast_Copy(ast_ChildGet(power, 1)),
+                                                ast_Copy(base)));
+                changed = true;
+        }
+    }
 
     for(i = 0; i < ast_ChildLength(e); i++) {
-        ast_t *current = ast_ChildGet(e, i);
-        if((current->type == NODE_OPERATOR && current->op.operator.type != OP_POW) || current->type == NODE_SYMBOL) {
-            ast_t *temp = malloc(sizeof(ast_t));
+        ast_t *child = ast_ChildGet(e, i);
 
-            temp->type = current->type;
-            temp->op = current->op;
-            temp->next = NULL;
-            
-            current->type = NODE_OPERATOR;
-            current->op.operator.type = OP_POW;
-            current->op.operator.base = NULL;
-            
-            ast_ChildAppend(current, temp);
-            ast_ChildAppend(current, ast_MakeNumber(num_CreateInteger("1")));
+        if(e->type == NODE_OPERATOR && (optype(e) == OP_MULT || optype(e) == OP_ADD)) {
+            unsigned j;
 
-            _transform_multiplecation(temp);
-        } else {
-            _transform_multiplecation(current);
-        }
-    }
-}
+            for(j = 0; j < i; j++) {
+                int val;
+                ast_t *child2;
 
-/*Rewrite X + 2*X as 1*X + 2*X*/
-static void _transform_addition(ast_t *e) {
-    ast_t *current;
+                child2 = ast_ChildGet(e, j);
+                val = compare(child, child2);
 
-    if(e->type != NODE_OPERATOR)
-        return;
+                /*Swap the order if adding, because I like it that way better*/
+                /*If there is an actual official order we can change this*/
+                if(isoptype(e, OP_ADD) && (child->type == NODE_OPERATOR || child2->type == NODE_OPERATOR))
+                    val *= -1;
 
-    if(e->op.operator.type != OP_ADD)
-        return;
-
-    for(current = e->op.operator.base; current != NULL; current = current->next) {
-        if((current->type == NODE_OPERATOR && current->op.operator.type != OP_MULT) || current->type == NODE_SYMBOL) {
-            ast_t *temp = malloc(sizeof(ast_t));
-
-            temp->type = current->type;
-            temp->op = current->op;
-            temp->next = NULL;
-
-            current->type = NODE_OPERATOR;
-            current->op.operator.type = OP_MULT;
-            current->op.operator.base = NULL;
-
-            ast_ChildAppend(current, ast_MakeNumber(num_CreateInteger("1")));
-            ast_ChildAppend(current, temp);
-
-            _transform_addition(temp);
-        } else {
-            _transform_addition(current);
-        }
-    }
-}
-
-static bool simplify_like_terms(ast_t *e) {
-    bool changed = false;
-    unsigned x, y, len;
-
-    if(e->type != NODE_OPERATOR)
-        return false;
-
-    if(e->op.operator.type == OP_MULT) {
-        _transform_multiplecation(e);
-
-        for(x = 0; x < (len = ast_ChildLength(e)); x++) {
-            ast_t *a = ast_ChildGet(e, x);
-
-            if(a->type != NODE_OPERATOR || a->op.operator.type != OP_POW)
-                continue;
-
-            for(y = 0; y < len; y++) {
-                ast_t *b;
-                if(x == y)
-                    continue;
-                b = ast_ChildGet(e, y);
-
-                if(b->type != NODE_OPERATOR || b->op.operator.type != OP_POW)
-                    continue;
-
-                if(ast_Compare(ast_ChildGet(a, 0), ast_ChildGet(b, 0))) {
-                    ast_t *add;
-
-                    add = ast_MakeBinary(OP_ADD, ast_ChildRemoveIndex(a, 1), ast_ChildRemoveIndex(b, 1));
-
-                    ast_ChildAppend(a, add);
-                    ast_Cleanup(ast_ChildRemoveIndex(e, y));
-
+                if(val < 0) {
+                    ast_ChildInsert(e, ast_ChildRemoveIndex(e, i), j);
                     changed = true;
-                    break;
                 }
             }
         }
 
-        while(simplify_constants(e));
-    } else if(e->op.operator.type == OP_ADD) {
-        _transform_addition(e);
+        changed |= simplify_canonical_form(child);
 
-        for(x = 0; x < (len = ast_ChildLength(e)); x++) {
-            ast_t *a = ast_ChildGet(e, x);
-
-            if(a->type != NODE_OPERATOR || a->op.operator.type != OP_MULT)
-                continue;
-
-            for(y = 0; y < ast_ChildLength(e); y++) {
-                unsigned i, j;
-                ast_t *b;
-
-                if(x == y)
-                    continue;
-                b = ast_ChildGet(e, y);
-
-                if(b->type != NODE_OPERATOR || b->op.operator.type != OP_MULT)
-                    continue;
-
-                for(i = 0; i < ast_ChildLength(a); i++) {
-                    ast_t *f = ast_ChildGet(a, i);
-                    for(j = 0; j < ast_ChildLength(b); j++) {
-                        ast_t *g = ast_ChildGet(b, j);
-
-                        if(f->type != NODE_NUMBER && g->type != NODE_NUMBER && ast_Compare(f, g)) {
-                            ast_Cleanup(ast_ChildRemove(b, g));
-                            ast_ChildRemove(a, f);
-                            ast_ChildRemove(e, a);
-
-                            a->op.operator.type = OP_ADD;
-                            ast_ChildGetLast(a)->next = b->op.operator.base;
-                            b->op.operator.base = NULL;
-
-                            ast_ChildInsert(e, ast_MakeBinary(OP_MULT, a, f), 0);
-
-                            ast_Cleanup(ast_ChildRemoveIndex(e, y));
-
-                            x--;
-
-                            changed = true;
-
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        while(simplify_constants(e));
     }
-
-    for(x = 0; x < ast_ChildLength(e); x++)
-        changed |= simplify_like_terms(ast_ChildGet(e, x));
 
     return changed;
 }
 
-bool simplify(ast_t *e) {
+bool factor_addition(ast_t *e) {
+    return false;
+}
+
+/*
+    Combine things like 
+    AA to A^2
+    A+A to 2A
+    A + 2A to 3A
+
+    This function also will factor expressions such that
+    A + AB becomes A(1 + B)
+*/ 
+static bool simplify_like_terms(ast_t *e) {
     bool changed = false;
 
-    while(simplify_communative(e))
-        changed = true;
 
-    while(simplify_rational(e))
-        changed = true;
 
-    while(simplify_rational_num(e))
-        changed = true;
+    return changed;
+}
 
-    while(simplify_identities(e, true))
-        changed = true;
+/*
+    Executes a collection of simplification functions.
 
-    while(simplify_constants(e))
-        changed = true;
+    O(infinity - 1)
 
-    while(simplify_like_terms(e))
-        changed = true;
+    Returns true if ast was changed
+*/
+bool simplify(ast_t *e) {
+    bool changed;
 
+    do {
+        changed = false;
+        while(simplify_reduce(e))       changed = true;
+        while(simplify_commutative(e))  changed = true;
+        while(simplify_rational(e))     changed = true;
+        while(simplify_like_terms(e))   changed = true;
+        while(eval(e))                  changed = true;
+    } while(changed);
+
+    while(simplify_canonical_form(e));
+    
     return changed;
 }

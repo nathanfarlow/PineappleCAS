@@ -1,58 +1,75 @@
 #ifndef PARSER_H_
 #define PARSER_H_
 
-#include "num.h"
 #include "ast.h"
-
 #include "error.h"
+
+#define is_tok_unary_operator(tok)    (tok >= TOK_NEGATE && tok <= TOK_FACTORIAL)
+#define is_tok_binary_operator(tok)   (tok >= TOK_PLUS && tok <= TOK_ROOT)
+#define is_tok_operator(tok) (is_tok_unary_operator(tok) || is_tok_binary_operator(tok))
+
+#define is_tok_unary_function(tok)    (tok >= TOK_INT && tok <= TOK_TANH_INV)
+#define is_tok_nary_function(tok)     (tok == TOK_LOG_BASE)
+#define is_tok_function(tok)          (is_tok_unary_function(tok) || is_tok_nary_function(tok))
 
 /*Ti Tokens, used for reading from yvars*/
 typedef enum _TokenType {
-    TI_NUMBER, TI_SYMBOL, /*numbers, variables, pi, e*/
+    TOK_NUMBER, TOK_SYMBOL, /*numbers, variables, pi, e*/
 
-    TI_PLUS, TI_MINUS,
-    TI_MULTIPLY, TI_DIVIDE,
-    TI_FRACTION, /*special n/d for ti pretty print*/
-    TI_PROPER,   /*special Un/d for ti pretty print*/
-    TI_POWER,
-    TI_SCIENTIFIC,
-    TI_ROOT,
+    TOK_PLUS, TOK_MINUS,
+    TOK_MULTIPLY, TOK_DIVIDE,
+    TOK_FRACTION, /*special n/d for ti pretty print*/
+    TOK_PROPER,   /*special Un/d for ti pretty print*/
+    TOK_POWER,
+    TOK_SCIENTIFIC,
+    TOK_ROOT,
 
     /*Unary*/
-    TI_NEGATE,
-    TI_RECIPROCAL, TI_SQUARE, TI_CUBE,
-    TI_FACTORIAL,
+    TOK_NEGATE,
+    TOK_RECIPROCAL, TOK_SQUARE, TOK_CUBE,
+    TOK_FACTORIAL,
 
-    TI_LOG_BASE,
+    TOK_LOG_BASE,
 
-    TI_INT, TI_ABS,
+    TOK_INT, TOK_ABS,
     
-    TI_SQRT, TI_CUBED_ROOT,
+    TOK_SQRT, TOK_CUBED_ROOT,
 
-    TI_LN, TI_E_TO_POWER,
-    TI_LOG, TI_10_TO_POWER,
+    TOK_LN, TOK_E_TO_POWER,
+    TOK_LOG, TOK_10_TO_POWER,
 
-    TI_SIN, TI_SIN_INV,
-    TI_COS, TI_COS_INV,
-    TI_TAN, TI_TAN_INV,
-    TI_SINH, TI_SINH_INV,
-    TI_COSH, TI_COSH_INV,
-    TI_TANH, TI_TANH_INV,
+    TOK_SIN, TOK_SIN_INV,
+    TOK_COS, TOK_COS_INV,
+    TOK_TAN, TOK_TAN_INV,
+    TOK_SINH, TOK_SINH_INV,
+    TOK_COSH, TOK_COSH_INV,
+    TOK_TANH, TOK_TANH_INV,
 
-    TI_OPEN_PAR, TI_CLOSE_PAR, TI_COMMA, TI_PERIOD,
+    TOK_OPEN_PAR, TOK_CLOSE_PAR, TOK_COMMA, TOK_PERIOD,
 
-    TI_EULER, TI_PI, TI_THETA,
+    TOK_EULER, TOK_PI, TOK_THETA,
 
-    AMOUNT_TOKENS, TI_INVALID
+    AMOUNT_TOKENS, TOK_INVALID
 } TokenType;
+
+#ifdef COMPILE_PC
+    #define MAX_IDENTIFIER_LEN 8
+#else
+    #define MAX_IDENTIFIER_LEN 2
+#endif
 
 struct Identifier {
     uint8_t length;
-    uint8_t bytes[2];
+    uint8_t bytes[MAX_IDENTIFIER_LEN];
 };
 
-extern struct Identifier token_table[AMOUNT_TOKENS];
+extern struct Identifier TI_TABLE[AMOUNT_TOKENS];
 
-ast_t *parse(const uint8_t *equation, unsigned length, error_t *e);
+#ifdef COMPILE_PC
+extern struct Identifier STR_TABLE[AMOUNT_TOKENS];
+#endif
+
+ast_t *parse(const uint8_t *equation, unsigned length, struct Identifier *lookup, error_t *e);
+uint8_t *export_to_binary(ast_t *e, unsigned *len, struct Identifier *lookup, error_t *err);
 
 #endif

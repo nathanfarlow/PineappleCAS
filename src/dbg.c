@@ -16,36 +16,40 @@ void ti_debug(const char *format, ...) {
 #endif
 
 const char *operators[AMOUNT_OPS] = {
-    "+", /*"-",*/ "*", "/", "^", "root", "log", "!", "int",
+    "+", "*", "/", "^", "root", "log", "!", "int",
     "abs", "sin", "asin", "cos", "acos", "tan", "atan",
     "sinh", "asinh", "cosh", "acosh", "tanh", "atanh"
 };
 
-const char *symbols[SYM_THETA + 1] = {
+const char *symbols[SYM_THETA - SYM_PI + 1] = {
     "pi", "e", "theta"
 };
 
 void _print_tree(ast_t *e, unsigned indent, unsigned index) {
     unsigned i;
+
+    if(e == NULL)
+        return;
+
     for(i = 0; i < indent * index; i++)
         DBG((" "));
 
     switch(e->type) {
     case NODE_NUMBER: {
-        char *num = num_ToString(e->op.number, 6);
+        char *num = num_ToString(e->op.num, 6);
         DBG(("NUMBER: %s\n", num));
         free(num);
         break;
     } case NODE_SYMBOL:
-        if(e->op.symbol < SYM_A)
-            DBG(("SYMBOL: %s\n", symbols[e->op.symbol]));
+        if(e->op.symbol >= SYM_PI && e->op.symbol <= SYM_THETA)
+            DBG(("SYMBOL: %s\n", symbols[e->op.symbol - SYM_PI]));
         else
             DBG(("SYMBOL: %c\n", e->op.symbol));
         break;
     case NODE_OPERATOR: {
         ast_t *current;
-        DBG(("OPERATOR: %s\n", operators[e->op.operator.type]));
-        for(current = e->op.operator.base; current != NULL; current = current->next) {
+        DBG(("OPERATOR: %s\n", operators[optype(e)]));
+        for(current = opbase(e); current != NULL; current = current->next) {
             _print_tree(current, indent, index + 1);
         }
         break;
@@ -62,7 +66,7 @@ unsigned dbg_count_nodes(ast_t *e) {
 
     if(e->type == NODE_OPERATOR) {
         ast_t *current;
-        for(current = e->op.operator.base; current != NULL; current = current->next)
+        for(current = opbase(e); current != NULL; current = current->next)
             amount += dbg_count_nodes(current);
     }
 

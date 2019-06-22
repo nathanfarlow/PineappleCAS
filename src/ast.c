@@ -1,11 +1,69 @@
 #include "ast.h"
 
-ast_t *ast_MakeNumber(num_t *num) {
+mp_rat num_FromString(const char *str) {
+    mp_rat n = mp_rat_alloc();
+    mp_rat_init(n);
+    mp_rat_read_decimal(n, RADIX, str);
+    return n;
+}
+
+mp_rat num_FromInt(mp_small num) {
+    mp_rat n = mp_rat_alloc();
+    mp_rat_init(n);
+    mp_rat_set_value(n, num, 1);
+    return n;
+}
+
+mp_rat num_FromFraction(mp_small num, mp_small den) {
+    mp_rat n = mp_rat_alloc();
+    mp_rat_init(n);
+    mp_rat_set_value(n, num, den);
+    return n;
+}
+
+mp_rat num_Copy(mp_rat other) {
+    mp_rat n = mp_rat_alloc();
+    mp_rat_init_copy(n, other);
+    return n;
+}
+
+char *num_ToString(mp_rat num, mp_size precision) {
+    mp_result res;
+
+    char *str;
+    int len;
+
+    if(mp_rat_is_integer(num)) {
+        mp_rat_reduce(num);
+        len = mp_int_string_len(&num->num, RADIX);
+        str = malloc(len * sizeof(char));
+        if((res = mp_int_to_string(&num->num, RADIX, str, len)) != MP_OK) {
+            free(str);
+            return NULL;
+        }
+    } else {
+        len = mp_rat_decimal_len(num, RADIX, precision);
+        str = malloc(len * sizeof(char));
+        if((res = mp_rat_to_decimal(num, RADIX, precision, MP_ROUND_HALF_UP, str, len)) != MP_OK) {
+            free(str);
+            return NULL;
+        }
+    }
+
+    return str;
+}
+
+void num_Cleanup(mp_rat num) {
+    if(num != NULL)
+        mp_rat_free(num);
+}
+
+ast_t *ast_MakeNumber(mp_rat num) {
     ast_t *ret = malloc(sizeof(ast_t));
     ret->type = NODE_NUMBER;
     ret->next = NULL;
 
-    ret->op.number = num;
+    ret->op.num = num;
 
     return ret;
 }
@@ -25,8 +83,8 @@ ast_t *ast_MakeOperator(OperatorType type) {
     ret->type = NODE_OPERATOR;
     ret->next = NULL;
 
-    ret->op.operator.type = type;
-    ret->op.operator.base = NULL;
+    optype(ret) = type;
+    opbase(ret) = NULL;
 
     return ret;
 }
@@ -50,16 +108,16 @@ ast_t *ast_Copy(ast_t *e) {
 
     switch(e->type) {
     case NODE_NUMBER:
-        return ast_MakeNumber(num_Copy(e->op.number));
+        return ast_MakeNumber(num_Copy(e->op.num));
     case NODE_SYMBOL:
         return ast_MakeSymbol(e->op.symbol);
     case NODE_OPERATOR: {
         ast_t *copy, *child;
 
-        copy = ast_MakeOperator(e->op.operator.type);
-        child = e->op.operator.base;
+        copy = ast_MakeOperator(optype(e));
+        child = opbase(e);
 
-        for(child = e->op.operator.base; child != NULL; child = child->next)
+        for(child = opbase(e); child != NULL; child = child->next)
             ast_ChildAppend(copy, ast_Copy(child));
 
         return copy;
@@ -89,32 +147,27 @@ bool ast_Compare(ast_t *a, ast_t *b) {
 
     switch(a->type) {
     case NODE_NUMBER:
-        if(a->op.number->is_decimal != b->op.number->is_decimal)
-            return false;
-
-        if(a->op.number->is_decimal)
-            return mp_rat_compare(&a->op.number->num.rational, &b->op.number->num.rational) == 0;
-        else
-            return mp_int_compare(&a->op.number->num.integer, &b->op.number->num.integer) == 0;
+        return mp_rat_compare(a->op.num, b->op.num) == 0;
     case NODE_SYMBOL:
         return a->op.symbol == b->op.symbol;
     case NODE_OPERATOR: {
         unsigned length;
 
-        if(a->op.operator.type != b->op.operator.type)
+        if(optype(a) != optype(b))
             return false;
 
         if((length = ast_ChildLength(a)) != ast_ChildLength(b))
             return false;
         
-        if(a->op.operator.type == OP_MULT || a->op.operator.type == OP_ADD) {
+        /*Compare children that are not necessarily in order. O(n^2)*/
+        if(optype(a) == OP_MULT || optype(a) == OP_ADD) {
             unsigned a_index, b_index;
             unsigned top = 0;
 
             bool had_match = true;
 
-
-            unsigned *buffer = malloc(sizeof(unsigned) * length);
+            /*Keep track if we have already matched a node to another node in the past*/
+            unsigned *buffer = calloc(length, sizeof(unsigned));
 
             for(a_index = 0; a_index < length && had_match; a_index++) {
 
@@ -130,6 +183,7 @@ bool ast_Compare(ast_t *a, ast_t *b) {
                         if(ast_Compare(a_child, b_child)) {
                             had_match = true;
                             buffer[top++] = b_index;
+                            break;
                         }
                     }
                 }
@@ -162,13 +216,13 @@ void ast_Cleanup(ast_t *e) {
 
     switch(e->type) {
     case NODE_NUMBER:
-        num_Cleanup(e->op.number);
+        num_Cleanup(e->op.num);
         break;
     case NODE_SYMBOL:
         break;
     case NODE_OPERATOR: {
         /*Free each node in the list*/
-        ast_t *current = e->op.operator.base;
+        ast_t *current = opbase(e);
         while(current != NULL) {
             ast_t *next = current->next;
             ast_Cleanup(current);
@@ -190,7 +244,7 @@ error_t ast_ChildAppend(ast_t *parent, ast_t *child) {
     last = ast_ChildGetLast(parent);
 
     if(last == NULL)
-        parent->op.operator.base = child;
+        opbase(parent) = child;
     else
         last->next = child;
 
@@ -206,7 +260,7 @@ ast_t *ast_ChildGet(ast_t *parent, LSIZE index) {
     if(parent->type != NODE_OPERATOR)
         return NULL;
 
-    current = parent->op.operator.base;
+    current = opbase(parent);
 
     for(i = 0; i <= index && current != NULL; i++) {
         if(i == index)
@@ -221,11 +275,11 @@ ast_t *ast_ChildGetLast(ast_t *parent) {
     if(parent->type != NODE_OPERATOR)
         return NULL;
 
-    if(parent->op.operator.base == NULL) {
+    if(opbase(parent) == NULL) {
         return NULL;
     } else {
         ast_t *current;
-        for(current = parent->op.operator.base; current->next != NULL; current = current->next);
+        for(current = opbase(parent); current->next != NULL; current = current->next);
         return current;
     }
 
@@ -240,18 +294,18 @@ error_t ast_ChildInsert(ast_t *parent, ast_t *child, LSIZE index) {
         return E_AST_NOT_ALLOWED;
 
     if(index == 0) {
-        if(parent->op.operator.base == NULL)
-            parent->op.operator.base = child;
+        if(opbase(parent) == NULL)
+            opbase(parent) = child;
         else {
-            child->next = parent->op.operator.base;
-            parent->op.operator.base = child;
+            child->next = opbase(parent);
+            opbase(parent) = child;
         }
 
         return E_SUCCESS;
     }
 
     i = 1;
-    current = parent->op.operator.base;
+    current = opbase(parent);
 
     while(current != NULL) {
 
@@ -285,7 +339,7 @@ LSIZE ast_ChildIndexOf(ast_t *parent, ast_t *child) {
 
     i = 0;
 
-    for(current = parent->op.operator.base; current != NULL; current = current->next) {
+    for(current = opbase(parent); current != NULL; current = current->next) {
         if(current == child)
             return i;
         i++;
@@ -304,17 +358,17 @@ ast_t *ast_ChildRemoveIndex(ast_t *parent, LSIZE index) {
     if(index == 0) {
         ast_t *temp;
         
-        if(parent->op.operator.base == NULL)
+        if(opbase(parent) == NULL)
             return NULL;
 
-        temp = parent->op.operator.base;
-        parent->op.operator.base = parent->op.operator.base->next;
+        temp = opbase(parent);
+        opbase(parent) = opbase(parent)->next;
         temp->next = NULL;
         return temp;
     }
 
     i = 1;
-    current = parent->op.operator.base;
+    current = opbase(parent);
 
     while(current != NULL) {
 
@@ -340,7 +394,7 @@ LSIZE ast_ChildLength(ast_t *parent) {
         return 0;
 
     i = 0;
-    for(current = parent->op.operator.base; current != NULL; current = current->next)
+    for(current = opbase(parent); current != NULL; current = current->next)
         i++;
 
     return i;

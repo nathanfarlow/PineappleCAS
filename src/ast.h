@@ -1,19 +1,26 @@
 #ifndef AST_H_
 #define AST_H_
 
-#include "num.h"
+#include "imath/imrat.h"
 #include "error.h"
 
-#include <stdlib.h> /*For malloc*/
+#include <stdlib.h>
+#include <stdbool.h>
 
 #define LSIZE unsigned
+#define RADIX 10
 
 typedef enum {
     NODE_NUMBER, NODE_SYMBOL, NODE_OPERATOR
 } NodeType;
 
-#define is_op_nary(type) (type >= OP_ADD && type <= OP_LOG)
-#define is_op_unary(type) (!is_nary(type))
+#define is_op_commutative(op) (op == OP_ADD || op == OP_MULT)
+
+#define is_op_operator(op) (op >= OP_ADD && op <= OP_LOG)
+#define is_op_function(op) (op >= OP_INT && op <= OP_TANH_INV)
+
+#define is_op_nary(op) (op >= OP_ADD && op <= OP_LOG)
+#define is_op_unary(op) (op >= OP_FACTORIAL && op <= OP_TANH_INV)
 
 typedef enum {
     /*nary*/
@@ -42,8 +49,6 @@ typedef enum {
 #define AMOUNT_SYMBOLS 29
 
 typedef enum {
-    SYM_PI, SYM_EULER, SYM_THETA,
-
     SYM_A = 'A',
     SYM_B, SYM_C, SYM_D, SYM_E, SYM_F,
     SYM_G, SYM_H, SYM_I, SYM_J, SYM_K,
@@ -51,8 +56,17 @@ typedef enum {
     SYM_Q, SYM_R, SYM_S, SYM_T, SYM_U,
     SYM_V, SYM_W, SYM_X, SYM_Y, SYM_Z,
 
+    SYM_PI, SYM_EULER, SYM_THETA,
+
     SYM_INVALID
 } Symbol;
+
+/*Shortcuts for NODE_OPERATOR*/
+#define optype(e)       e->op.operator.type
+#define isoptype(e, op) (e->type == NODE_OPERATOR && optype(e) == op)
+#define opbase(e)       e->op.operator.base
+
+#define is_ast_int(e, val) (e->type == NODE_NUMBER && mp_rat_compare_value(e->op.num, val, 1) == 0)
 
 typedef struct _Node {
 
@@ -62,7 +76,7 @@ typedef struct _Node {
 
     union {
         /*NODE_NUMBER*/
-        num_t *number;
+        mp_rat num;
 
         /*NODE_SYMBOL*/
         Symbol symbol;
@@ -79,7 +93,17 @@ typedef struct _Node {
 
 } ast_t;
 
-ast_t *ast_MakeNumber(num_t *num);
+
+/*Wrapper functions for shorthand calling in functions*/
+/*Expects null terminated string*/
+mp_rat num_FromString(const char *str);
+mp_rat num_FromInt(mp_small num);
+mp_rat num_FromFraction(mp_small num, mp_small den);
+mp_rat num_Copy(mp_rat other);
+char *num_ToString(mp_rat num, mp_size precision);
+void num_Cleanup(mp_rat num);
+
+ast_t *ast_MakeNumber(mp_rat num);
 ast_t *ast_MakeSymbol(char symbol);
 
 ast_t *ast_MakeOperator(OperatorType type);

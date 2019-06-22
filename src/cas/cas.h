@@ -3,15 +3,18 @@
 
 #include "../ast.h"
 
-#define is_type_communative(type) (type == OP_ADD || type == OP_MULT)
-#define is_type_operator(type) (type >= OP_ADD && type <= OP_LOG)
-#define is_type_function(type) (type >= OP_INT && type <= OP_TANH_INV)
+/*Evaluates constants. Returns true if changed*/
+bool eval(ast_t *e);
+/*Factors simple addition. Does not factor polynomials.*/
+bool factor_addition(ast_t *e);
+/*Simplifies ast. Returns true if changed*/
+bool simplify(ast_t *e);
 
 void derivative(ast_t *e);
 
-bool simplify(ast_t *e);
+/*Helper functions*/
 
-/*Approximates results for testing only*/
-double approximate(ast_t *e, error_t *err);
+/*Change a to b and delete b*/
+void replace_node(ast_t *a, ast_t *b);
 
 #endif
