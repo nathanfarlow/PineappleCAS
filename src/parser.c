@@ -454,6 +454,8 @@ bool collapse_all(stack_t *operators, stack_t *expressions) {
     return NULL;                                            \
 }
 
+#include "dbg.h"
+
 ast_t *parse(const uint8_t *equation, unsigned length, struct Identifier *lookup, error_t *e) {
     tokenizer_t tokenizer = {0};
     stack_t operators, expressions;
@@ -492,13 +494,20 @@ ast_t *parse(const uint8_t *equation, unsigned length, struct Identifier *lookup
             }
 
         } else if(is_tok_unary_operator(tok->type)) {
-            parse_assert(collapse_precedence(&operators, &expressions, tok->type), E_PARSE_BAD_OPERATOR);
-            stack_Push(&operators, tok);
 
-            if(tok->type != TOK_NEGATE && should_multiply_by_next_token(&tokenizer, i)) {
-                parse_assert(collapse_precedence(&operators, &expressions, TOK_MULTIPLY), E_PARSE_BAD_OPERATOR);
-                stack_Push(&operators, &mult);
+            /*Or other left unary operators*/
+            if(tok->type != TOK_NEGATE) {
+                parse_assert(collapse_precedence(&operators, &expressions, tok->type), E_PARSE_BAD_OPERATOR);
+                stack_Push(&operators, tok);
+
+                if(should_multiply_by_next_token(&tokenizer, i)) {
+                    parse_assert(collapse_precedence(&operators, &expressions, TOK_MULTIPLY), E_PARSE_BAD_OPERATOR);
+                    stack_Push(&operators, &mult);
+                }
+            } else {
+                stack_Push(&operators, tok);
             }
+
         } else if(is_tok_binary_operator(tok->type)) {
             parse_assert(collapse_precedence(&operators, &expressions, tok->type), E_PARSE_BAD_OPERATOR);
             stack_Push(&operators, tok);
