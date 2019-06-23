@@ -155,7 +155,6 @@ int test_simplify(int argc, char **argv) {
             printf("Output: ");
             printf("%.*s\n", output_len, output);
 
-
             free(output);
         }
 
@@ -168,8 +167,9 @@ int test_simplify(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-    return test_gcd(argc, argv);
-    /*return test_simplify(argc, argv);*/
+    if(argc == 3)
+        return test_gcd(argc, argv);
+    return test_simplify(argc, argv);
 }
 
 #else

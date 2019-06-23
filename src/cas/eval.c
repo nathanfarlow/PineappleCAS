@@ -279,7 +279,9 @@ static bool eval_pow(ast_t *e) {
 
         /*TODO: add limits*/
 
-        if(mp_rat_is_integer(a->op.num) && mp_rat_is_integer(b->op.num)) {
+        if(mp_rat_is_integer(a->op.num) && mp_rat_is_integer(b->op.num)
+            && mp_rat_compare_zero(b->op.num) > 0) {
+            
             mp_rat result;
             result = num_FromInt(1);
 
