@@ -41,7 +41,76 @@ uint8_t *trim(char *input, unsigned *len) {
     return trimmed;
 }
 
-int main(int argc, char **argv) {
+int test_gcd(int argc, char **argv) {
+
+    uint8_t *trimmed_a, *trimmed_b;
+    unsigned trimmed_a_len, trimmed_b_len;
+
+    error_t err;
+    ast_t *a, *b, *g;
+
+    uint8_t *output;
+    unsigned output_len;
+
+    if(argc <= 2) {
+        printf("Usage: ./pineapple \"A^2\" \"ABC\"\n");
+        return -1;
+    }
+
+    trimmed_a = trim(argv[1], &trimmed_a_len);
+
+    printf("Parsing \"%s\"\n", trimmed_a);
+
+    a = parse(trimmed_a, trimmed_a_len, STR_TABLE, &err);
+
+    printf("%s\n", error_text[err]);
+
+    if(err != E_SUCCESS || a == NULL)
+        return -1;
+
+    simplify(a);
+
+    trimmed_b = trim(argv[2], &trimmed_b_len);
+
+    printf("Parsing \"%s\"\n", trimmed_b);
+
+    b = parse(trimmed_b, trimmed_b_len, STR_TABLE, &err);
+
+    printf("%s\n", error_text[err]);
+
+    if(err != E_SUCCESS || b == NULL)
+        return -1;
+
+    simplify(b);
+
+    printf("Computing gcd...\n\n");
+
+    g = gcd(a, b);
+
+    dbg_print_tree(g, 4);
+
+    printf("\n");
+
+    output = export_to_binary(g, &output_len, STR_TABLE, &err);
+
+    if(err == E_SUCCESS && output != NULL) {
+        printf("Output: ");
+        printf("%.*s\n", output_len, output);
+
+        free(output);
+    }
+
+    free(trimmed_a);
+    free(trimmed_b);
+
+    ast_Cleanup(a);
+    ast_Cleanup(b);
+    ast_Cleanup(g);
+
+    return 0;
+}
+
+int test_simplify(int argc, char **argv) {
 
     uint8_t *trimmed;
     unsigned trimmed_len;
@@ -96,6 +165,11 @@ int main(int argc, char **argv) {
     ast_Cleanup(e);
 
     return 0;
+}
+
+int main(int argc, char **argv) {
+    return test_gcd(argc, argv);
+    /*return test_simplify(argc, argv);*/
 }
 
 #else

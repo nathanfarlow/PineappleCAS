@@ -157,6 +157,50 @@ static bool eval_div(ast_t *e) {
         return true;
     }
 
+    if(isoptype(num, OP_POW)) {
+        ast_t *base1, *power1;
+
+        base1 = ast_ChildGet(num, 0);
+        power1 = ast_ChildGet(num, 1);
+
+        if(isoptype(den, OP_POW)) {
+            ast_t *base2, *power2;
+
+            base2 = ast_ChildGet(den, 0);
+            power2 = ast_ChildGet(den, 1);
+
+            if(ast_Compare(base1, base2)) {
+                /*Subtract powers*/
+                replace_node(power1, ast_MakeBinary(OP_ADD,
+                                                    ast_Copy(power1),
+                                                    ast_MakeBinary(OP_MULT,
+                                                                    ast_MakeNumber(num_FromInt(-1)),
+                                                                    ast_Copy(power2))));
+                replace_node(den, ast_MakeNumber(num_FromInt(1)));
+                return true;
+            }
+
+        } else if(ast_Compare(base1, den)) {
+            /*Subtract powers*/
+            replace_node(power1, ast_MakeBinary(OP_ADD,
+                                                ast_MakeNumber(num_FromInt(-1)),
+                                                ast_Copy(power1)));
+            replace_node(den, ast_MakeNumber(num_FromInt(1)));
+
+            return true;
+        }
+    } else if(isoptype(den, OP_POW) && ast_Compare(num, ast_ChildGet(den, 0))) {
+        /*Subtract powers*/
+        ast_t *power2 = ast_ChildGet(den, 1);
+
+        replace_node(power2, ast_MakeBinary(OP_ADD,
+                                                ast_MakeNumber(num_FromInt(-1)),
+                                                ast_Copy(power2)));
+        replace_node(num, ast_MakeNumber(num_FromInt(1)));
+
+        return true;
+    }
+
     if(eval_div_mult(num, den))
         return true;
 
@@ -218,6 +262,18 @@ static bool eval_pow(ast_t *e) {
         return true;
     }
 
+    /*(A^B)^C = A^(BC)*/
+    if(isoptype(a, OP_POW)) {
+        replace_node(e, ast_MakeBinary(OP_POW,
+                                        ast_Copy(ast_ChildGet(a, 0)),
+                                        ast_MakeBinary(OP_MULT,
+                                            ast_Copy(ast_ChildGet(a, 1)),
+                                            ast_Copy(b)
+                                            )
+                                        ));
+        return true;
+    }
+
     /*Evaluate a^b if a and b are integers*/
     if(a->type == NODE_NUMBER && b->type == NODE_NUMBER) {
 
@@ -231,7 +287,7 @@ static bool eval_pow(ast_t *e) {
 
             replace_node(e, ast_MakeNumber(result));
 
-            changed = true;
+            return true;
         }
 
     }
