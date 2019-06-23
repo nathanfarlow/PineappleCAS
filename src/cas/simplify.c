@@ -1,4 +1,4 @@
-#include "cas.h"
+#include "simplify.h"
 
 #include <stdbool.h>
 
@@ -9,7 +9,7 @@
     Scrambles the order of the parameters, but that's fine
     because we're going to put them in canonical form anyway.
 */
-static bool simplify_commutative(ast_t *e) {
+bool simplify_commutative(ast_t *e) {
     unsigned i;
     bool changed = false;
 
@@ -19,7 +19,8 @@ static bool simplify_commutative(ast_t *e) {
     if(ast_ChildLength(e) == 1
         && (optype(e) == OP_MULT || optype(e) == OP_ADD)) {
         replace_node(e, opbase(e));
-        return simplify_commutative(e);
+        simplify_commutative(e);
+        return true;
     }
 
     for(i = 0; i < ast_ChildLength(e); i++) {
@@ -75,7 +76,7 @@ void replace_node(ast_t *a, ast_t *b) {
     Simplifies rational functions.
     A/B/C/D becomes A/(BCD)
 */
-static bool simplify_rational(ast_t *e) {
+bool simplify_rational(ast_t *e) {
     unsigned i;
     bool changed = false;
 
@@ -178,7 +179,7 @@ static bool simplify_rational(ast_t *e) {
     Changes all roots to powers.
     Expands (AB)^5 to A^5 * B^5
 */
-static bool simplify_normalize(ast_t *e) {
+bool simplify_normalize(ast_t *e) {
     ast_t *child;
 
     if(e->type == NODE_OPERATOR) {
@@ -239,7 +240,7 @@ static bool simplify_normalize(ast_t *e) {
 }
 
 /*Expects everything to be completely simplified*/
-static bool is_negative_for_sure(ast_t *a) {
+bool is_negative_for_sure(ast_t *a) {
     if(a->type == NODE_NUMBER && mp_rat_compare_zero(a->op.num) < 0)
         return true;
 
@@ -254,21 +255,80 @@ static bool is_negative_for_sure(ast_t *a) {
 }
 
 /*returns negative if a < b, 0 if a=b, positive if a > b in terms of sorting order*/
-static int compare(ast_t *a, ast_t *b, bool add) {
+int compare(ast_t *a, ast_t *b, bool add) {
+    ast_t *temp;
+    int multiplier = 1;
+
+    if(isoptype(b, OP_MULT)) {
+        temp = a;
+        a = b;
+        b = temp;
+        multiplier *= -1;
+    }
+
+    if(isoptype(a, OP_MULT)) {
+        ast_t *g = gcd(a, b);
+
+        if(!is_ast_int(g, 1)) {
+            ast_t *newa, *newb;
+            int val;
+
+            newa = ast_MakeBinary(OP_DIV, ast_Copy(a), ast_Copy(g));
+            newb = ast_MakeBinary(OP_DIV, ast_Copy(b), ast_Copy(g));
+
+            simplify(newa);
+            simplify(newb);
+
+            val = compare(newa, newb, add);
+
+            ast_Cleanup(g);
+            ast_Cleanup(newa);
+            ast_Cleanup(newb);
+
+            return multiplier * val;
+        }
+
+        ast_Cleanup(g);
+    }
+
+    /*Compare power bases to sort alphabetically when multiplying, and by degree when adding*/
+    
+    if(isoptype(b, OP_POW)) {
+        temp = a;
+        a = b;
+        b = temp;
+        multiplier *= -1;
+    }
+    if(isoptype(a, OP_POW)) {
+        ast_t *abase, *apower;
+
+        abase = ast_ChildGet(a, 0);
+        apower = ast_ChildGet(a, 1);
+
+        if(isoptype(b, OP_POW)) {
+            ast_t *bbase, *bpower;
+            
+            bbase = ast_ChildGet(b, 0);
+            bpower = ast_ChildGet(b, 1);
+
+            return multiplier * (add ? -1 * compare(apower, bpower, add) : compare(abase, bbase, add));
+        }
+
+    }
 
     if(is_negative_for_sure(a) && !is_negative_for_sure(b))
-        return add ? 1 : -1;
+        return multiplier * (add ? 1 : -1);
     else if(is_negative_for_sure(b) && !is_negative_for_sure(a))
-        return add ? -1 : 1;
+        return multiplier * (add ? -1 : 1);
 
     /*NODE_NUMBER < NODE_SYMBOL < NODE_OPERATOR*/
-    if(a->type < b->type) return add ? 1 : -1;
-    else if(a->type > b->type) return add ? -1 : 1;
+    if(a->type < b->type) return multiplier * (add ? 1 : -1);
+    else if(a->type > b->type) return multiplier * (add ? -1 : 1);
 
     switch(a->type) {
-    case NODE_NUMBER:   return mp_rat_compare(a->op.num, b->op.num);
-    case NODE_SYMBOL:   return a->op.symbol - b->op.symbol;
-    case NODE_OPERATOR: return optype(a) - optype(b);
+    case NODE_NUMBER:   return multiplier * mp_rat_compare(a->op.num, b->op.num);
+    case NODE_SYMBOL:   return multiplier * (a->op.symbol - b->op.symbol);
+    case NODE_OPERATOR: return multiplier * (optype(a) - optype(b));
     }
 
     return -1;
@@ -278,7 +338,7 @@ static int compare(ast_t *a, ast_t *b, bool add) {
     Order multiplication and division
     Sorting for addition and multiplication is O(n^2) by insertion sort
 */
-static bool simplify_canonical_form(ast_t *e) {
+bool simplify_canonical_form(ast_t *e) {
     bool changed = false;
     unsigned i;
 
@@ -331,11 +391,9 @@ static bool simplify_canonical_form(ast_t *e) {
     This function also will factor expressions such that
     A + AB becomes A(1 + B)
 */ 
-static bool simplify_like_terms(ast_t *e) {
+bool simplify_like_terms(ast_t *e) {
     ast_t *child = NULL;
     bool changed = false;
-
-    factor_addition(e);
     
     for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
             changed |= simplify_like_terms(child);
@@ -440,6 +498,7 @@ bool simplify(ast_t *e) {
         while(simplify_commutative(e))  changed = true;
         while(simplify_rational(e))     changed = true;
         while(eval(e))                  changed = true;
+        factor_addition(e, true);
         while(simplify_like_terms(e))   changed = true;
     } while(changed);
 

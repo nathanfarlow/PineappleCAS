@@ -149,6 +149,14 @@ int test_simplify(int argc, char **argv) {
 
         printf("\n");
 
+        printf("Expanding...\n\n");
+
+        while(expand(e, true));
+
+        printf("\n");
+        dbg_print_tree(e, 4);
+        printf("\n");
+        
         output = export_to_binary(e, &output_len, STR_TABLE, &err);
 
         if(err == E_SUCCESS && output != NULL) {

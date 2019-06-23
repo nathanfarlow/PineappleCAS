@@ -120,11 +120,11 @@ ast_t *gcd(ast_t *a, ast_t *b) {
     return ast_MakeNumber(num_FromInt(1));
 }
 
-void factor_addition(ast_t *e) {
+void factor_addition(ast_t *e, bool eval_only) {
     ast_t *child;
 
     for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
-        factor_addition(child);
+        factor_addition(child, eval_only);
 
     if(isoptype(e, OP_ADD)) {
         unsigned i, j;
@@ -139,30 +139,43 @@ void factor_addition(ast_t *e) {
                 g = gcd(a, b);
 
                 if(!is_ast_int(g, 1)) {
-                    ast_t *append;
+                    ast_t *append, *first, *second;
+
+                    first = ast_MakeBinary(OP_DIV,
+                                            ast_Copy(a),
+                                            ast_Copy(g)
+                                        );
+                    second = ast_MakeBinary(OP_DIV,
+                                            ast_Copy(b),
+                                            ast_Copy(g)
+                                        );
 
                     append = ast_MakeBinary(OP_MULT,
                                     ast_Copy(g),
                                     ast_MakeBinary(OP_ADD,
-                                        ast_MakeBinary(OP_DIV,
-                                            ast_Copy(a),
-                                            ast_Copy(g)
-                                        ),
-                                        ast_MakeBinary(OP_DIV,
-                                            ast_Copy(b),
-                                            ast_Copy(g)
-                                        )
+                                        first,
+                                        second
                                     )
                                 );
 
-                    simplify(append);
-                    ast_ChildAppend(e, append);
+                    simplify(first);
+                    simplify(second);
 
-                    ast_Cleanup(ast_ChildRemove(e, a));
-                    ast_Cleanup(ast_ChildRemove(e, b));
+                    /*Two numbers are ok, or if at least one of them is a number*/
+                    if(eval_only && !(first->type == NODE_NUMBER && second->type == NODE_NUMBER)) {
+                        ast_Cleanup(append);
+                        ast_Cleanup(g);
+                    } else {
+                        simplify(append);
+                        ast_ChildAppend(e, append);
 
-                    ast_Cleanup(g);
-                    break;
+                        ast_Cleanup(ast_ChildRemove(e, a));
+                        ast_Cleanup(ast_ChildRemove(e, b));
+
+                        ast_Cleanup(g);
+                        break;
+                    }
+
                 } else {
                     ast_Cleanup(g);
                 }
