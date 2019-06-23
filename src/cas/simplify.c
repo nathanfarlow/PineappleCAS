@@ -238,12 +238,32 @@ static bool simplify_normalize(ast_t *e) {
     return false;
 }
 
+/*Expects everything to be completely simplified*/
+static bool is_negative_for_sure(ast_t *a) {
+    if(a->type == NODE_NUMBER && mp_rat_compare_zero(a->op.num) < 0)
+        return true;
+
+    if(isoptype(a, OP_MULT)) {
+        ast_t *child;
+        for(child = ast_ChildGet(a, 0); child != NULL; child = child->next)
+            if(is_negative_for_sure(child))
+                return true;
+    }
+
+    return false;
+}
+
 /*returns negative if a < b, 0 if a=b, positive if a > b in terms of sorting order*/
-static int compare(ast_t *a, ast_t *b) {
+static int compare(ast_t *a, ast_t *b, bool add) {
+
+    if(is_negative_for_sure(a) && !is_negative_for_sure(b))
+        return add ? 1 : -1;
+    else if(is_negative_for_sure(b) && !is_negative_for_sure(a))
+        return add ? -1 : 1;
 
     /*NODE_NUMBER < NODE_SYMBOL < NODE_OPERATOR*/
-    if(a->type < b->type) return -1;
-    else if(a->type > b->type) return 1;
+    if(a->type < b->type) return add ? 1 : -1;
+    else if(a->type > b->type) return add ? -1 : 1;
 
     switch(a->type) {
     case NODE_NUMBER:   return mp_rat_compare(a->op.num, b->op.num);
@@ -287,12 +307,7 @@ static bool simplify_canonical_form(ast_t *e) {
                 ast_t *child2;
 
                 child2 = ast_ChildGet(e, j);
-                val = compare(child, child2);
-
-                /*Swap the order if adding, because I like it that way better*/
-                /*If there is an actual official order we can change this*/
-                if(isoptype(e, OP_ADD) && (child->type == NODE_OPERATOR || child2->type == NODE_OPERATOR))
-                    val *= -1;
+                val = compare(child, child2, optype(e) == OP_ADD);
 
                 if(val < 0) {
                     ast_ChildInsert(e, ast_ChildRemoveIndex(e, i), j);

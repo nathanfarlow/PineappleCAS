@@ -1,4 +1,5 @@
 #include "parser.h"
+
 #include <string.h>
 
 #define add_byte(byte) do {if(data != NULL) data[index] = (byte); index++;} while(0)
@@ -46,6 +47,22 @@ ast_t *leftmost(ast_t *e) {
     return e;
 }
 
+/*Returns true if changed. Expects completely simplified.*/
+static bool absolute_val(ast_t *e) {
+    if(e->type == NODE_NUMBER && mp_rat_compare_zero(e->op.num) < 0) {
+        mp_rat_abs(e->op.num, e->op.num);
+        return true;
+    }
+
+    if(isoptype(e, OP_MULT)) {
+        ast_t *child;
+        for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
+            if(absolute_val(child))
+                return true;
+    }
+
+    return false;
+}
 /*Returns length of buffer. Writes to buffer is buffer != NULL*/
 static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Identifier *lookup, error_t *err) {
     
@@ -81,38 +98,74 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Ident
         unsigned i;
 
         switch(optype(e)) {
-        case OP_ADD:
+        case OP_ADD: {
+            ast_t *child;
+            ast_t *e_copy = ast_Copy(e);
+
+            for(i = 0; i < ast_ChildLength(e_copy) - 1; i++) {
+                ast_t *next;
+
+                child = ast_ChildGet(e_copy, i);
+                next = child->next;
+
+                if(need_paren(e_copy, child)) add_token(TOK_OPEN_PAR);
+                index = _to_binary(child, data, index, lookup, err);
+                if(need_paren(e_copy, child)) add_token(TOK_CLOSE_PAR);
+
+                if(absolute_val(next))
+                    add_token(TOK_MINUS);
+                else
+                    add_token(TOK_PLUS);
+            }
+
+            child = ast_ChildGetLast(e_copy);
+
+            if(need_paren(e_copy, child)) add_token(TOK_OPEN_PAR);
+            index = _to_binary(child, data, index, lookup, err);
+            if(need_paren(e_copy, child)) add_token(TOK_CLOSE_PAR);
+
+            ast_Cleanup(e_copy);
+
+            break;
+        }
         case OP_MULT: {
             ast_t *child;
+            bool needs_mult;
 
             for(i = 0; i < ast_ChildLength(e) - 1; i++) {
+                ast_t *next;
+
                 child = ast_ChildGet(e, i);
+                next = child->next;
 
-                if(need_paren(e, child)) add_token(TOK_OPEN_PAR);
-                index = _to_binary(child, data, index, lookup, err);
-                if(need_paren(e, child)) add_token(TOK_CLOSE_PAR);
-
-                if(optype(e) == OP_MULT) {
-                    ast_t *next = child->next;
-
-                    bool needs_mult = (child->type == NODE_NUMBER && leftmost(next)->type == NODE_NUMBER)
-                        /*Should never happen, because the tree should have been flattened. This is just in case*/
-                        || isoptype(child, OP_MULT);
-
-                    if(needs_mult)
-                        add_token(TOK_MULTIPLY);
-
+                if(is_ast_int(child, -1)) {
+                    add_token(TOK_NEGATE);
+                } else if(is_ast_int(child, 1)) {
+                    /*You'd think this would be fixed by the simplifier, but
+                    the problem is reintroduced when we abs(-1) during addition exporting*/
+                    continue;
                 } else {
-                    add_token(TOK_PLUS);
+                    if(need_paren(e, child)) add_token(TOK_OPEN_PAR);
+                    index = _to_binary(child, data, index, lookup, err);
+                    if(need_paren(e, child)) add_token(TOK_CLOSE_PAR);
                 }
+
+                needs_mult = (child->type == NODE_NUMBER && leftmost(next)->type == NODE_NUMBER)
+                    /*Should never happen, because the tree should have been flattened. This is just in case*/
+                    || isoptype(child, OP_MULT);
+
+                if(needs_mult)
+                    add_token(TOK_MULTIPLY);
                 
             }
 
             child = ast_ChildGetLast(e);
 
-            if(need_paren(e, child)) add_token(TOK_OPEN_PAR);
-            index = _to_binary(child, data, index, lookup, err);
-            if(need_paren(e, child)) add_token(TOK_CLOSE_PAR);
+            if(!is_ast_int(child, 1)) {
+                if(need_paren(e, child)) add_token(TOK_OPEN_PAR);
+                index = _to_binary(child, data, index, lookup, err);
+                if(need_paren(e, child)) add_token(TOK_CLOSE_PAR);
+            }
 
             break;
         } case OP_DIV:
