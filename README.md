@@ -5,6 +5,7 @@ A generic CAS targeted for the TI-84+ CE calculators. Designed as a faster, clea
 PineappleCAS uses the imath library for arbitrary precision math: https://github.com/creachadair/imath
 
 ## TODO
+- [X] Testing
 - [X] Parse expression
 - [X] Export expression
 - [X] Implement arbitrary precision integer math

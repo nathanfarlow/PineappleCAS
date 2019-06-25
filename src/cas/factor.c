@@ -1,4 +1,5 @@
 #include "cas.h"
+#include "simplify.h"
 
 /*Handles gcd for AB, BC gcd = B*/
 static ast_t *gcd_mult(ast_t *mult, ast_t *b) {
@@ -99,14 +100,14 @@ ast_t *gcd(ast_t *a, ast_t *b) {
         }
     }
 
-    if(isoptype(a, OP_ADD))
-        ret = gcd_add(a, b);
-    else if(isoptype(b, OP_ADD))
-        ret = gcd_add(b, a);
-    else if(isoptype(a, OP_MULT))
+    if(isoptype(a, OP_MULT))
         ret = gcd_mult(a, b);
     else if(isoptype(b, OP_MULT))
         ret = gcd_mult(b, a);
+    else if(isoptype(a, OP_ADD))
+        ret = gcd_add(a, b);
+    else if(isoptype(b, OP_ADD))
+        ret = gcd_add(b, a);
     else if(isoptype(a, OP_POW))
         ret = gcd_pow(a, b);
     else if(isoptype(b, OP_POW))
@@ -183,4 +184,7 @@ void factor_addition(ast_t *e, bool eval_only) {
             }
         }
     }
+
+    /*Take care of add nodes with one child*/
+    simplify_commutative(e);
 }

@@ -29,7 +29,7 @@ ast_t *combine(ast_t *add, ast_t *b) {
 
     return expanded;
 }
-
+#include "../dbg.h"
 bool expand(ast_t *e, bool expand_powers) {
     bool changed = true;
 
@@ -50,17 +50,20 @@ bool expand(ast_t *e, bool expand_powers) {
                         if(i != j) {
                             ast_t *combined = combine(ichild, jchild);
 
-                            simplify(combined);
-
                             ast_ChildAppend(e, combined);
 
                             ast_Cleanup(ast_ChildRemove(e, ichild));
                             ast_Cleanup(ast_ChildRemove(e, jchild));
                             
-                            return true;
+                            simplify(e);
+
+                            changed = true;
+                            break;
                         }
                     }
 
+                    if(changed)
+                        break;
                 }
             }
 
@@ -84,7 +87,8 @@ bool expand(ast_t *e, bool expand_powers) {
 
                 replace_node(e, replacement);
 
-                return true;
+                changed = true;
+                continue;
             }
             
         }

@@ -5,3 +5,4 @@ os: linux
 
 script:
   - make -f pc.makefile
+  - make -f pc.makefile test

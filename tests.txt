@@ -1,0 +1,71 @@
+
+#IMPORTANT: The parser parses - as a negate operator and _ as the subtract operator. (Think of the difference on the ti calculator)
+#For example, 3-5 will evaluate to 3 * -5 = -15
+#3_5 will evaluate to -2
+
+#Shoutout to wolfram alpha for helping evaluate these lmao
+
+#Evaluate constants
+
+simplify, 1923847 + 129384 + 39872 + 92873, 2185976
+simplify, 8932 _ 29382398 _ 2983892 _ 2983298 _ 9238 _ 298, -35350192
+simplify, 23 + 2982398 _ 098473 + 92832 _ 9823 + 92382, 3059339
+
+simplify, 2398759281 * 128974109 * 1290831 * -29382, -11733834149364160952211672018
+simplify, 9087123 / 92813749081 / 981 / 91283, 3029041/2770447808557021821
+simplify, 238932918457 * 098234 / 2982398 * 09238 / 2398 / 92838923, 54207051211882554311/165991129657273723
+
+simplify, 3 + 3/2, 9/2
+simplify, 3 + 3/2 + 5/4, 23/4
+simplify, 13/3 + 432/23 + 23/4534 _ 24/455, 3283650931/142344930
+
+simplify, 2308923 ^ 23, 228253448800248422382839314862503628377253091439771292143944853074575569935094601836903968561973397828129853500717494518706509240578306118071046867
+simplify, 10!, 3628800
+
+simplify, abs(-5), 5
+simplify, abs(-23.2), 23.2
+simplify, abs(324), 324
+
+simplify, int(2.2), 2
+simplify, int(-2.2), -3
+
+simplify, abs(int(-2.2)), 3
+simplify, int(int(int(int(-2.3)))), -3
+
+simplify, 8540 + 283 * 9283 / 21893 ^ (2 + 3) _ 43 + -3 * 2 * abs(-1) * abs(1) / int(-2.2), 42745875306876473429924896/5029518214716610592693
+
+#Like terms
+
+simplify, 2X + X, 3X
+simplify, X + X + X, 3X
+simplify, X^2 + X^3, X^2 + X^3
+simplify, 4X^2 + 6X^2, 10X^2
+simplify, sin(X^3 _ cos(X)) + 3sin(-cos(X) + X^3), 4sin(X^3 _ cos(X))
+
+simplify, XXX, X^3
+simplify, X^3 * 2X^49, 2X^52
+simplify, 1sin(XX)^3 * 5sin(X^2) + sin(X^2), 5sin(X^2)^4 + sin(X^2)
+
+#TODO: Identities
+
+#Factoring tests
+
+factor, sin(abs(X^2 _ 1) _ 1) + 3sin(abs(X^2 _ 1) _ 1)^4, sin(abs(X^2 _ 1) _ 1)(1 + 3sin(abs(X^2 _ 1) _ 1)^3)
+factor, 3X^2 + 6X + 1, 3X(X + 2) + 1
+factor, 14(AX)^2 + 2X, 2X(7A^2X + 1)
+
+#GCD tests
+gcd, X^3, X, X
+gcd, sin(X)^2, sin(X), sin(X)
+gcd, 345abs(5)X, 12X, 3X
+gcd, 12, 18, 6
+gcd, (X+3)(X_5), X+3, X+3
+gcd, (2sin(cos(X^3))^4) * 14sin(cos(X^3)), 2sin(cos(X^3)), 2sin(cos(X^3))
+gcd, (22XA)^3, 144A, 8A
+
+#Expand tests
+expand, (X+3)^5, 243 + 405 X + 270 X^2 + 90 X^3 + 15 X^4 + X^5
+expand, (AX)^5, A^5 * X^5
+expand ((A + B)^5 + 1)^4, 1+2 A^4+A^8+8 A^3 B+8 A^7 B+12 A^2 B^2+28 A^6 B^2+8 A B^3+56 A^5 B^3+2 B^4+70 A^4 B^4+56 A^3 B^5+28 A^2 B^6+8 A B^7+B^8
+expand, AB(X+1), ABX + AB
+expand, (A + B)(B + C), AB + AC + B^2 + BC

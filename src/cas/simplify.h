@@ -11,4 +11,8 @@ bool simplify_canonical_form(ast_t *e);
 bool simplify_like_terms(ast_t *e);
 
 
+bool is_negative_for_sure(ast_t *a);
+/*Returns true if changed. Expects completely simplified.*/
+bool absolute_val(ast_t *e);
+
 #endif

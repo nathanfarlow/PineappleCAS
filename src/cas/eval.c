@@ -1,4 +1,5 @@
 #include "cas.h"
+#include "simplify.h"
 
 static bool eval_commutative(ast_t *e) {
     /*How many numbers were accumulated. If <= 1, nothing changed*/
@@ -20,6 +21,56 @@ static bool eval_commutative(ast_t *e) {
             ast_Cleanup(ast_ChildRemoveIndex(e, i));
             i--;
             num_changed++;
+        } else if(isoptype(e, OP_ADD) && isoptype(child, OP_DIV)) {
+
+            ast_t *c_num, *c_den;
+
+            c_num = ast_ChildGet(child, 0);
+            c_den = ast_ChildGet(child, 1);
+
+            if(c_num->type == NODE_NUMBER && c_den->type == NODE_NUMBER) {
+                mp_int a, b, c, d;
+                mp_int first, second, num, den;
+
+                /*a/b + c/d = (ad + bc)/(bd)*/
+
+                a = &accumulator->num;
+                b = &accumulator->den;
+                c = &c_num->op.num->num;
+                d = &c_den->op.num->num;
+
+                first = mp_int_alloc();
+                mp_int_init(first);
+
+                mp_int_mul(a, d, first);
+
+                second = mp_int_alloc();
+                mp_int_init(second);
+
+                mp_int_mul(b, c, second);
+
+                num = mp_int_alloc();
+                mp_int_add(first, second, num);
+
+                den = mp_int_alloc();
+                mp_int_init(den);
+
+                mp_int_mul(b, d, den);
+
+                mp_int_copy(num, a);
+                mp_int_copy(den, b);
+
+                mp_int_free(first);
+                mp_int_free(second);
+                mp_int_free(num);
+                mp_int_free(den);
+
+
+                ast_Cleanup(ast_ChildRemoveIndex(e, i));
+
+                i--;
+                num_changed++;
+            }
         }
     }
 
@@ -140,6 +191,20 @@ static bool eval_div(ast_t *e) {
 
     num = ast_ChildGet(e, 0);
     den = ast_ChildGet(e, 1);
+
+    if(is_negative_for_sure(num) && is_negative_for_sure(den)) {
+        ast_t *new_div;
+
+        absolute_val(num);
+        absolute_val(den);
+
+        new_div = ast_MakeBinary(OP_DIV, ast_Copy(num), ast_Copy(den));
+
+        eval_div(new_div);
+        replace_node(e, new_div);
+
+        return true;
+    }
 
     /*If numerator and denominator are equal, replace node with "1"*/
     if(ast_Compare(num, den)) {
@@ -341,33 +406,62 @@ static bool eval_int(ast_t *e) {
     bool changed = false;
     mp_rat res;
     ast_t *a;
-    
+    mp_int remainder;
+
     a = ast_ChildGet(e, 0);
+
+    remainder = mp_int_alloc();
+    mp_int_init(remainder);
 
     if(a->type == NODE_NUMBER) {
 
         res = num_FromInt(1);
 
-        mp_int_div(&a->op.num->num, &a->op.num->den, &res->num, NULL);
+        mp_int_div(&a->op.num->num, &a->op.num->den, &res->num, remainder);
+
+        if(mp_int_compare_zero(remainder) != 0 && mp_int_compare_zero(&res->num) < 0)
+            mp_int_sub_value(&res->num, 1, &res->num);
 
         replace_node(e, ast_MakeNumber(res));
 
         changed = true;
+    } else if(isoptype(a, OP_DIV)) {
+        ast_t *num, *den;
+
+        num = ast_ChildGet(a, 0);
+        den = ast_ChildGet(a, 1);
+
+        if(num->type == NODE_NUMBER && den->type == NODE_NUMBER) {
+            res = num_FromInt(1);
+
+            /*That is a lot of num lol*/
+            mp_int_div(&num->op.num->num, &den->op.num->num, &res->num, remainder);
+
+            if(mp_int_compare_zero(remainder) != 0 && mp_int_compare_zero(&res->num) < 0)
+                mp_int_sub_value(&res->num, 1, &res->num);
+
+            replace_node(e, ast_MakeNumber(res));
+
+            changed = true;
+        }
     }
+
+    mp_int_free(remainder);
 
 
     return changed;
 }
 
+bool absolute_val(ast_t *e);
+
 static bool eval_abs(ast_t *e) {
     bool changed = false;
     ast_t *a = ast_ChildGet(e, 0);
 
-    if(a->type == NODE_NUMBER) {
-        changed = mp_rat_compare_zero(a->op.num) < 0;
-        mp_rat_abs(a->op.num, a->op.num);
+    changed = absolute_val(a) || a->type == NODE_NUMBER;
+
+    if(changed)
         replace_node(e, a);
-    }
 
     return changed;
 }
@@ -426,6 +520,8 @@ static bool eval_factorial(ast_t *e) {
 
             replace_node(e, ast_MakeNumber(accumulator));
 
+            mp_int_free(i);
+
             return true;
         }
 
@@ -443,7 +539,6 @@ bool eval(ast_t *e) {
     if(e->type != NODE_OPERATOR)
         return false;
 
-    /*Simplify children before simplifying parent*/
     for(current = e->op.operator.base; current != NULL; current = current->next) {
         changed |= eval(current);
     }

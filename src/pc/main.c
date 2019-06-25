@@ -19,6 +19,18 @@
 
 #include "../cas/cas.h"
 
+#include "tests.h"
+
+void display_help() {
+    printf("Usage: ./pineapple [operation] [args]\n");
+    printf("Valid operations include:\n");
+    printf("\ttest [file]\t\t\tRuns all tests in file\n");
+    printf("\tsimplify [expression]\t\tSimplifies expression. Also evaluates constants.\n");
+    printf("\tgcd [expression1] [expression2]\tPrints the GCD of the two expressions\n");
+    printf("\tfactor [expression]\t\tFactors expression\n");
+    printf("\texpand [expression]\t\tExpands expression\n");
+}
+
 /*Trim null terminated string*/
 uint8_t *trim(char *input, unsigned *len) {
     unsigned i, trimmed_len = 0, trim_index = 0;
@@ -41,7 +53,7 @@ uint8_t *trim(char *input, unsigned *len) {
     return trimmed;
 }
 
-int test_gcd(int argc, char **argv) {
+int run_gcd(int argc, char **argv) {
 
     uint8_t *trimmed_a, *trimmed_b;
     unsigned trimmed_a_len, trimmed_b_len;
@@ -52,12 +64,12 @@ int test_gcd(int argc, char **argv) {
     uint8_t *output;
     unsigned output_len;
 
-    if(argc <= 2) {
-        printf("Usage: ./pineapple \"A^2\" \"ABC\"\n");
+    if(argc <= 3) {
+        display_help();
         return -1;
     }
 
-    trimmed_a = trim(argv[1], &trimmed_a_len);
+    trimmed_a = trim(argv[2], &trimmed_a_len);
 
     printf("Parsing \"%s\"\n", trimmed_a);
 
@@ -70,7 +82,7 @@ int test_gcd(int argc, char **argv) {
 
     simplify(a);
 
-    trimmed_b = trim(argv[2], &trimmed_b_len);
+    trimmed_b = trim(argv[3], &trimmed_b_len);
 
     printf("Parsing \"%s\"\n", trimmed_b);
 
@@ -110,7 +122,7 @@ int test_gcd(int argc, char **argv) {
     return 0;
 }
 
-int test_simplify(int argc, char **argv) {
+int run_simplify(int argc, char **argv) {
 
     uint8_t *trimmed;
     unsigned trimmed_len;
@@ -121,12 +133,133 @@ int test_simplify(int argc, char **argv) {
     uint8_t *output;
     unsigned output_len;
 
-    if(argc <= 1) {
-        printf("Usage: ./pineapple \"sin(2) + 3\"\n");
+    if(argc <= 2) {
+        display_help();
         return -1;
     }
 
-    trimmed = trim(argv[1], &trimmed_len);
+    trimmed = trim(argv[2], &trimmed_len);
+
+    printf("Parsing \"%s\"\n", trimmed);
+
+    e = parse(trimmed, trimmed_len, STR_TABLE, &err);
+
+    printf("%s\n", error_text[err]);
+
+    if(err == E_SUCCESS && e != NULL) {
+
+        printf("\n");
+        dbg_print_tree(e, 4);
+
+        printf("\n");
+
+        printf("Simplifying...\n\n");
+
+        simplify(e);
+
+        dbg_print_tree(e, 4);
+
+        printf("\n");
+
+        output = export_to_binary(e, &output_len, STR_TABLE, &err);
+
+        if(err == E_SUCCESS && output != NULL) {
+            printf("Output: ");
+            printf("%.*s\n", output_len, output);
+
+            free(output);
+        }
+
+    }
+
+    free(trimmed);
+    ast_Cleanup(e);
+
+    return 0;
+}
+
+int run_factor(int argc, char **argv) {
+uint8_t *trimmed;
+    unsigned trimmed_len;
+
+    error_t err;
+    ast_t *e;
+
+    uint8_t *output;
+    unsigned output_len;
+
+    if(argc <= 2) {
+        display_help();
+        return -1;
+    }
+
+    trimmed = trim(argv[2], &trimmed_len);
+
+    printf("Parsing \"%s\"\n", trimmed);
+
+    e = parse(trimmed, trimmed_len, STR_TABLE, &err);
+
+    printf("%s\n", error_text[err]);
+
+    if(err == E_SUCCESS && e != NULL) {
+
+        printf("\n");
+        dbg_print_tree(e, 4);
+
+        printf("\n");
+
+        printf("Simplifying...\n\n");
+
+        simplify(e);
+
+        dbg_print_tree(e, 4);
+
+        printf("\n");
+
+        printf("Factoring...\n\n");
+
+        /*TODO soon polynomial factoring*/
+        factor_addition(e, false);
+
+        simplify(e);
+
+        dbg_print_tree(e, 4);
+        printf("\n");
+
+        output = export_to_binary(e, &output_len, STR_TABLE, &err);
+
+        if(err == E_SUCCESS && output != NULL) {
+            printf("Output: ");
+            printf("%.*s\n", output_len, output);
+
+            free(output);
+        }
+
+    }
+
+    free(trimmed);
+    ast_Cleanup(e);
+
+    return 0;
+}
+
+int run_expand(int argc, char **argv) {
+
+    uint8_t *trimmed;
+    unsigned trimmed_len;
+
+    error_t err;
+    ast_t *e;
+
+    uint8_t *output;
+    unsigned output_len;
+
+    if(argc <= 2) {
+        display_help();
+        return -1;
+    }
+
+    trimmed = trim(argv[2], &trimmed_len);
 
     printf("Parsing \"%s\"\n", trimmed);
 
@@ -153,10 +286,9 @@ int test_simplify(int argc, char **argv) {
 
         while(expand(e, true));
 
-        printf("\n");
         dbg_print_tree(e, 4);
         printf("\n");
-        
+
         output = export_to_binary(e, &output_len, STR_TABLE, &err);
 
         if(err == E_SUCCESS && output != NULL) {
@@ -174,10 +306,56 @@ int test_simplify(int argc, char **argv) {
     return 0;
 }
 
+int run_test(int argc, char **argv) {
+    unsigned len, i, failed = 0, passed = 0;
+    test_t **arr;
+
+    if(argc < 3) {
+        display_help();
+        return -1;
+    }
+
+    arr = test_Load(argv[2], &len);
+
+    if(arr == NULL) {
+        printf("Could not load test file.\n");
+        return -1;
+    }
+
+    printf("Running tests...\n");
+    
+    for(i = 0; i < len; i++) {
+        test_t *t = arr[i];
+        if(!test_Run(t))
+            failed++;
+        else
+            passed++;
+    }
+    
+    test_CleanupArr(arr, len);
+
+    printf("Passed: %u/%u, Failed: %u/%u\n", passed, len, failed, len);
+
+    if(failed == 0) {
+        printf("All tests passed!\n");
+        return 0;
+    }
+
+    return -1;
+}
+
 int main(int argc, char **argv) {
-    if(argc == 3)
-        return test_gcd(argc, argv);
-    return test_simplify(argc, argv);
+
+    if(argc > 1) {
+        if(!strcmp(argv[1], "test"))            return run_test(argc, argv);
+        else if(!strcmp(argv[1], "simplify"))   return run_simplify(argc, argv);
+        else if(!strcmp(argv[1], "gcd"))        return run_gcd(argc, argv);
+        else if(!strcmp(argv[1], "factor"))     return run_factor(argc, argv);
+        else if(!strcmp(argv[1], "expand"))     return run_expand(argc, argv);
+    }
+
+    display_help();
+    return -1;
 }
 
 #else

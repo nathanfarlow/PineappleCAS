@@ -51,3 +51,6 @@ clean:
 remove: clean
 	@$(rm) $(BINDIR)/$(TARGET)
 	@echo "Executable removed!"
+
+test:
+	./bin/pineapple test tests.txt

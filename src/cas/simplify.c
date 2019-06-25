@@ -18,7 +18,7 @@ bool simplify_commutative(ast_t *e) {
 
     if(ast_ChildLength(e) == 1
         && (optype(e) == OP_MULT || optype(e) == OP_ADD)) {
-        replace_node(e, opbase(e));
+        replace_node(e, ast_ChildGet(e, 0));
         simplify_commutative(e);
         return true;
     }
@@ -162,6 +162,8 @@ bool simplify_rational(ast_t *e) {
 
                 changed = true;
                 i--;
+            } else {
+                changed |= simplify_rational(child);
             }
 
         } else {
@@ -181,10 +183,12 @@ bool simplify_rational(ast_t *e) {
 */
 bool simplify_normalize(ast_t *e) {
     ast_t *child;
+    bool changed = false;
 
     if(e->type == NODE_OPERATOR) {
+
         for(child = opbase(e); child != NULL; child = child->next)
-            simplify_normalize(child);
+            changed |= simplify_normalize(child);
 
         if(optype(e) == OP_ROOT) {
             /*a root of b*/
@@ -199,6 +203,8 @@ bool simplify_normalize(ast_t *e) {
                                     ast_MakeNumber(num_FromInt(1)),
                                     a
             )));
+
+            changed = true;
         } else if(optype(e) == OP_POW) {
             ast_t *base, *power;
 
@@ -219,6 +225,7 @@ bool simplify_normalize(ast_t *e) {
                 }
 
                 replace_node(e, replacement);
+                changed = true;
             }
         }
     } else if(e->type == NODE_NUMBER && !mp_rat_is_integer(e->op.num)) {
@@ -233,10 +240,12 @@ bool simplify_normalize(ast_t *e) {
         mp_int_copy(&e->op.num->den, &den->num);
 
         replace_node(e, ast_MakeBinary(OP_DIV, ast_MakeNumber(num), ast_MakeNumber(den)));
+
+
+        changed = true;
     }
     
-    /*Just return false because this simplification is done in one step*/
-    return false;
+    return changed;
 }
 
 /*Expects everything to be completely simplified*/
@@ -249,6 +258,27 @@ bool is_negative_for_sure(ast_t *a) {
         for(child = ast_ChildGet(a, 0); child != NULL; child = child->next)
             if(is_negative_for_sure(child))
                 return true;
+    } else if(isoptype(a, OP_DIV)) {
+        return is_negative_for_sure(ast_ChildGet(a, 0)) || is_negative_for_sure(ast_ChildGet(a, 1));
+    }
+
+    return false;
+}
+
+/*Returns true if changed. Expects completely simplified.*/
+bool absolute_val(ast_t *e) {
+    if(e->type == NODE_NUMBER && mp_rat_compare_zero(e->op.num) < 0) {
+        mp_rat_abs(e->op.num, e->op.num);
+        return true;
+    }
+
+    if(isoptype(e, OP_MULT)) {
+        ast_t *child;
+        for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
+            if(absolute_val(child))
+                return true;
+    } else if(isoptype(e, OP_DIV)) {
+        return absolute_val(ast_ChildGet(e, 0)) || absolute_val(ast_ChildGet(e, 1));
     }
 
     return false;

@@ -1,6 +1,9 @@
 #include "parser.h"
 
+#include "cas/simplify.h"
+
 #include <string.h>
+
 
 #define add_byte(byte) do {if(data != NULL) data[index] = (byte); index++;} while(0)
 #define add_token(token) do {uint8_t i; for(i = 0; i < lookup[(token)].length; i++) add_byte(lookup[token].bytes[i]);} while(0)
@@ -47,22 +50,6 @@ ast_t *leftmost(ast_t *e) {
     return e;
 }
 
-/*Returns true if changed. Expects completely simplified.*/
-static bool absolute_val(ast_t *e) {
-    if(e->type == NODE_NUMBER && mp_rat_compare_zero(e->op.num) < 0) {
-        mp_rat_abs(e->op.num, e->op.num);
-        return true;
-    }
-
-    if(isoptype(e, OP_MULT)) {
-        ast_t *child;
-        for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
-            if(absolute_val(child))
-                return true;
-    }
-
-    return false;
-}
 /*Returns length of buffer. Writes to buffer is buffer != NULL*/
 static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Identifier *lookup, error_t *err) {
     
