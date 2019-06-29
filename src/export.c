@@ -1,6 +1,8 @@
 #include "parser.h"
 
-#include "cas/simplify.h"
+/*I don't really like this dependency on cas.h but it only needs it for the absolute_val function
+which could be easily copied here. */
+#include "cas/cas.h"
 
 #include <string.h>
 

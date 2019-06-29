@@ -4,7 +4,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+/*Max length for one parameter*/
 #define MAX_PAR 256
+/*Max length for a line in the file*/
+#define MAX_LINE (MAX_PAR * 3)
+/*Max tests we will have*/
+#define MAX_TESTS 256
 
 typedef enum {
 	TEST_SIMPLIFY,

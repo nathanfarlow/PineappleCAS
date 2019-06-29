@@ -8,12 +8,8 @@
 #include "../parser.h"
 #include "../ast.h"
 #include "../cas/cas.h"
-#include "../cas/simplify.h"
 
 #include "../dbg.h"
-
-#define MAX_LINE (MAX_PAR * 3)
-#define MAX_TESTS 256
 
 /*Trim null terminated string*/
 static char *trim(char *str) {
@@ -107,6 +103,8 @@ test_t **test_Load(char *file, unsigned *len) {
             t->line = cur_line;
 
             i++;
+        } else if(t != NULL) {
+            free(t);
         }
 
         cur_line++;
@@ -189,13 +187,10 @@ bool test_Run(test_t *t) {
         expected = b;
         actual = a;
 
-        simplify(actual);
+        simplify(actual, SIMP_ALL);
 
         /*We do this to change -1 * 23 to -23 to be able to compare*/
-        while(simplify_normalize(expected));
-        while(simplify_commutative(expected));
-        while(eval(expected));
-        while(simplify_canonical_form(expected));
+        simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_CANONICAL_FORM);
 
         passed = check(t, actual, expected);
         break;
@@ -207,15 +202,13 @@ bool test_Run(test_t *t) {
 
         expected = c;
 
-        while(simplify_normalize(expected));
-        while(simplify_commutative(expected));
-        while(eval(expected));
-        while(simplify_canonical_form(expected));
+        /*We do this to change -1 * 23 to -23 to be able to compare*/
+        simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_CANONICAL_FORM);
 
-        simplify(a);
-        simplify(b);
+        simplify(a, SIMP_ALL);
+        simplify(b, SIMP_ALL);
         actual = gcd(a, b);
-        simplify(actual);
+        simplify(actual, SIMP_ALL);
 
         passed = check(t, actual, expected);
 
@@ -225,13 +218,11 @@ bool test_Run(test_t *t) {
         expected = b;
         actual = a;
 
-        while(simplify_normalize(expected));
-        while(simplify_commutative(expected));
-        while(eval(expected));
-        while(simplify_canonical_form(expected));
+        /*We do this to change -1 * 23 to -23 to be able to compare*/
+        simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_CANONICAL_FORM);
 
-        simplify(actual);
-        factor_addition(actual, false);
+        simplify(actual, SIMP_ALL);
+        factor(actual, FAC_ALL);
 
         passed = check(t, actual, expected);
         break;
@@ -239,13 +230,12 @@ bool test_Run(test_t *t) {
         expected = b;
         actual = a;
 
-        while(simplify_normalize(expected));
-        while(simplify_commutative(expected));
-        while(eval(expected));
-        while(simplify_canonical_form(expected));
+        /*We do this to change -1 * 23 to -23 to be able to compare*/
+        simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_CANONICAL_FORM);
 
-        simplify(actual);
-        expand(actual, true);
+        simplify(actual, SIMP_ALL);
+        expand(actual, EXP_ALL);
+        simplify(actual, SIMP_ALL);
 
         passed = check(t, actual, expected);
         break;

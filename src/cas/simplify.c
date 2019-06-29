@@ -1,14 +1,6 @@
-#include "simplify.h"
+#include "cas.h"
 
-#include <stdbool.h>
-
-
-/*
-    Flattens multiplication and addition nodes
-
-    Scrambles the order of the parameters, but that's fine
-    because we're going to put them in canonical form anyway.
-*/
+/*Executes the SIMP_COMMUTATIVE flag*/
 bool simplify_commutative(ast_t *e) {
     unsigned i;
     bool changed = false;
@@ -72,10 +64,7 @@ void replace_node(ast_t *a, ast_t *b) {
     free(b);
 }
 
-/*
-    Simplifies rational functions.
-    A/B/C/D becomes A/(BCD)
-*/
+/*Executes the SIMP_RATIONAL flag*/
 bool simplify_rational(ast_t *e) {
     unsigned i;
     bool changed = false;
@@ -174,13 +163,7 @@ bool simplify_rational(ast_t *e) {
     return changed;
 }
 
-
-/*
-    Changes ast to what a form we work with in the simpilfier.
-    Reduces every number node.
-    Changes all roots to powers.
-    Expands (AB)^5 to A^5 * B^5
-*/
+/*Executes the SIMP_NORMALIZE flag*/
 bool simplify_normalize(ast_t *e) {
     ast_t *child;
     bool changed = false;
@@ -306,8 +289,8 @@ int compare(ast_t *a, ast_t *b, bool add) {
             newa = ast_MakeBinary(OP_DIV, ast_Copy(a), ast_Copy(g));
             newb = ast_MakeBinary(OP_DIV, ast_Copy(b), ast_Copy(g));
 
-            simplify(newa);
-            simplify(newb);
+            simplify(newa, SIMP_NORMALIZE | SIMP_RATIONAL | SIMP_EVAL);
+            simplify(newb, SIMP_NORMALIZE | SIMP_RATIONAL | SIMP_EVAL);
 
             val = compare(newa, newb, add);
 
@@ -364,10 +347,7 @@ int compare(ast_t *a, ast_t *b, bool add) {
     return -1;
 }
 
-/*
-    Order multiplication and division
-    Sorting for addition and multiplication is O(n^2) by insertion sort
-*/
+/*Executes the SIMP_CANONICAL_FORM flag*/
 bool simplify_canonical_form(ast_t *e) {
     bool changed = false;
     unsigned i;
@@ -415,20 +395,16 @@ bool simplify_canonical_form(ast_t *e) {
 
 /*
     Combine things like 
-    AA to A^2
-    A + 2A to 3A
-
-    This function also will factor expressions such that
-    A + AB becomes A(1 + B)
+    AA to A^(1+1)
+    A^2AB to A^(2+1)B
 */ 
-bool simplify_like_terms(ast_t *e) {
+bool simplify_like_terms_multiplication(ast_t *e) {
     ast_t *child = NULL;
     bool changed = false;
     
     for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
-            changed |= simplify_like_terms(child);
+            changed |= simplify_like_terms_multiplication(child);
     
-    /*AA to A^2*/
     if(isoptype(e, OP_MULT)) {
         unsigned i, j;
 
@@ -485,7 +461,6 @@ bool simplify_like_terms(ast_t *e) {
                                             )
                                         );
 
-                    simplify(append);
                     ast_ChildAppend(e, append);
 
                     ast_Cleanup(ast_ChildRemove(e, a));
@@ -519,20 +494,34 @@ bool simplify_like_terms(ast_t *e) {
 
     Returns true if ast was changed
 */
-bool simplify(ast_t *e) {
-    bool changed;
+bool simplify(ast_t *e, const unsigned char flags) {
+    bool did_change = false, intermediate_change;
 
     do {
-        changed = false;
-        while(simplify_normalize(e))    changed = true;
-        while(simplify_commutative(e))  changed = true;
-        while(simplify_rational(e))     changed = true;
-        while(eval(e))                  changed = true;
-        factor_addition(e, true);
-        while(simplify_like_terms(e))   changed = true;
-    } while(changed);
+        intermediate_change = false;
 
-    while(simplify_canonical_form(e));
+        if(flags & SIMP_NORMALIZE)
+            while(simplify_normalize(e))    intermediate_change = did_change = true;
+        if(flags & SIMP_COMMUTATIVE)
+            while(simplify_commutative(e))  intermediate_change = did_change = true;
+        if(flags & SIMP_RATIONAL)
+            while(simplify_rational(e))     intermediate_change = did_change = true;
+        if(flags & SIMP_EVAL)
+            while(eval(e))                  intermediate_change = did_change = true;
+
+        if(flags & SIMP_LIKE_TERMS) {
+            /*First fix 2A+B _ (A+B) to 2A+B_A_B */
+            while(expand(e, EXP_DISTRIB_NUMBERS))               intermediate_change = did_change = true;
+            /*Then fix 2A+B_A_B to A(2+-1)+B(1+-1)*/
+            while(factor(e, FAC_SIMPLE_ADDITION_EVALUATEABLE))  intermediate_change = did_change = true;
+            /*This would fix AA to A^2 if it exists*/
+            while(simplify_like_terms_multiplication(e))        intermediate_change = did_change = true;
+        }
+
+    } while(intermediate_change);
+
+    if(flags & SIMP_CANONICAL_FORM)
+        while(simplify_canonical_form(e));
     
-    return changed;
+    return did_change;
 }

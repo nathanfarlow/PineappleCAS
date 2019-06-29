@@ -80,7 +80,7 @@ int run_gcd(int argc, char **argv) {
     if(err != E_SUCCESS || a == NULL)
         return -1;
 
-    simplify(a);
+    simplify(a, SIMP_ALL);
 
     trimmed_b = trim(argv[3], &trimmed_b_len);
 
@@ -93,7 +93,7 @@ int run_gcd(int argc, char **argv) {
     if(err != E_SUCCESS || b == NULL)
         return -1;
 
-    simplify(b);
+    simplify(b, SIMP_ALL);
 
     printf("Computing gcd...\n\n");
 
@@ -155,7 +155,7 @@ int run_simplify(int argc, char **argv) {
 
         printf("Simplifying...\n\n");
 
-        simplify(e);
+        simplify(e, SIMP_ALL);
 
         dbg_print_tree(e, 4);
 
@@ -210,7 +210,7 @@ uint8_t *trimmed;
 
         printf("Simplifying...\n\n");
 
-        simplify(e);
+        simplify(e, SIMP_ALL);
 
         dbg_print_tree(e, 4);
 
@@ -218,10 +218,9 @@ uint8_t *trimmed;
 
         printf("Factoring...\n\n");
 
-        /*TODO soon polynomial factoring*/
-        factor_addition(e, false);
+        factor(e, FAC_ALL);
 
-        simplify(e);
+        simplify(e, SIMP_ALL);
 
         dbg_print_tree(e, 4);
         printf("\n");
@@ -276,7 +275,7 @@ int run_expand(int argc, char **argv) {
 
         printf("Simplifying...\n\n");
 
-        simplify(e);
+        simplify(e, SIMP_ALL);
 
         dbg_print_tree(e, 4);
 
@@ -284,7 +283,7 @@ int run_expand(int argc, char **argv) {
 
         printf("Expanding...\n\n");
 
-        while(expand(e, true));
+        expand(e, EXP_ALL);
 
         dbg_print_tree(e, 4);
         printf("\n");

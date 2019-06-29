@@ -1,5 +1,7 @@
 #include "cas.h"
-#include "simplify.h"
+
+/*In simplify.c*/
+bool simplify_like_terms(ast_t *e);
 
 ast_t *combine(ast_t *add, ast_t *b) {
     unsigned i, j;
@@ -29,14 +31,19 @@ ast_t *combine(ast_t *add, ast_t *b) {
 
     return expanded;
 }
-#include "../dbg.h"
-bool expand(ast_t *e, bool expand_powers) {
-    bool changed = true;
+
+
+bool expand(ast_t *e, const unsigned char flags) {
+    unsigned i, j;
+
+    bool did_change = false;
+    bool intermediate_change = false;
+
+    for(i = 0; i < ast_ChildLength(e); i++)
+        did_change |= expand(ast_ChildGet(e, i), flags);
 
     do {
-        unsigned i, j;
-
-        changed = false;
+        intermediate_change = false;
 
         if(isoptype(e, OP_MULT)) {
 
@@ -48,26 +55,41 @@ bool expand(ast_t *e, bool expand_powers) {
                     for(j = 0; j < ast_ChildLength(e); j++) {
                         ast_t *jchild = ast_ChildGet(e, j);
                         if(i != j) {
-                            ast_t *combined = combine(ichild, jchild);
+                            bool should_expand;
 
-                            ast_ChildAppend(e, combined);
+                            /*Yes I am sure I can do this in one line in the if statement
+                            but this is clearer*/
 
-                            ast_Cleanup(ast_ChildRemove(e, ichild));
-                            ast_Cleanup(ast_ChildRemove(e, jchild));
+                            if(jchild->type == NODE_NUMBER)
+                                should_expand = flags & EXP_DISTRIB_NUMBERS;
+                            else if(isoptype(jchild, OP_ADD))
+                                should_expand = flags & EXP_DISTRIB_ADDITION;
+                            else
+                                should_expand = flags & EXP_DISTRIB_MULTIPLICATION;
                             
-                            simplify(e);
 
-                            changed = true;
-                            break;
+                            if(should_expand) {
+                                ast_t *combined = combine(ichild, jchild);
+
+                                ast_ChildAppend(e, combined);
+
+                                ast_Cleanup(ast_ChildRemove(e, ichild));
+                                ast_Cleanup(ast_ChildRemove(e, jchild));
+
+                                intermediate_change = true;
+                                did_change = true;
+                                break;
+                            }
+                            
                         }
                     }
 
-                    if(changed)
+                    if(intermediate_change)
                         break;
                 }
             }
-
-        } else if(expand_powers && isoptype(e, OP_POW)) {
+            
+        } else if((flags & EXP_EXPAND_POWERS) && isoptype(e, OP_POW)) {
             mp_int val;
             ast_t *base, *power, *replacement;
 
@@ -87,17 +109,14 @@ bool expand(ast_t *e, bool expand_powers) {
 
                 replace_node(e, replacement);
 
-                changed = true;
+                intermediate_change = true;
+                did_change = true;
                 continue;
             }
             
         }
 
-        for(i = 0; i < ast_ChildLength(e); i++)
-            changed |= expand(ast_ChildGet(e, i), expand_powers);
-    } while(changed);
+    } while(intermediate_change);
 
-    simplify(e);
-
-    return changed;
+    return did_change;
 }

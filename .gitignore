@@ -1,7 +1,8 @@
 obj*/
 bin*/
 
-tests/test*.8xy
+.vscode/
+*.code-workspace
 
 *.sublime-project
 *.sublime-workspace

@@ -1,5 +1,4 @@
 #include "cas.h"
-#include "simplify.h"
 
 static bool eval_commutative(ast_t *e) {
     /*How many numbers were accumulated. If <= 1, nothing changed*/

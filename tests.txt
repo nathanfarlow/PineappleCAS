@@ -1,6 +1,6 @@
 
-#IMPORTANT: The parser parses - as a negate operator and _ as the subtract operator. (Think of the difference on the ti calculator)
-#For example, 3-5 will evaluate to 3 * -5 = -15
+#IMPORTANT: The parser parses - as a negate operator and _ as the subtract operator. Think of the difference on the ti calculator.
+#For example, 3-5 will evaluate to 3 * -5 = -15 (Try this on your calculator, it works)
 #3_5 will evaluate to -2
 
 #Shoutout to wolfram alpha for helping evaluate these lmao
@@ -34,6 +34,11 @@ simplify, int(int(int(int(-2.3)))), -3
 
 simplify, 8540 + 283 * 9283 / 21893 ^ (2 + 3) _ 43 + -3 * 2 * abs(-1) * abs(1) / int(-2.2), 42745875306876473429924896/5029518214716610592693
 
+#Already simplified
+simplify, A+B+C, A+B+C
+simplify, sin(ln(ln(ln(X)+1)+1)+1)+1, sin(ln(ln(ln(X)+1)+1)+1)+1
+simplify, A*B+C_D, A*B+C_D
+
 #Like terms
 
 simplify, 2X + X, 3X
@@ -45,6 +50,9 @@ simplify, sin(X^3 _ cos(X)) + 3sin(-cos(X) + X^3), 4sin(X^3 _ cos(X))
 simplify, XXX, X^3
 simplify, X^3 * 2X^49, 2X^52
 simplify, 1sin(XX)^3 * 5sin(X^2) + sin(X^2), 5sin(X^2)^4 + sin(X^2)
+simplify, A_A, 0
+simplify, A + B _ (A + B), 0
+simplify, A + B _ 2(A _ B), 3B _ A
 
 #TODO: Identities
 
@@ -53,6 +61,8 @@ simplify, 1sin(XX)^3 * 5sin(X^2) + sin(X^2), 5sin(X^2)^4 + sin(X^2)
 factor, sin(abs(X^2 _ 1) _ 1) + 3sin(abs(X^2 _ 1) _ 1)^4, sin(abs(X^2 _ 1) _ 1)(1 + 3sin(abs(X^2 _ 1) _ 1)^3)
 factor, 3X^2 + 6X + 1, 3X(X + 2) + 1
 factor, 14(AX)^2 + 2X, 2X(7A^2X + 1)
+factor, AA+AB, A(A+B)
+factor, A+B+C+D+E+F+G, A+B+C+D+E+F+G
 
 #GCD tests
 gcd, X^3, X, X
@@ -62,6 +72,8 @@ gcd, 12, 18, 6
 gcd, (X+3)(X_5), X+3, X+3
 gcd, (2sin(cos(X^3))^4) * 14sin(cos(X^3)), 2sin(cos(X^3)), 2sin(cos(X^3))
 gcd, (22XA)^3, 144A, 8A
+gcd, X(X+3), (AX)^2, X
+gcd, sin(X)ln(X) + 1, sin(X), 1
 
 #Expand tests
 expand, (X+3)^5, 243 + 405 X + 270 X^2 + 90 X^3 + 15 X^4 + X^5
@@ -69,3 +81,4 @@ expand, (AX)^5, A^5 * X^5
 expand ((A + B)^5 + 1)^4, 1+2 A^4+A^8+8 A^3 B+8 A^7 B+12 A^2 B^2+28 A^6 B^2+8 A B^3+56 A^5 B^3+2 B^4+70 A^4 B^4+56 A^3 B^5+28 A^2 B^6+8 A B^7+B^8
 expand, AB(X+1), ABX + AB
 expand, (A + B)(B + C), AB + AC + B^2 + BC
+expand, (ABC)^6, A^6B^6C^6

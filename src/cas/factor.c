@@ -1,5 +1,4 @@
 #include "cas.h"
-#include "simplify.h"
 
 /*Handles gcd for AB, BC gcd = B*/
 static ast_t *gcd_mult(ast_t *mult, ast_t *b) {
@@ -20,7 +19,7 @@ static ast_t *gcd_mult(ast_t *mult, ast_t *b) {
 
         replace_node(copy, ast_MakeBinary(OP_DIV, ast_Copy(copy), ast_Copy(inner_gcd)));
 
-        simplify(copy);
+        simplify(copy, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
     }
 
     ast_Cleanup(copy);
@@ -114,18 +113,22 @@ ast_t *gcd(ast_t *a, ast_t *b) {
         ret = gcd_pow(b, a);
 
     if(ret != NULL) {
-        simplify(ret);
+        simplify(ret, SIMP_ALL);
         return ret;
     }
 
     return ast_MakeNumber(num_FromInt(1));
 }
 
-void factor_addition(ast_t *e, bool eval_only) {
+bool factor_addition(ast_t *e, const unsigned char flags) {
     ast_t *child;
+    bool changed = false;
+
+    if(e->type != NODE_OPERATOR)
+        return false;
 
     for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
-        factor_addition(child, eval_only);
+        changed |= factor_addition(child, flags);
 
     if(isoptype(e, OP_ADD)) {
         unsigned i, j;
@@ -140,6 +143,7 @@ void factor_addition(ast_t *e, bool eval_only) {
                 g = gcd(a, b);
 
                 if(!is_ast_int(g, 1)) {
+                    bool can_factor;
                     ast_t *append, *first, *second;
 
                     first = ast_MakeBinary(OP_DIV,
@@ -159,22 +163,28 @@ void factor_addition(ast_t *e, bool eval_only) {
                                     )
                                 );
 
-                    simplify(first);
-                    simplify(second);
+                    simplify(first, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
+                    simplify(second, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
 
-                    /*Two numbers are ok, or if at least one of them is a number*/
-                    if(eval_only && !(first->type == NODE_NUMBER && second->type == NODE_NUMBER)) {
-                        ast_Cleanup(append);
-                        ast_Cleanup(g);
-                    } else {
-                        simplify(append);
+                    if(first->type == NODE_NUMBER && second->type == NODE_NUMBER)
+                        can_factor = flags & FAC_SIMPLE_ADDITION_EVALUATEABLE;
+                    else
+                        can_factor = flags & FAC_SIMPLE_ADDITION_NONEVALUATEABLE;
+                    
+                    if(can_factor) {
+                        simplify(append, SIMP_NORMALIZE | SIMP_RATIONAL | SIMP_EVAL);
                         ast_ChildAppend(e, append);
 
                         ast_Cleanup(ast_ChildRemove(e, a));
                         ast_Cleanup(ast_ChildRemove(e, b));
 
                         ast_Cleanup(g);
+                        
+                        changed = true;
                         break;
+                    } else {
+                        ast_Cleanup(append);
+                        ast_Cleanup(g);
                     }
 
                 } else {
@@ -186,5 +196,16 @@ void factor_addition(ast_t *e, bool eval_only) {
     }
 
     /*Take care of add nodes with one child*/
-    simplify_commutative(e);
+    simplify(e, SIMP_COMMUTATIVE);
+
+    return changed;
+}
+
+bool factor(ast_t *e, const unsigned char flags) {
+    bool changed = false;
+
+    if(flags & (FAC_SIMPLE_ADDITION_EVALUATEABLE | FAC_SIMPLE_ADDITION_NONEVALUATEABLE))
+        changed |= factor_addition(e, flags);
+    /*Need to implement polynomial factoring*/
+    return changed;
 }
