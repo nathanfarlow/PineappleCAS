@@ -39,7 +39,7 @@ void main() {
 
 			ti_var_t y2;
 
-			simplify(e);
+			simplify(e, SIMP_ALL);
 
 			bin = export_to_binary(e, &bin_len, TI_TABLE, &err);
 
