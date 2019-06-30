@@ -99,8 +99,6 @@ simplify; 1_2sin(X)^2; cos(2X
 
 simplify; sin(X)^2+cos(X)^2; 1
 
-#Identities; extra
-
 #Identities trig constants
 
 simplify; sin(0; 0
@@ -153,6 +151,13 @@ simplify; tan(4pi/3; sqrt(3
 simplify; tan(5pi/3; -sqrt(3
 simplify; tan(7pi/4; -1
 simplify; tan(11pi/6; -sqrt(3)/3
+
+#Identities; extra
+
+#Periodic tests
+simplify; sin(9pi/4); sqrt(2)/2
+simplify; cos(59pi/6); sqrt(3)/2
+simplify; tan(73pi/6); sqrt(3)/3
 
 #Hyperbolic tests
 simplify; sinh(X)/cosh(X; tanh(X

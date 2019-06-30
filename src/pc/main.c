@@ -100,6 +100,9 @@ int run_gcd(int argc, char **argv) {
 
     g = gcd(a, b);
 
+    simplify(g, SIMP_ALL);
+    simplify(g, SIMP_CANONICAL_FORM);
+
     dbg_print_tree(g, 4);
 
     printf("\n");
@@ -157,6 +160,7 @@ int run_simplify(int argc, char **argv) {
         printf("Simplifying...\n\n");
 
         simplify(e, SIMP_ALL);
+        simplify(e, SIMP_CANONICAL_FORM);
 
         dbg_print_tree(e, 4);
 
@@ -212,6 +216,7 @@ uint8_t *trimmed;
         printf("Simplifying...\n\n");
 
         simplify(e, SIMP_ALL);
+        simplify(e, SIMP_CANONICAL_FORM);
 
         dbg_print_tree(e, 4);
 
@@ -222,6 +227,7 @@ uint8_t *trimmed;
         factor(e, FAC_ALL);
 
         simplify(e, SIMP_ALL);
+        simplify(e, SIMP_CANONICAL_FORM);
 
         dbg_print_tree(e, 4);
         printf("\n");
@@ -277,6 +283,7 @@ int run_expand(int argc, char **argv) {
         printf("Simplifying...\n\n");
 
         simplify(e, SIMP_ALL);
+        simplify(e, SIMP_CANONICAL_FORM);
 
         dbg_print_tree(e, 4);
 

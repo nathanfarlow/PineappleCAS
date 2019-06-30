@@ -12,56 +12,64 @@
 
     Generally speaking, this should be included in every simplify() call
 */
-#define SIMP_NORMALIZE          (1 << 0)
+#define SIMP_NORMALIZE                  (1 << 0)
 /*
     Flattens multiplication and addition nodes
     Also changes a multiplication or addition node with only one child
     into just that one child.
 */
-#define SIMP_COMMUTATIVE        (1 << 1)
+#define SIMP_COMMUTATIVE                (1 << 1)
 /*
     Simplifies rational functions.
     A/B/C/D becomes A/(BCD)
 */
-#define SIMP_RATIONAL           (1 << 2)
+#define SIMP_RATIONAL                   (1 << 2)
 /*
     Simply executes eval() on the node which will evaluate all constant
     expressions like 5 + 5 to 10.
 */
-#define SIMP_EVAL               (1 << 3)
+#define SIMP_EVAL                       (1 << 3)
 /*
     Order multiplication and division.
     Change XAZ to AXZ and 1+sin(X)ZA5 to 5AZsin(X)+1
+    Rationalize denominators.
+    Change powers to roots.
+    Combine a^5b^5 to (ab)^5.
+
+    Use only when exporting and do not plan to simplify again
+    or execute any other function on ast. Messes up all other algorithms.
+
     Sorting for addition and multiplication is O(n^2) by insertion sort
 */
-#define SIMP_CANONICAL_FORM     (1 << 4)
+#define SIMP_CANONICAL_FORM             (1 << 4)
 /*
     Change A + A to 2A
     Change A*A to A^2
     Change A_A to 0
 */
-#define SIMP_LIKE_TERMS         (1 << 5)
+#define SIMP_LIKE_TERMS                 (1 << 5)
 /*
     Simplifies inverses like sin(asin(X)) = X
 */
-#define SIMP_ID_INVERSES        (1 << 6)
+#define SIMP_ID_INVERSES                (1 << 6)
 /*
     Simplifies trig identities like sin(X)^2 + cos(X)^2 = 1
 */
-#define SIMP_ID_TRIG            (1 << 7)
+#define SIMP_ID_TRIG                    (1 << 7)
 /*
     Simplifies trig constants like sin(pi/4) = sqrt(2)/2
 */
-#define SIMP_ID_TRIG_CONSTANTS  (1 << 8)
+#define SIMP_ID_TRIG_CONSTANTS          (1 << 8)
 /*
     Simplifies hyperbolic identities like sinh(X)/cosh(X) = tanh(X)
 */
-#define SIMP_ID_HYPERBOLIC      (1 << 9)
+#define SIMP_ID_HYPERBOLIC              (1 << 9)
+/*
+    Simplify all identities
+*/
+#define SIMP_ID_ALL                     (SIMP_ID_INVERSES | SIMP_ID_TRIG | SIMP_ID_TRIG_CONSTANTS | SIMP_ID_HYPERBOLIC)
 
-/*Simplify all identities*/
-#define SIMP_ID_ALL             (SIMP_ID_INVERSES | SIMP_ID_TRIG | SIMP_ID_TRIG_CONSTANTS | SIMP_ID_HYPERBOLIC)
-
-#define SIMP_ALL                0xFFFF
+#define SIMP_ALL                        (0xFFFF ^ SIMP_CANONICAL_FORM)
 
 /*Simplifies ast. Returns true if changed*/
 bool simplify(ast_t *e, const unsigned short flags);

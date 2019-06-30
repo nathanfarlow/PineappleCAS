@@ -347,26 +347,131 @@ int compare(ast_t *a, ast_t *b, bool add) {
 
     return -1;
 }
-
+#include "../dbg.h"
 /*Executes the SIMP_CANONICAL_FORM flag*/
 bool simplify_canonical_form(ast_t *e) {
     bool changed = false;
     unsigned i;
 
-    if(isoptype(e, OP_POW)) {
+    if(isoptype(e, OP_MULT)) {
+        unsigned i, j;
+        bool intermediate_change;
+
+        /*Combine a^5b^5 to (ab)^5 */
+
+        do {
+            intermediate_change = false;
+
+            for(i = 0; i < ast_ChildLength(e); i++) {
+                ast_t *ichild = ast_ChildGet(e, i);
+
+                if(!isoptype(ichild, OP_POW))
+                    continue;
+
+                for(j = i + 1; j < ast_ChildLength(e); j++) {
+                    ast_t *jchild = ast_ChildGet(e, j);
+
+                    if(!isoptype(jchild, OP_POW))
+                        continue;
+
+                    /*If the powers are the same*/
+                    if(ast_Compare(ast_ChildGet(ichild, 1), ast_ChildGet(jchild, 1))) {
+
+                        ast_ChildAppend(e, ast_MakeBinary(OP_POW,
+                                                ast_MakeBinary(OP_MULT,
+                                                    ast_Copy(ast_ChildGet(ichild, 0)),
+                                                    ast_Copy(ast_ChildGet(jchild, 0))
+                                                ),
+                                                ast_Copy(ast_ChildGet(ichild, 1))
+                        ));
+
+                        ast_Cleanup(ast_ChildRemove(e, ichild));
+                        ast_Cleanup(ast_ChildRemove(e, jchild));
+
+                        simplify(e, SIMP_COMMUTATIVE);
+
+                        dbg_print_tree(e, 4);
+
+                        intermediate_change = changed = true;
+
+                        break;
+                    }
+                }
+
+                if(intermediate_change)
+                    break;
+            }
+
+        } while(intermediate_change);
+        
+    } else if(isoptype(e, OP_POW)) {
         ast_t *base, *power;
+
+        /*Change powers to roots*/
 
         base = ast_ChildGet(e, 0);
         power = ast_ChildGet(e, 1);
 
-        if(isoptype(power, OP_DIV) && is_ast_int(ast_ChildGet(power, 0), 1)) {
-                replace_node(e, ast_MakeBinary(OP_ROOT,
-                                                ast_Copy(ast_ChildGet(power, 1)),
-                                                ast_Copy(base)));
-                changed = true;
+        if(is_negative_for_sure(power)) {
+            absolute_val(power);
+            replace_node(e, ast_MakeBinary(OP_DIV,
+                                ast_MakeNumber(num_FromInt(1)),
+                                ast_Copy(e)
+                            ));
+            changed = true;
+        } else if(isoptype(power, OP_DIV) && is_ast_int(ast_ChildGet(power, 0), 1)) {
+            replace_node(e, ast_MakeBinary(OP_ROOT,
+                                ast_Copy(ast_ChildGet(power, 1)),
+                                ast_Copy(base)));
+            changed = true;
+        }
+    } else if(isoptype(e, OP_DIV)) {
+        ast_t *num, *den;
+
+        /*Rationalize denominator*/
+
+        num = ast_ChildGet(e, 0);
+        den = ast_ChildGet(e, 1);
+
+        if(isoptype(den, OP_ROOT)) {
+
+            replace_node(num, ast_MakeBinary(OP_MULT,
+                                ast_Copy(num),
+                                ast_Copy(den)
+                            ));
+            replace_node(den, ast_MakeBinary(OP_MULT,
+                                ast_Copy(den),
+                                ast_Copy(den)
+                            ));
+            
+            simplify(num, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_RATIONAL | SIMP_LIKE_TERMS);
+            simplify(den, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_RATIONAL | SIMP_LIKE_TERMS);
+
+            changed = true;
+        } else if(isoptype(den, OP_MULT)) {
+            ast_t *child;
+            for(child = ast_ChildGet(den, 0); child != NULL; child = child->next) {
+                if(isoptype(child, OP_ROOT)) {
+                    replace_node(num, ast_MakeBinary(OP_MULT,
+                                        ast_Copy(num),
+                                        ast_Copy(child)
+                                    ));
+                    replace_node(den, ast_MakeBinary(OP_MULT,
+                                        ast_Copy(den),
+                                        ast_Copy(child)
+                                    ));
+                    
+                    simplify(num, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_RATIONAL | SIMP_LIKE_TERMS);
+                    simplify(den, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_RATIONAL | SIMP_LIKE_TERMS);
+
+                    changed = true;
+                    break;
+                }
+            }
         }
     }
 
+    /*Order addition and multiplication: C*A*D becomes A*C*D */
     for(i = 0; i < ast_ChildLength(e); i++) {
         ast_t *child = ast_ChildGet(e, i);
 
@@ -489,6 +594,111 @@ bool simplify_like_terms_multiplication(ast_t *e) {
 }
 
 /*
+    Simplifies sin(9pi/4) to sin(pi/4)
+
+    Works on sin, cos, and tan
+*/
+bool simplify_periodic(ast_t *e) {
+    ast_t *copy;
+    mp_int a, b, c, d;
+    bool is_negative, changed = false;
+
+    if(!isoptype(e, OP_SIN) && !isoptype(e, OP_COS) && !isoptype(e, OP_TAN))
+        return false;
+
+    copy = ast_MakeBinary(OP_DIV, ast_Copy(ast_ChildGet(e, 0)), ast_MakeSymbol(SYM_PI));
+    simplify(copy, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
+
+    if(!isoptype(copy, OP_DIV) && copy->type != NODE_NUMBER) {
+        ast_Cleanup(copy);
+        return false;
+    }
+
+    is_negative = is_negative_for_sure(copy);
+
+    if(copy->type == NODE_NUMBER) {
+        a = mp_int_alloc();
+        mp_int_init_copy(a, &copy->op.num->num);
+        b = mp_int_alloc();
+        mp_int_init_value(b, 1);
+    } else if(isoptype(copy, OP_DIV)) {
+        ast_t *num, *den;
+
+        num = ast_ChildGet(copy, 0);
+        den = ast_ChildGet(copy, 1);
+
+        if(num->type != NODE_NUMBER || den->type != NODE_NUMBER) {
+            ast_Cleanup(copy);
+            return false;
+        }
+
+        a = mp_int_alloc();
+        mp_int_init_copy(a, &num->op.num->num);
+        b = mp_int_alloc();
+        mp_int_init_copy(b, &den->op.num->num);
+    } else {
+        ast_Cleanup(copy);
+        return false;
+    }
+
+    mp_int_abs(a, a);
+    mp_int_abs(b, b);
+
+    c = mp_int_alloc();
+    mp_int_init(c);
+
+    /*c = 2b for sin and cos, c = b for tan*/
+    if(isoptype(e, OP_TAN))
+        mp_int_copy(b, c);
+    else
+        mp_int_mul_value(b, 2, c);
+
+    d = mp_int_alloc();
+    mp_int_init(d);
+
+    /*d = a/c*/
+    mp_int_div(a, c, d, NULL);
+
+    /*if d >= 1 */
+    if(mp_int_compare_value(d, 1) >= 0) {
+        mp_rat new_num, new_den;
+
+        /*a = a - cd*/
+        mp_int_mul(c, d, c);
+        mp_int_sub(a, c, a);
+
+        if(is_negative)
+            mp_int_neg(a, a);
+
+        new_num = num_FromInt(1);
+        new_den = num_FromInt(1);
+
+        mp_int_copy(a, &new_num->num);
+        mp_int_copy(b, &new_den->num);
+
+        replace_node(e, ast_MakeUnary(optype(e),
+                            ast_MakeBinary(OP_MULT,
+                                ast_MakeSymbol(SYM_PI),
+                                ast_MakeBinary(OP_DIV,
+                                    ast_MakeNumber(new_num),
+                                    ast_MakeNumber(new_den)
+                                )
+                            )));
+
+        changed = true;
+    }
+
+    mp_int_free(a);
+    mp_int_free(b);
+    mp_int_free(c);
+    mp_int_free(d);
+
+    ast_Cleanup(copy);
+
+    return changed;
+}
+
+/*
     Executes a collection of simplification functions.
 
     O(infinity - 1)
@@ -523,8 +733,11 @@ bool simplify(ast_t *e, const unsigned short flags) {
             while(simplify_like_terms_multiplication(e))        intermediate_change = did_change = true;
         }
 
-        if(flags & SIMP_ID_TRIG)
+        if(flags & SIMP_ID_TRIG) {
+            while(simplify_periodic(e)) intermediate_change = did_change = true;
             while(id_ExecuteTable(e, id_trig_identities, ID_NUM_TRIG_IDENTITIES))   intermediate_change = did_change = true;
+        }
+
         if(flags & SIMP_ID_TRIG_CONSTANTS)
             while(id_ExecuteTable(e, id_trig_constants, ID_NUM_TRIG_CONSTANTS))     intermediate_change = did_change = true;
         if(flags & SIMP_ID_HYPERBOLIC) {
