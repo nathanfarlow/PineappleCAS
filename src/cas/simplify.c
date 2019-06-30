@@ -527,6 +527,9 @@ bool simplify(ast_t *e, const unsigned short flags) {
             while(id_ExecuteTable(e, id_trig_identities, ID_NUM_TRIG_IDENTITIES))   intermediate_change = did_change = true;
         if(flags & SIMP_ID_TRIG_CONSTANTS)
             while(id_ExecuteTable(e, id_trig_constants, ID_NUM_TRIG_CONSTANTS))     intermediate_change = did_change = true;
+        if(flags & SIMP_ID_HYPERBOLIC) {
+            while(id_ExecuteTable(e, id_hyperbolic, ID_NUM_HYPERBOLIC))             intermediate_change = did_change = true;
+        }
         
     } while(intermediate_change);
 

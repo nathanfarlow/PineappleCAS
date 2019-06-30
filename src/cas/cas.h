@@ -53,9 +53,13 @@
     Simplifies trig constants like sin(pi/4) = sqrt(2)/2
 */
 #define SIMP_ID_TRIG_CONSTANTS  (1 << 8)
+/*
+    Simplifies hyperbolic identities like sinh(X)/cosh(X) = tanh(X)
+*/
+#define SIMP_ID_HYPERBOLIC      (1 << 9)
 
 /*Simplify all identities*/
-#define SIMP_ID_ALL             (SIMP_ID_INVERSES | SIMP_ID_TRIG | SIMP_ID_TRIG_CONSTANTS)
+#define SIMP_ID_ALL             (SIMP_ID_INVERSES | SIMP_ID_TRIG | SIMP_ID_TRIG_CONSTANTS | SIMP_ID_HYPERBOLIC)
 
 #define SIMP_ALL                0xFFFF
 

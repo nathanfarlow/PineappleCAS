@@ -110,6 +110,11 @@ id_t id_trig_constants[ID_NUM_TRIG_CONSTANTS] = {
 	{"tan(11pi/6", "-sqrt(3)/3"},
 };
 
+id_t id_hyperbolic[ID_NUM_HYPERBOLIC] = {
+	{"sinh(X)/cosh(X", "tanh(X"},
+	{"cosh(X)^2_sinh(X)^2", "1"}
+};
+
 typedef ast_t** Dictionary;
 
 #define dict_Get(dict, ast_symbol) 	dict[ast_symbol->op.symbol - 'A']
@@ -481,4 +486,5 @@ void id_UnloadAll() {
 	id_UnloadTable(id_inverses, ID_NUM_INVERSES);
 	id_UnloadTable(id_trig_identities, ID_NUM_TRIG_IDENTITIES);
 	id_UnloadTable(id_trig_constants, ID_NUM_TRIG_CONSTANTS);
+	id_UnloadTable(id_hyperbolic, ID_NUM_HYPERBOLIC);
 }

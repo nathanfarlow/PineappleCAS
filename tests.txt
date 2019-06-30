@@ -154,6 +154,10 @@ simplify; tan(5pi/3; -sqrt(3
 simplify; tan(7pi/4; -1
 simplify; tan(11pi/6; -sqrt(3)/3
 
+#Hyperbolic tests
+simplify; sinh(X)/cosh(X; tanh(X
+simplify; cosh(X)^2_sinh(X)^2; 1
+
 #Factoring tests
 
 factor; sin(abs(X^2 _ 1) _ 1) + 3sin(abs(X^2 _ 1) _ 1)^4; sin(abs(X^2 _ 1) _ 1)(1 + 3sin(abs(X^2 _ 1) _ 1)^3)
