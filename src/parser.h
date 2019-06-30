@@ -52,22 +52,15 @@ typedef enum _TokenType {
     AMOUNT_TOKENS, TOK_INVALID
 } TokenType;
 
-#ifdef COMPILE_PC
-    #define MAX_IDENTIFIER_LEN 8
-#else
-    #define MAX_IDENTIFIER_LEN 2
-#endif
+#define MAX_IDENTIFIER_LEN 7
 
 struct Identifier {
     uint8_t length;
     uint8_t bytes[MAX_IDENTIFIER_LEN];
 };
 
-extern struct Identifier TI_TABLE[AMOUNT_TOKENS];
-
-#ifdef COMPILE_PC
-extern struct Identifier STR_TABLE[AMOUNT_TOKENS];
-#endif
+extern struct Identifier ti_table[AMOUNT_TOKENS];
+extern struct Identifier str_table[AMOUNT_TOKENS];
 
 ast_t *parse(const uint8_t *equation, unsigned length, struct Identifier *lookup, error_t *e);
 uint8_t *export_to_binary(ast_t *e, unsigned *len, struct Identifier *lookup, error_t *err);

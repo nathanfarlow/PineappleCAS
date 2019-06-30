@@ -1,4 +1,5 @@
 #include "cas.h"
+#include "identities.h"
 
 /*Executes the SIMP_COMMUTATIVE flag*/
 bool simplify_commutative(ast_t *e) {
@@ -494,7 +495,7 @@ bool simplify_like_terms_multiplication(ast_t *e) {
 
     Returns true if ast was changed
 */
-bool simplify(ast_t *e, const unsigned char flags) {
+bool simplify(ast_t *e, const unsigned short flags) {
     bool did_change = false, intermediate_change;
 
     do {
@@ -506,6 +507,10 @@ bool simplify(ast_t *e, const unsigned char flags) {
             while(simplify_commutative(e))  intermediate_change = did_change = true;
         if(flags & SIMP_RATIONAL)
             while(simplify_rational(e))     intermediate_change = did_change = true;
+
+        if(flags & SIMP_ID_INVERSES)
+            while(id_ExecuteTable(e, id_inverses, ID_NUM_INVERSES))                 intermediate_change = did_change = true;
+
         if(flags & SIMP_EVAL)
             while(eval(e))                  intermediate_change = did_change = true;
 
@@ -518,6 +523,11 @@ bool simplify(ast_t *e, const unsigned char flags) {
             while(simplify_like_terms_multiplication(e))        intermediate_change = did_change = true;
         }
 
+        if(flags & SIMP_ID_TRIG)
+            while(id_ExecuteTable(e, id_trig_identities, ID_NUM_TRIG_IDENTITIES))   intermediate_change = did_change = true;
+        if(flags & SIMP_ID_TRIG_CONSTANTS)
+            while(id_ExecuteTable(e, id_trig_constants, ID_NUM_TRIG_CONSTANTS))     intermediate_change = did_change = true;
+        
     } while(intermediate_change);
 
     if(flags & SIMP_CANONICAL_FORM)

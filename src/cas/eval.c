@@ -392,8 +392,8 @@ static bool eval_pow(ast_t *e) {
                 changed = true;
             }
 
-            mp_int_clear(check);
-            mp_int_clear(answer);
+            mp_int_free(check);
+            mp_int_free(answer);
 
         }
     }
@@ -466,31 +466,7 @@ static bool eval_abs(ast_t *e) {
 }
 
 static bool eval_log(ast_t *e) {
-    ast_t *a, *b;
-    bool changed = false;
-
-    /*log base a of b*/
-    a = ast_ChildGet(e, 0);
-    b = ast_ChildGet(e, 1);
-
-    /*Ex. log base 5 of 5 = 1*/
-    if(ast_Compare(a, b)) {
-        replace_node(e, ast_MakeNumber(num_FromInt(1)));
-        return true;
-    }
-
-    /*Ex. ln(e^5) = 5*/
-
-    if(isoptype(b, OP_POW)) {
-        ast_t *base = ast_ChildGet(b, 0);
-
-        if(ast_Compare(a, base)) {
-            replace_node(e, ast_Copy(ast_ChildGet(b, 1)));
-            changed = true;
-        }
-    }
-
-    return changed;
+    return false;
 }
 
 static bool eval_factorial(ast_t *e) {

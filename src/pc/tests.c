@@ -46,7 +46,7 @@ test_t *test_Parse(char *line) {
     unsigned i;
     test_t *t = malloc(sizeof(test_t));
 
-    pt = strtok(line, ",");
+    pt = strtok(line, ";");
     for(i = 0; i < 3; i++) {
 
         if(pt == NULL) {
@@ -62,7 +62,7 @@ test_t *test_Parse(char *line) {
 
         free(trimmed);
 
-        pt = strtok(NULL, ",");
+        pt = strtok(NULL, ";");
     }
 
     if(pt != NULL) {
@@ -126,8 +126,8 @@ bool check(test_t *t, ast_t *actual, ast_t *expected) {
 
     if(!ast_Compare(expected, actual)) {
 
-        output_expected = (char*)export_to_binary(expected, &expected_len, STR_TABLE, &expted_err);
-        output_actual = (char*)export_to_binary(actual, &actual_len, STR_TABLE, &actual_err);
+        output_expected = (char*)export_to_binary(expected, &expected_len, str_table, &expted_err);
+        output_actual = (char*)export_to_binary(actual, &actual_len, str_table, &actual_err);
 
         if(expted_err != E_SUCCESS || actual_err != E_SUCCESS) {
             printf("Test failed on line %u. Error when exporting ast to text.\n", t->line);
@@ -155,20 +155,20 @@ bool test_Run(test_t *t) {
     error_t err;
     bool passed = false;
 
-    a = parse((uint8_t*)t->arg1, strlen(t->arg1), STR_TABLE, &err);
+    a = parse((uint8_t*)t->arg1, strlen(t->arg1), str_table, &err);
     if(err != E_SUCCESS) {
         printf("Test failed on line %u. Unable to parse first argument %s\n", t->line, t->arg1);
         return false;
     }
 
-    b = parse((uint8_t*)t->arg2, strlen(t->arg2), STR_TABLE, &err);
+    b = parse((uint8_t*)t->arg2, strlen(t->arg2), str_table, &err);
     if(err != E_SUCCESS) {
         ast_Cleanup(a);
         printf("Test failed on line %u. Unable to parse second argument %s\n", t->line, t->arg2);
         return false;
     }
 
-    c = parse((uint8_t*)t->arg3, strlen(t->arg3), STR_TABLE, &err);
+    c = parse((uint8_t*)t->arg3, strlen(t->arg3), str_table, &err);
     if(err != E_SUCCESS) {
         ast_Cleanup(a);
         ast_Cleanup(b);

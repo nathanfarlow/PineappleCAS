@@ -47,6 +47,24 @@ static ast_t *gcd_add(ast_t *add, ast_t *b) {
     return current_gcd;
 }
 
+static ast_t *gcd_div(ast_t *div, ast_t *b) {
+    ast_t *num1, *num2, *g;
+
+    num1 = ast_Copy(ast_ChildGet(div, 0));
+
+    if(isoptype(b, OP_DIV))
+        num2 = ast_Copy(ast_ChildGet(b, 0));
+    else
+        num2 = ast_Copy(b);
+    
+    g = gcd(num1, num2);
+
+    ast_Cleanup(num1);
+    ast_Cleanup(num2);
+
+    return g;
+}
+
 /*gcd of both bases, raised to smallest power*/
 static ast_t *gcd_pow(ast_t *pow, ast_t *b) {
     ast_t *base1, *power1;
@@ -111,9 +129,14 @@ ast_t *gcd(ast_t *a, ast_t *b) {
         ret = gcd_pow(a, b);
     else if(isoptype(b, OP_POW))
         ret = gcd_pow(b, a);
+    else if(isoptype(a, OP_DIV))
+        ret = gcd_div(a, b);
+    else if(isoptype(b, OP_DIV))
+        ret = gcd_div(b, a);
 
     if(ret != NULL) {
-        simplify(ret, SIMP_ALL);
+        /*Don't simplify identities*/
+        simplify(ret, SIMP_ALL ^ SIMP_ID_ALL);
         return ret;
     }
 

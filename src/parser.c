@@ -3,7 +3,7 @@
 #include "stack.h"
 
 /*http://tibasicdev.wikidot.com/one-byte-tokens*/
-struct Identifier TI_TABLE[AMOUNT_TOKENS] = {
+struct Identifier ti_table[AMOUNT_TOKENS] = {
     {0, {0}}, {0, {0}},         /*TOK_NUMBER, TOK_SYMBOL*/
 
     {1, {0x70}}, {1, {0x71}},   /*TOK_PLUS, TOK_MINUS*/
@@ -38,9 +38,7 @@ struct Identifier TI_TABLE[AMOUNT_TOKENS] = {
     {1, {0xAC}}, {1, {0x5B}}    /*TOK_PI, TOK_THETA*/
 };
 
-#ifdef COMPILE_PC
-
-struct Identifier STR_TABLE[AMOUNT_TOKENS] = {
+struct Identifier str_table[AMOUNT_TOKENS] = {
     {0, {0}}, {0, {0}},             /*TOK_NUMBER, TOK_SYMBOL*/
 
     {1, "+"}, {1, "_"},             /*TOK_PLUS, TOK_MINUS*/
@@ -50,7 +48,7 @@ struct Identifier STR_TABLE[AMOUNT_TOKENS] = {
     {1, "+"},                       /*TOK_PROPER*/
     {1, "^"},                       /*TOK_POWER*/
     {3, "[E]"},                     /*TOK_SCIENTIFIC*/
-    {5, "root("},                   /*TOK_ROOT*/
+    {4, "root"},                    /*TOK_ROOT*/
 
     {1, "-"},                               /*TOK_NEGATE*/
     {5, "^(-1)"}, {2, "^2"}, {2, "^3"},     /*TOK_RECIPROCAL, TOK_SQUARE, TOK_CUBE*/
@@ -75,8 +73,6 @@ struct Identifier STR_TABLE[AMOUNT_TOKENS] = {
     {1, "e"},                       /*TOK_E*/
     {2, "pi"}, {5, "theta"}         /*TOK_PI, TOK_THETA*/
 };
-
-#endif
 
 typedef struct _Token {
     TokenType type;

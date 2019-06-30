@@ -18,6 +18,7 @@
 #include "../dbg.h"
 
 #include "../cas/cas.h"
+#include "../cas/identities.h"
 
 #include "tests.h"
 
@@ -73,7 +74,7 @@ int run_gcd(int argc, char **argv) {
 
     printf("Parsing \"%s\"\n", trimmed_a);
 
-    a = parse(trimmed_a, trimmed_a_len, STR_TABLE, &err);
+    a = parse(trimmed_a, trimmed_a_len, str_table, &err);
 
     printf("%s\n", error_text[err]);
 
@@ -86,7 +87,7 @@ int run_gcd(int argc, char **argv) {
 
     printf("Parsing \"%s\"\n", trimmed_b);
 
-    b = parse(trimmed_b, trimmed_b_len, STR_TABLE, &err);
+    b = parse(trimmed_b, trimmed_b_len, str_table, &err);
 
     printf("%s\n", error_text[err]);
 
@@ -103,7 +104,7 @@ int run_gcd(int argc, char **argv) {
 
     printf("\n");
 
-    output = export_to_binary(g, &output_len, STR_TABLE, &err);
+    output = export_to_binary(g, &output_len, str_table, &err);
 
     if(err == E_SUCCESS && output != NULL) {
         printf("Output: ");
@@ -142,7 +143,7 @@ int run_simplify(int argc, char **argv) {
 
     printf("Parsing \"%s\"\n", trimmed);
 
-    e = parse(trimmed, trimmed_len, STR_TABLE, &err);
+    e = parse(trimmed, trimmed_len, str_table, &err);
 
     printf("%s\n", error_text[err]);
 
@@ -161,7 +162,7 @@ int run_simplify(int argc, char **argv) {
 
         printf("\n");
 
-        output = export_to_binary(e, &output_len, STR_TABLE, &err);
+        output = export_to_binary(e, &output_len, str_table, &err);
 
         if(err == E_SUCCESS && output != NULL) {
             printf("Output: ");
@@ -197,7 +198,7 @@ uint8_t *trimmed;
 
     printf("Parsing \"%s\"\n", trimmed);
 
-    e = parse(trimmed, trimmed_len, STR_TABLE, &err);
+    e = parse(trimmed, trimmed_len, str_table, &err);
 
     printf("%s\n", error_text[err]);
 
@@ -225,7 +226,7 @@ uint8_t *trimmed;
         dbg_print_tree(e, 4);
         printf("\n");
 
-        output = export_to_binary(e, &output_len, STR_TABLE, &err);
+        output = export_to_binary(e, &output_len, str_table, &err);
 
         if(err == E_SUCCESS && output != NULL) {
             printf("Output: ");
@@ -262,7 +263,7 @@ int run_expand(int argc, char **argv) {
 
     printf("Parsing \"%s\"\n", trimmed);
 
-    e = parse(trimmed, trimmed_len, STR_TABLE, &err);
+    e = parse(trimmed, trimmed_len, str_table, &err);
 
     printf("%s\n", error_text[err]);
 
@@ -288,7 +289,7 @@ int run_expand(int argc, char **argv) {
         dbg_print_tree(e, 4);
         printf("\n");
 
-        output = export_to_binary(e, &output_len, STR_TABLE, &err);
+        output = export_to_binary(e, &output_len, str_table, &err);
 
         if(err == E_SUCCESS && output != NULL) {
             printf("Output: ");
@@ -344,13 +345,17 @@ int run_test(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
+    int ret;
 
     if(argc > 1) {
-        if(!strcmp(argv[1], "test"))            return run_test(argc, argv);
-        else if(!strcmp(argv[1], "simplify"))   return run_simplify(argc, argv);
-        else if(!strcmp(argv[1], "gcd"))        return run_gcd(argc, argv);
-        else if(!strcmp(argv[1], "factor"))     return run_factor(argc, argv);
-        else if(!strcmp(argv[1], "expand"))     return run_expand(argc, argv);
+        if(!strcmp(argv[1], "test"))            ret = run_test(argc, argv);
+        else if(!strcmp(argv[1], "simplify"))   ret = run_simplify(argc, argv);
+        else if(!strcmp(argv[1], "gcd"))        ret = run_gcd(argc, argv);
+        else if(!strcmp(argv[1], "factor"))     ret = run_factor(argc, argv);
+        else if(!strcmp(argv[1], "expand"))     ret = run_expand(argc, argv);
+
+        id_UnloadAll();
+        return ret;
     }
 
     display_help();

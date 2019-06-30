@@ -7,6 +7,7 @@
 
 #include "../parser.h"
 #include "../cas/cas.h"
+#include "../cas/identities.h"
 
 void main() {
 	ti_var_t y1;
@@ -27,7 +28,7 @@ void main() {
 		data = ti_GetDataPtr(y1);
 		size = ti_GetSize(y1);
 
-		e = parse(data, size, TI_TABLE, &err);
+		e = parse(data, size, ti_table, &err);
 
 		ti_Close(y1);
 
@@ -40,8 +41,9 @@ void main() {
 			ti_var_t y2;
 
 			simplify(e, SIMP_ALL);
+			id_UnloadAll();
 
-			bin = export_to_binary(e, &bin_len, TI_TABLE, &err);
+			bin = export_to_binary(e, &bin_len, ti_table, &err);
 
 			y2 = ti_OpenVar(ti_Y2, "w", TI_EQU_TYPE);
 			ti_Write(bin, bin_len, 1, y2);
