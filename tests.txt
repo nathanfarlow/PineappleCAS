@@ -152,12 +152,14 @@ simplify; tan(5pi/3; -sqrt(3
 simplify; tan(7pi/4; -1
 simplify; tan(11pi/6; -sqrt(3)/3
 
-#Identities; extra
-
 #Periodic tests
 simplify; sin(9pi/4); sqrt(2)/2
 simplify; cos(59pi/6); sqrt(3)/2
 simplify; tan(73pi/6); sqrt(3)/3
+
+#Identities, comprehensive
+simplify; sin(ln(X))^2 + cos(ln(X))^2 + 1 _ 2sin(X/2)^2 _ 1; cos(X)
+simplify; sin(ln(X) + 1)^2 + cos(ln(X))^2; sin(ln(X) + 1)^2 + cos(ln(X))^2
 
 #Hyperbolic tests
 simplify; sinh(X)/cosh(X; tanh(X

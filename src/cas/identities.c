@@ -231,7 +231,7 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 			/*At this point, id_copy and e_copy are both the same either addition
 			or multiplication nodes and we can continue normally*/
 
-			if(optype(e) != optype(id) || ast_ChildLength(id_copy) != ast_ChildLength(e_copy)) {
+			if(optype(e) != optype(id) || ast_ChildLength(id_copy) > ast_ChildLength(e_copy)) {
 				dict_Cleanup(dict_copy);
 				ast_Cleanup(id_copy);
 				ast_Cleanup(e_copy);
