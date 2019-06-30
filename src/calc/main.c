@@ -41,6 +41,8 @@ void main() {
 			ti_var_t y2;
 
 			simplify(e, SIMP_ALL);
+			simplify(e, SIMP_CANONICAL_FORM);
+			
 			id_UnloadAll();
 
 			bin = export_to_binary(e, &bin_len, ti_table, &err);
