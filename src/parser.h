@@ -49,6 +49,8 @@ typedef enum _TokenType {
 
     TOK_EULER, TOK_PI, TOK_THETA,
 
+    TOK_IMAG,
+
     AMOUNT_TOKENS, TOK_INVALID
 } TokenType;
 

@@ -46,7 +46,7 @@ typedef enum {
     AMOUNT_OPS
 } OperatorType;
 
-#define AMOUNT_SYMBOLS 29
+#define AMOUNT_SYMBOLS 30
 
 typedef enum {
     SYM_A = 'A',
@@ -57,6 +57,8 @@ typedef enum {
     SYM_V, SYM_W, SYM_X, SYM_Y, SYM_Z,
 
     SYM_PI, SYM_EULER, SYM_THETA,
+
+    SYM_IMAG,
 
     SYM_INVALID
 } Symbol;

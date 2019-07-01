@@ -360,7 +360,10 @@ int main(int argc, char **argv) {
         else if(!strcmp(argv[1], "gcd"))        ret = run_gcd(argc, argv);
         else if(!strcmp(argv[1], "factor"))     ret = run_factor(argc, argv);
         else if(!strcmp(argv[1], "expand"))     ret = run_expand(argc, argv);
-
+        else {
+            display_help();
+            return -1;
+        }
         id_UnloadAll();
         return ret;
     }
