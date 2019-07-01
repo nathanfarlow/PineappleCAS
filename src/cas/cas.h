@@ -62,6 +62,13 @@
 */
 #define SIMP_ID_HYPERBOLIC              (1 << 8)
 /*
+    Simplifies complex functins like sin(z) and ln(z)
+
+    ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG
+    ANY SIMP_ID WILL ALSO CALL TO EXPAND() AND FACTOR()
+*/
+#define SIMP_ID_COMPLEX                 (1 << 9)
+/*
     Simplify all identities
 
     ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG

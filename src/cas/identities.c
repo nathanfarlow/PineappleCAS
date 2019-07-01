@@ -8,6 +8,22 @@
 #include "cas.h"
 #include "../dbg.h"
 
+/*
+	IDENTITY RULES:
+	N is reserved for integers.
+
+	I and J are reserved "combined" commutative nodes.
+
+		For example, we want sin(X)^2 + cos(X)^2 + 4 to evaluate to 4,
+		so we use sin(X)^2 + cos(X)^2 as our identity. By default, the identifier
+		will simplify the identity to 1 and later on 1 + 4 evaluates to 5.
+		
+		This causes problems with functions, like sin(X + 2pi)=sin(X).
+		By default, this would mean that sin(X + 2pi + A) would also equal sin(X).
+		This is wrong, so we write sin(I + 2pi). This means that (X + A) are now
+		"combined". so sin(X + 2pi + A) makes I = X + A and becomes sin(X + A)
+*/
+
 id_t id_general[ID_NUM_GENERAL] = {
 	/*logb(value, base)*/
 	{"A^logb(B,A", "B"},
@@ -41,16 +57,16 @@ id_t id_trig_identities[ID_NUM_TRIG_IDENTITIES] = {
 	{"sin(pi/2_X", "cos(X"},
 	{"cos(pi/2_X", "sin(X"},
 
-	{"sin(X+2piN", "sin(X"},
-	{"sin(X+2pi", "sin(X"},
-	{"cos(X+2piN", "cos(X"},
-	{"cos(X+2pi", "cos(X"},
-	{"tan(X+piN", "tan(X"},
-	{"tan(X+pi", "tan(X"},
+	{"sin(I+2piN", "sin(I"},
+	{"sin(I+2pi", "sin(I"},
+	{"cos(I+2piN", "cos(I"},
+	{"cos(I+2pi", "cos(I"},
+	{"tan(I+piN", "tan(I"},
+	{"tan(I+pi", "tan(I"},
 
-	{"sin(-X", "-sin(X"},
-	{"cos(-X", "cos(X"},
-	{"tan(-X", "-tan(X"},
+	{"sin(-I", "-sin(I"},
+	{"cos(-I", "cos(I"},
+	{"tan(-I", "-tan(I"},
 
 	/*Double angle identities*/
 	{"2sin(X)cos(X", "sin(2X"},
@@ -119,6 +135,27 @@ id_t id_hyperbolic[ID_NUM_HYPERBOLIC] = {
 	{"cosh(X)^2_sinh(X)^2", "1"}
 };
 
+/*TODO: I and J should be strictly real*/
+id_t id_complex[ID_NUM_COMPLEX] = {
+	{"abs(I+Ji", "sqrt(I^2+J^2"},
+	{"abs(Ji", "sqrt(J^2"},
+	{"abs(i", "1"},
+
+	{"ln(I+Ji", "ln(abs(I+Ji))+iatan(J/I)"},
+	{"ln(Ji", "ln(abs(Ji))+pi/2"},
+	{"ln(i", "ipi/2"},
+
+	{"sin(I+Ji", "sin(I)cosh(J)+icos(I)sinh(J"},
+	{"sin(Ji", "isinh(J"},
+	{"sin(i", "isinh(1"},
+
+	{"cos(I+Ji", "cos(I)cosh(J)_isin(I)sinh(J)"},
+	{"cos(Ji", "cosh(J)"},
+	{"cos(i", "cosh(1"},
+
+	{"tan(I+Ji", "sin(I+Ji)/cos(I+Ji"}
+};
+
 typedef ast_t** Dictionary;
 
 #define dict_Get(dict, ast_symbol) 	dict[ast_symbol->op.symbol - 'A']
@@ -169,13 +206,34 @@ void fix_number(ast_t *id, ast_t *e) {
 	}
 }
 
+/*Fills in id->to with discovered values from dictionary */
+void fill(ast_t *to, Dictionary dict) {
+
+	if(to->type == NODE_SYMBOL) {
+		if(dict_Get(dict, to) != NULL)
+			replace_node(to, ast_Copy(dict_Get(dict, to)));
+	} else if(to->type == NODE_OPERATOR) {
+		ast_t *child;
+		for(child = ast_ChildGet(to, 0); child != NULL; child = child->next) {
+			fill(child, dict);
+		}
+	}
+
+}
+
 bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 
-	if(id->type == NODE_SYMBOL && id->op.symbol < SYM_PI) {
+	if(id->type == NODE_SYMBOL && id->op.symbol < SYM_IMAG) {
 		if(id->op.symbol == 'N') {
 			/*Only integers allowed*/
 			if(!(e->type == NODE_NUMBER && mp_rat_is_integer(e->op.num)))
 				return false;
+		} else if(id->op.symbol == 'Z') {
+			/*Only complex numbers allowed*/
+
+			if(isoptype(e, OP_ADD)) {
+
+			}
 		}
 
 		/*Check if dictionary does not yet have value*/
@@ -198,8 +256,8 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 
 		if(is_op_commutative(optype(id))) {
 			/*Order does not matter*/
- 
-			bool matched, *matched_e_children, *matched_id_children;
+			bool matched, combined = false, *matched_e_children, *matched_id_children;
+			char combined_character;
 
 			ast_t *id_copy, *e_copy;
 
@@ -235,11 +293,23 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 			/*At this point, id_copy and e_copy are both the same either addition
 			or multiplication nodes and we can continue normally*/
 
+			
 			if(optype(e) != optype(id) || ast_ChildLength(id_copy) > ast_ChildLength(e_copy)) {
 				dict_Cleanup(dict_copy);
 				ast_Cleanup(id_copy);
 				ast_Cleanup(e_copy);
 				return false;
+			}
+
+			for(i = 0; i < ast_ChildLength(id_copy); i++) {
+				ast_t *child = ast_ChildGet(id_copy, i);
+
+				if(child->type == NODE_SYMBOL && (child->op.symbol == 'I' || child->op.symbol == 'J')) {
+					combined = true;
+					combined_character = child->op.symbol;
+					ast_Cleanup(ast_ChildRemoveIndex(id_copy, i));
+					break;
+				}
 			}
 
 			matched_e_children = calloc(ast_ChildLength(e_copy), sizeof(bool));
@@ -291,9 +361,33 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 			for(i = 0; i < ast_ChildLength(id_copy); i++)
 				matched &= matched_id_children[i];
 
+			/*Make the I or J variable set equal to the nodes not included matched_e_children*/
+			if(matched && combined) {
+				ast_t *c;
+
+				c = ast_MakeOperator(id->op.operator.type);
+
+				for(i = 0; i < ast_ChildLength(e_copy); i++) {
+					ast_t *child = ast_ChildGet(e_copy, i);
+
+					if(!matched_e_children[i])
+						ast_ChildAppend(c, ast_Copy(child));
+				}
+
+				/*If there was nothing to combine, replace with dummy placeholder to be simplified later.*/
+				if(ast_ChildLength(c) == 0) {
+					if(isoptype(c, OP_ADD))
+						replace_node(c, ast_MakeNumber(num_FromInt(0)));
+					else
+						replace_node(c, ast_MakeNumber(num_FromInt(1)));
+				}
+
+				dict_copy[combined_character - 'A'] = c;
+			}
+
 			free(matched_e_children);
 			free(matched_id_children);
-
+			
 			ast_Cleanup(e_copy);
 			ast_Cleanup(id_copy);
 
@@ -340,21 +434,6 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 	return ast_Compare(e, id);
 }
 
-/*Fills in id->to with discovered values from dictionary */
-void fill(ast_t *to, Dictionary dict) {
-
-	if(to->type == NODE_SYMBOL) {
-		if(dict_Get(dict, to) != NULL)
-			replace_node(to, ast_Copy(dict_Get(dict, to)));
-	} else if(to->type == NODE_OPERATOR) {
-		ast_t *child;
-		for(child = ast_ChildGet(to, 0); child != NULL; child = child->next) {
-			fill(child, dict);
-		}
-	}
-
-}
-
 /*
 	Requires that constants are already evaluated.
 */
@@ -389,7 +468,8 @@ bool id_Execute(ast_t *e, id_t *id) {
             /*If we found an identity among the nodes of a commutative operator.
             For example, sin(X)^2 + cos(X)^2 + A changes to 1 + sin(X)^2 + cos(X)^2 _ (sin(X)^2 + cos(X)^2) + A
             and is later simplified to just A + 1 */
-            if(ast_ChildLength(e) != ast_ChildLength(found)) {
+            if(ast_ChildLength(e) > ast_ChildLength(found)) {
+
 
                 if(isoptype(e, OP_MULT)) {
                 	replacement = ast_MakeBinary(OP_MULT,
@@ -491,4 +571,5 @@ void id_UnloadAll() {
 	id_UnloadTable(id_trig_identities, ID_NUM_TRIG_IDENTITIES);
 	id_UnloadTable(id_trig_constants, ID_NUM_TRIG_CONSTANTS);
 	id_UnloadTable(id_hyperbolic, ID_NUM_HYPERBOLIC);
+	id_UnloadTable(id_complex, ID_NUM_COMPLEX);
 }

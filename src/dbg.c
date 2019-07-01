@@ -21,8 +21,8 @@ const char *operators[AMOUNT_OPS] = {
     "sinh", "asinh", "cosh", "acosh", "tanh", "atanh"
 };
 
-const char *symbols[SYM_IMAG - SYM_PI + 1] = {
-    "pi", "e", "theta", "i"
+const char *symbols[SYM_THETA - SYM_IMAG + 1] = {
+    "i", "pi", "e", "theta"
 };
 
 void _print_tree(ast_t *e, unsigned indent, unsigned index) {
@@ -41,8 +41,8 @@ void _print_tree(ast_t *e, unsigned indent, unsigned index) {
         free(num);
         break;
     } case NODE_SYMBOL:
-        if(e->op.symbol >= SYM_PI && e->op.symbol <= SYM_IMAG)
-            DBG(("SYMBOL: %s\n", symbols[e->op.symbol - SYM_PI]));
+        if(e->op.symbol >= SYM_IMAG && e->op.symbol <= SYM_THETA)
+            DBG(("SYMBOL: %s\n", symbols[e->op.symbol - SYM_IMAG]));
         else
             DBG(("SYMBOL: %c\n", e->op.symbol));
         break;

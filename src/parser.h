@@ -47,9 +47,9 @@ typedef enum _TokenType {
 
     TOK_OPEN_PAR, TOK_CLOSE_PAR, TOK_COMMA, TOK_PERIOD,
 
-    TOK_EULER, TOK_PI, TOK_THETA,
-
     TOK_IMAG,
+
+    TOK_EULER, TOK_PI, TOK_THETA,
 
     AMOUNT_TOKENS, TOK_INVALID
 } TokenType;

@@ -34,10 +34,10 @@ struct Identifier ti_table[AMOUNT_TOKENS] = {
     {1, {0x10}}, {1, {0x11}},   /*TOK_OPEN_PAR, TOK_CLOSE_PAR*/
     {1, {0x2B}}, {1, {0x3A}},   /*TOK_COMMA, TOK_PERIOD*/
 
-    {2, {0xBB, 0x31}},          /*TOK_E*/
-    {1, {0xAC}}, {1, {0x5B}},   /*TOK_PI, TOK_THETA*/
+    {1, {0x2C}},                /*TOK_IMAG*/
 
-    {1, {0x2C}}                 /*TOK_IMAG*/
+    {2, {0xBB, 0x31}},          /*TOK_E*/
+    {1, {0xAC}}, {1, {0x5B}}    /*TOK_PI, TOK_THETA*/
 };
 
 struct Identifier str_table[AMOUNT_TOKENS] = {
@@ -72,10 +72,11 @@ struct Identifier str_table[AMOUNT_TOKENS] = {
     {1, "("}, {1, ")"},             /*TOK_OPEN_PAR, TOK_CLOSE_PAR*/
     {1, ","}, {1, "."},             /*TOK_COMMA, TOK_PERIOD*/
 
-    {1, "e"},                       /*TOK_E*/
-    {2, "pi"}, {5, "theta"},        /*TOK_PI, TOK_THETA*/
+    {1, "i"},                       /*TOK_IMAG */
 
-    {1, "i"}                        /*TOK_IMAG */
+    {1, "e"},                       /*TOK_E*/
+    {2, "pi"}, {5, "theta"}         /*TOK_PI, TOK_THETA*/
+
 };
 
 typedef struct _Token {
@@ -169,10 +170,10 @@ Symbol read_symbol(const uint8_t *equation, unsigned index, unsigned length, str
     }
 
     switch(read_type(equation, index, length, lookup, consumed)) {
+    case TOK_IMAG:  return SYM_IMAG;
     case TOK_EULER: return SYM_EULER;
     case TOK_PI:    return SYM_PI;
     case TOK_THETA: return SYM_THETA;
-    case TOK_IMAG:  return SYM_IMAG;
     default:        return SYM_INVALID;
     }
 

@@ -729,6 +729,9 @@ bool simplify_identities(ast_t *e, const unsigned short flags) {
     if(flags & SIMP_ID_HYPERBOLIC)
         while(id_ExecuteTable(e, id_hyperbolic, ID_NUM_HYPERBOLIC))             changed = true;
 
+    if(flags & SIMP_ID_COMPLEX)
+        while(id_ExecuteTable(e, id_complex, ID_NUM_COMPLEX));
+
     return changed;
 }
 

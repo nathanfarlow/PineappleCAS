@@ -76,10 +76,10 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Ident
     } case NODE_SYMBOL:
 
         switch(e->op.symbol) {
+        case SYM_IMAG:  add_token(TOK_IMAG);     break;
         case SYM_PI:    add_token(TOK_PI);       break;
         case SYM_EULER: add_token(TOK_EULER);    break;
         case SYM_THETA: add_token(TOK_THETA);    break;
-        case SYM_IMAG:  add_token(TOK_IMAG);     break;
         default:        add_byte(e->op.symbol);  break;
         }
 
