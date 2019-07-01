@@ -359,7 +359,7 @@ static bool eval_pow(ast_t *e) {
     }
 
     /*Do roots*/
-    if(a->type == NODE_NUMBER && b->type == NODE_OPERATOR && optype(b) == OP_DIV && is_ast_int(ast_ChildGet(b, 0), 1)) {
+    if(a->type == NODE_NUMBER && b->type == NODE_OPERATOR && optype(b) == OP_DIV && is_ast_int(ast_ChildGet(b, 0), 1) && ast_ChildGet(b, 1)->type == NODE_NUMBER) {
         /*a root of b*/
         ast_t *temp = b;
         b = a;

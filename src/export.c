@@ -120,12 +120,17 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Ident
         case OP_MULT: {
             ast_t *child;
             bool needs_mult;
+            bool root_special_case;
 
             for(i = 0; i < ast_ChildLength(e) - 1; i++) {
                 ast_t *next;
 
                 child = ast_ChildGet(e, i);
                 next = child->next;
+
+                /*Always put parentheses around root operator.
+                For example, -1 * 2root2 should be -(2root2) */
+                root_special_case = isoptype(child, OP_ROOT);
 
                 if(is_ast_int(child, -1)) {
                     add_token(TOK_NEGATE);
@@ -134,26 +139,29 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Ident
                     the problem is reintroduced when we abs(-1) during addition exporting*/
                     continue;
                 } else {
-                    if(need_paren(e, child)) add_token(TOK_OPEN_PAR);
+                    /*For example, */
+                    if(need_paren(e, child) || root_special_case) add_token(TOK_OPEN_PAR);
                     index = _to_binary(child, data, index, lookup, err);
-                    if(need_paren(e, child)) add_token(TOK_CLOSE_PAR);
+                    if(need_paren(e, child) || root_special_case) add_token(TOK_CLOSE_PAR);
                 }
 
-                needs_mult = (child->type == NODE_NUMBER && leftmost(next)->type == NODE_NUMBER)
-                    /*Should never happen, because the tree should have been flattened. This is just in case*/
-                    || isoptype(child, OP_MULT);
+                needs_mult = !need_paren(e, child) && !root_special_case &&
+                        ((child->type == NODE_NUMBER && leftmost(next)->type == NODE_NUMBER)
+                        /*Should never happen, because the tree should have been flattened. This is just in case*/
+                        || isoptype(child, OP_MULT));
 
-                if(needs_mult)
+                if(needs_mult && !isoptype(next, OP_ROOT))
                     add_token(TOK_MULTIPLY);
                 
             }
 
             child = ast_ChildGetLast(e);
+            root_special_case = isoptype(child, OP_ROOT);
 
             if(!is_ast_int(child, 1)) {
-                if(need_paren(e, child)) add_token(TOK_OPEN_PAR);
+                if(need_paren(e, child) || root_special_case) add_token(TOK_OPEN_PAR);
                 index = _to_binary(child, data, index, lookup, err);
-                if(need_paren(e, child)) add_token(TOK_CLOSE_PAR);
+                if(need_paren(e, child) || root_special_case) add_token(TOK_CLOSE_PAR);
             }
 
             break;

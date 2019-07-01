@@ -716,7 +716,7 @@ bool simplify_identities(ast_t *e, const unsigned short flags) {
     bool changed = false;
 
     if(flags & SIMP_ID_GENERAL)
-        while(id_ExecuteTable(e, id_general, ID_NUM_GENERAL))                  changed = true;
+        while(id_ExecuteTable(e, id_general, ID_NUM_GENERAL))                   changed = true;
         
     if(flags & SIMP_ID_TRIG) {
         while(simplify_periodic(e))                                             changed = true;
