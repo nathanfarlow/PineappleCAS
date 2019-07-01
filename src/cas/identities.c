@@ -8,10 +8,14 @@
 #include "cas.h"
 #include "../dbg.h"
 
-id_t id_inverses[ID_NUM_INVERSES] = {
+id_t id_general[ID_NUM_GENERAL] = {
+	/*logb(value, base)*/
 	{"A^logb(B,A", "B"},
-	{"logb(A^B,A", "B"},
 	{"logb(A,A", "1"},
+
+	{"logb(X,B)+logb(Y,B", "logb(XY,B"},
+	{"logb(X,B)_logb(Y,B", "logb(X/Y,B"},
+	{"logb(X^D,B", "Dlogb(X,B"},
 
 	{"(ArootB)^A", "B"}, /*Todo ignores negatives*/
 	{"Aroot(B^A)", "B"},
@@ -483,7 +487,7 @@ void id_UnloadTable(id_t *table, unsigned table_len) {
 }
 
 void id_UnloadAll() {
-	id_UnloadTable(id_inverses, ID_NUM_INVERSES);
+	id_UnloadTable(id_general, ID_NUM_GENERAL);
 	id_UnloadTable(id_trig_identities, ID_NUM_TRIG_IDENTITIES);
 	id_UnloadTable(id_trig_constants, ID_NUM_TRIG_CONSTANTS);
 	id_UnloadTable(id_hyperbolic, ID_NUM_HYPERBOLIC);

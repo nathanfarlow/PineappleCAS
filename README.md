@@ -18,11 +18,12 @@ PineappleCAS uses the imath library for arbitrary precision math: https://github
   - [X] Simple A + AB becomes A(B + 1)
   - [ ] Polynomial x^3 + 2x^2 - 5x - 6 becomes (x + 1)(x + 3)(x - 2)
 - [X] Expand
-- [ ] Simplify expression
+- [X] Simplify expression
   - [X] Canonical form
   - [X] Rationals
   - [X] Like terms
-  - [ ] Identities
+  - [X] Identities
+- [ ] Complex numbers
 - [ ] Solve derivative
 - [ ] Solve limits
 - [ ] Integrals? (Probably not)

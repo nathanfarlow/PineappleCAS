@@ -41,7 +41,7 @@ void main() {
 			ti_var_t y2;
 
 			simplify(e, SIMP_ALL);
-			simplify(e, SIMP_CANONICAL_FORM);
+			simplify_canonical_form(e);
 			
 			id_UnloadAll();
 

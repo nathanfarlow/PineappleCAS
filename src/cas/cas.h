@@ -30,6 +30,51 @@
 */
 #define SIMP_EVAL                       (1 << 3)
 /*
+    Change A + A to 2A
+    Change A*A to A^2
+    Change A_A to 0
+*/
+#define SIMP_LIKE_TERMS                 (1 << 4)
+/*
+    Simplifies inverses like sin(asin(X)) = X
+    as well as log identities
+*/
+#define SIMP_ID_GENERAL                 (1 << 5)
+/*
+    Simplifies trig identities like sin(X)^2 + cos(X)^2 = 1
+
+    ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG
+    ANY SIMP_ID WILL ALSO CALL TO EXPAND() AND FACTOR()
+*/
+#define SIMP_ID_TRIG                    (1 << 6)
+/*
+    Simplifies trig constants like sin(pi/4) = sqrt(2)/2
+
+    ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG
+    ANY SIMP_ID WILL ALSO CALL TO EXPAND() AND FACTOR()
+*/
+#define SIMP_ID_TRIG_CONSTANTS          (1 << 7)
+/*
+    Simplifies hyperbolic identities like sinh(X)/cosh(X) = tanh(X)
+
+    ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG
+    ANY SIMP_ID WILL ALSO CALL TO EXPAND() AND FACTOR()
+*/
+#define SIMP_ID_HYPERBOLIC              (1 << 8)
+/*
+    Simplify all identities
+
+    ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG
+    ANY SIMP_ID WILL ALSO CALL TO EXPAND() AND FACTOR()
+*/
+#define SIMP_ID_ALL                     (SIMP_ID_GENERAL | SIMP_ID_TRIG | SIMP_ID_TRIG_CONSTANTS | SIMP_ID_HYPERBOLIC)
+
+#define SIMP_ALL                        (0xFFFF)
+
+/*Simplifies ast. Returns true if changed*/
+bool simplify(ast_t *e, const unsigned short flags);
+
+/*
     Order multiplication and division.
     Change XAZ to AXZ and 1+sin(X)ZA5 to 5AZsin(X)+1
     Rationalize denominators.
@@ -41,38 +86,7 @@
 
     Sorting for addition and multiplication is O(n^2) by insertion sort
 */
-#define SIMP_CANONICAL_FORM             (1 << 4)
-/*
-    Change A + A to 2A
-    Change A*A to A^2
-    Change A_A to 0
-*/
-#define SIMP_LIKE_TERMS                 (1 << 5)
-/*
-    Simplifies inverses like sin(asin(X)) = X
-*/
-#define SIMP_ID_INVERSES                (1 << 6)
-/*
-    Simplifies trig identities like sin(X)^2 + cos(X)^2 = 1
-*/
-#define SIMP_ID_TRIG                    (1 << 7)
-/*
-    Simplifies trig constants like sin(pi/4) = sqrt(2)/2
-*/
-#define SIMP_ID_TRIG_CONSTANTS          (1 << 8)
-/*
-    Simplifies hyperbolic identities like sinh(X)/cosh(X) = tanh(X)
-*/
-#define SIMP_ID_HYPERBOLIC              (1 << 9)
-/*
-    Simplify all identities
-*/
-#define SIMP_ID_ALL                     (SIMP_ID_INVERSES | SIMP_ID_TRIG | SIMP_ID_TRIG_CONSTANTS | SIMP_ID_HYPERBOLIC)
-
-#define SIMP_ALL                        (0xFFFF ^ SIMP_CANONICAL_FORM)
-
-/*Simplifies ast. Returns true if changed*/
-bool simplify(ast_t *e, const unsigned short flags);
+bool simplify_canonical_form(ast_t *e);
 
 /*Factor A + A to A(1 + 1) where at least one part of the
 resulting multiplication can be evauated numerically*/
