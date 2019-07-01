@@ -173,9 +173,30 @@ simplify; ln(e); 1
 simplify; ln(e^5); 5
 simplify; ln(5^9); 9ln(5)
 
+simplify; sin(X + 4pi + 5); sin(X + 5)
+simplify; sin(X _ 2pi + 3pi); sin(X + pi)
+simplify; sin(X _ 8pi); sin(X)
+
 #Hyperbolic tests
 simplify; sinh(X)/cosh(X; tanh(X
 simplify; cosh(X)^2_sinh(X)^2; 1
+
+#Imaginary tests
+simplify; abs(I+Ji; sqrt(I^2+J^2
+simplify; abs(Ji; J
+simplify; abs(i; 1
+
+simplify; ln(i; ipi/2
+
+simplify; sin(I+Ji; sin(I)cosh(J)+icos(I)sinh(J
+simplify; sin(Ji; isinh(J
+simplify; sin(i; isinh(1
+
+simplify; cos(I+Ji; cos(I)cosh(J)_isin(I)sinh(J)
+simplify; cos(Ji; cosh(J)
+simplify; cos(i; cosh(1
+
+simplify; sin(5i + A + B); sin(A+B)cosh(5)+icos(A+B)sinh(5)
 
 #Factoring tests
 

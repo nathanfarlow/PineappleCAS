@@ -138,7 +138,7 @@ id_t id_hyperbolic[ID_NUM_HYPERBOLIC] = {
 /*TODO: I and J should be strictly real*/
 id_t id_complex[ID_NUM_COMPLEX] = {
 	{"abs(I+Ji", "sqrt(I^2+J^2"},
-	{"abs(Ji", "sqrt(J^2"},
+	{"abs(Ji", "J"},
 	{"abs(i", "1"},
 
 	{"ln(I+Ji", "ln(abs(I+Ji))+iatan(J/I)"},
