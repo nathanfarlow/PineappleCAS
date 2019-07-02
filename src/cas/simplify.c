@@ -424,14 +424,7 @@ bool simplify_canonical_form(ast_t *e) {
             base = ast_ChildGet(e, 0);
             power = ast_ChildGet(e, 1);
 
-            if(is_negative_for_sure(power)) {
-                absolute_val(power);
-                replace_node(e, ast_MakeBinary(OP_DIV,
-                                    ast_MakeNumber(num_FromInt(1)),
-                                    ast_Copy(e)
-                                ));
-                intermediate_change = changed = true;
-            } else if(isoptype(power, OP_DIV) && is_ast_int(ast_ChildGet(power, 0), 1)) {
+            if(isoptype(power, OP_DIV) && is_ast_int(ast_ChildGet(power, 0), 1)) {
                 replace_node(e, ast_MakeBinary(OP_ROOT,
                                     ast_Copy(ast_ChildGet(power, 1)),
                                     ast_Copy(base)));

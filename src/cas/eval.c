@@ -338,6 +338,16 @@ static bool eval_pow(ast_t *e) {
         return true;
     }
 
+    /*A^(-B) = 1/(A^B) */
+    if(is_negative_for_sure(b)) {
+        absolute_val(b);
+        replace_node(e, ast_MakeBinary(OP_DIV,
+                            ast_MakeNumber(num_FromInt(1)),
+                            ast_Copy(e)
+                        ));
+        return true;
+    }
+
     /*Evaluate a^b if a and b are integers*/
     if(a->type == NODE_NUMBER && b->type == NODE_NUMBER) {
 
@@ -356,6 +366,26 @@ static bool eval_pow(ast_t *e) {
             return true;
         }
 
+    }
+    /*Evaluate i^b if b is an integer*/
+    else if(a->type == NODE_SYMBOL && a->op.symbol == SYM_IMAG && b->type == NODE_NUMBER) {
+        if(mp_rat_is_integer(b->op.num) && mp_rat_compare_zero(b->op.num) > 0) {
+            mp_small remainder;
+
+            mp_int_mod_value(&b->op.num->num, 4, &remainder);
+
+            if(remainder == 0) {
+                replace_node(e, ast_MakeNumber(num_FromInt(1)));
+            } else if(remainder == 1) {
+                replace_node(e, ast_MakeSymbol(SYM_IMAG));
+            } else if(remainder == 2) {
+                replace_node(e, ast_MakeNumber(num_FromInt(-1)));                
+            } else if(remainder == 3) {
+                replace_node(e, ast_MakeBinary(OP_MULT, ast_MakeNumber(num_FromInt(-1)), ast_MakeSymbol(SYM_IMAG)));
+            }
+
+            return true;
+        }
     }
 
     /*Do roots*/

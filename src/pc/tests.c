@@ -192,7 +192,7 @@ bool test_Run(test_t *t) {
         simplify(actual, SIMP_ALL);
 
         /*We do this to change -1 * 23 to -23 to be able to compare*/
-        simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL);
+        simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
 
         passed = check(t, actual, expected);
         break;
@@ -205,7 +205,7 @@ bool test_Run(test_t *t) {
         expected = c;
 
         /*We do this to change -1 * 23 to -23 to be able to compare*/
-        simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL);
+        simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
 
         simplify(a, SIMP_ALL);
         simplify(b, SIMP_ALL);
@@ -221,7 +221,7 @@ bool test_Run(test_t *t) {
         actual = a;
 
         /*We do this to change -1 * 23 to -23 to be able to compare*/
-        simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL);
+        simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
 
         simplify(actual, SIMP_ALL);
         factor(actual, FAC_ALL);
@@ -233,7 +233,7 @@ bool test_Run(test_t *t) {
         actual = a;
 
         /*We do this to change -1 * 23 to -23 to be able to compare*/
-        simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL);
+        simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
 
         simplify(actual, SIMP_ALL);
         expand(actual, EXP_ALL);

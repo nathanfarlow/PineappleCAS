@@ -19,7 +19,7 @@ extern id_t id_trig_identities[ID_NUM_TRIG_IDENTITIES];
 extern id_t id_trig_constants[ID_NUM_TRIG_CONSTANTS];
 #define ID_NUM_HYPERBOLIC 2
 extern id_t id_hyperbolic[ID_NUM_HYPERBOLIC];
-#define ID_NUM_COMPLEX 8
+#define ID_NUM_COMPLEX 9
 extern id_t id_complex[ID_NUM_COMPLEX];
 
 bool id_Load(id_t *id);

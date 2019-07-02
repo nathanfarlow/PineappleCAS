@@ -120,6 +120,7 @@ id_t id_hyperbolic[ID_NUM_HYPERBOLIC] = {
 
 /*TODO: I and J should be strictly real*/
 id_t id_complex[ID_NUM_COMPLEX] = {
+	{"1/i", "-i"},
 	{"abs(I+Ji", "sqrt(I^2+J^2"},
 	{"ln(i", "ipi/2"},
 	{"ln(I+Ji", "ln(abs(I+Ji))+iatan(J/I)"},
@@ -158,14 +159,14 @@ void dict_Cleanup(Dictionary dict) {
 }
 
 /*Simplifies 2N, 4 to N, 2 to correctly set N*/
-void fix_number(ast_t *id, ast_t *e) {
+bool divide_numerical_constants(ast_t *id, ast_t *e) {
 	ast_t *child;
 
 	if(!isoptype(id, OP_MULT))
-		return;
+		return false;
 
 	if(is_ast_int(e, 0))
-		return;
+		return false;
 
 	for(child = ast_ChildGet(id, 0); child != NULL; child = child->next) {
 		if(child->type == NODE_NUMBER) {
@@ -175,9 +176,11 @@ void fix_number(ast_t *id, ast_t *e) {
 			simplify(e, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
 			simplify(id, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
 
-			return;
+			return true;
 		}
 	}
+
+	return false;
 }
 
 /*Fills in id->to with discovered values from dictionary */
@@ -233,9 +236,9 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 			e_copy = ast_Copy(e);
 
 			/*Divide numerical constants from each side.*/
-			fix_number(id_copy, e_copy);
+			while(divide_numerical_constants(id_copy, e_copy));
 
-			/*Constants do not fit description.*/
+			/*Id had numerical coefficients that e did not have.*/
 			if(isoptype(e_copy, OP_DIV)) {
 				dict_Cleanup(dict_copy);
 				ast_Cleanup(id_copy);
@@ -358,6 +361,8 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 					/*Cleanup and overwrite dummy placeholder*/
 					ast_Cleanup(dict_copy[combined_character - 'A']);
 					dict_copy[combined_character - 'A'] = c;
+				} else {
+					ast_Cleanup(c);
 				}
 			}
 

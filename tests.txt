@@ -198,9 +198,23 @@ simplify; cos(i; cosh(1
 
 simplify; e^((I+Ji)X; cos(X)+isin(X
 
+#Euler's identity, I can't believe this actually works
+simplify; e^(ipi); -1
+
 simplify; sin(5i + A + B); sin(A+B)cosh(5)+icos(A+B)sinh(5)
 
 simplify; sin(5A + B^2 + C + DEFi); sin(5A+B^2+C)cosh(DEF)+icos(5A+B^2+C)sinh(DEF)
+
+simplify; i^0; 1
+simplify; i^1; i
+simplify; i^2; -1
+simplify; i^3; -i
+simplify; i^4; 1
+simplify; i^5; i
+simplify; i^6; -1
+simplify; i^7; -i
+
+simplify; 1/i; -i
 
 #Factoring tests
 
