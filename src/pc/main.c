@@ -125,7 +125,7 @@ int run_gcd(int argc, char **argv) {
 
     return 0;
 }
-
+extern bool simplify_periodic(ast_t *e);
 int run_simplify(int argc, char **argv) {
 
     uint8_t *trimmed;

@@ -12,25 +12,15 @@
 	IDENTITY RULES:
 	N is reserved for integers.
 
-	I and J are reserved "combined" commutative nodes.
-
-		For example, we want sin(X)^2 + cos(X)^2 + 4 to evaluate to 4,
-		so we use sin(X)^2 + cos(X)^2 as our identity. By default, the identifier
-		will simplify the identity to 1 and later on 1 + 4 evaluates to 5.
-		
-		This causes problems with functions, like sin(X + 2pi)=sin(X).
-		By default, this would mean that sin(X + 2pi + A) would also equal sin(X).
-		This is wrong, so we write sin(I + 2pi). This means that (X + A) are now
-		"combined". so sin(X + 2pi + A) makes I = X + A and becomes sin(X + A)
+	I and J are reserved for real numbers.
 */
-
 id_t id_general[ID_NUM_GENERAL] = {
 	/*logb(value, base)*/
 	{"A^logb(B,A", "B"},
 	{"logb(A,A", "1"},
 
-	{"logb(X,B)+logb(Y,B", "logb(XY,B"},
-	{"logb(X,B)_logb(Y,B", "logb(X/Y,B"},
+	{"logb(X,B)+logb(Y,B)+C", "logb(XY,B)+C"},
+	{"logb(X,B)_logb(Y,B)+C", "logb(X/Y,B)+C"},
 	{"logb(X^D,B", "Dlogb(X,B"},
 
 	{"(ArootB)^A", "B"}, /*Todo ignores negatives*/
@@ -54,27 +44,27 @@ id_t id_trig_identities[ID_NUM_TRIG_IDENTITIES] = {
     {"sin(X)/cos(X", "tan(X"},
 	{"cos(X)/sin(X", "1/tan(X"},
 
-	{"sin(pi/2_X", "cos(X"},
-	{"cos(pi/2_X", "sin(X"},
+	{"sin(pi/2_X+C", "cos(X+C"},
+	{"cos(pi/2_X+C", "sin(X+C"},
 
-	{"sin(I+2piN", "sin(I"},
-	{"sin(I+2pi", "sin(I"},
-	{"cos(I+2piN", "cos(I"},
-	{"cos(I+2pi", "cos(I"},
-	{"tan(I+piN", "tan(I"},
-	{"tan(I+pi", "tan(I"},
+	{"sin(C+2piN", "sin(C"},
+	{"sin(C+2pi", "sin(C"},
+	{"cos(C+2piN", "cos(C"},
+	{"cos(C+2pi", "cos(C"},
+	{"tan(C+piN", "tan(C"},
+	{"tan(C+pi", "tan(C"},
 
-	{"sin(-I", "-sin(I"},
-	{"cos(-I", "cos(I"},
-	{"tan(-I", "-tan(I"},
+	{"sin(-C", "-sin(C"},
+	{"cos(-C", "cos(C"},
+	{"tan(-C", "-tan(C"},
 
 	/*Double angle identities*/
-	{"2sin(X)cos(X", "sin(2X"},
-	{"cos(X)^2_sin(X)^2", "cos(2X"},
-	{"2cos(X)^2_1", "cos(2X"},
-	{"1_2sin(X)^2", "cos(2X"},
+	{"2Csin(X)cos(X", "Csin(2X"},
+	{"cos(X)^2_sin(X)^2+C", "cos(2X)+C"},
+	{"2cos(X)^2_1+C", "cos(2X)+C"},
+	{"1_2sin(X)^2+C", "cos(2X)+C"},
 
-    {"sin(X)^2+cos(X)^2", "1"}
+    {"sin(X)^2+cos(X)^2+C", "1+C"}
 };
 
 id_t id_trig_constants[ID_NUM_TRIG_CONSTANTS] = {
@@ -116,44 +106,28 @@ id_t id_trig_constants[ID_NUM_TRIG_CONSTANTS] = {
 	{"tan(pi/6", "sqrt(3)/3"},
     {"tan(pi/4", "1"},
 	{"tan(pi/3", "sqrt(3)"},
-	/*{"tan(pi/2", "0"},*/
+	/*{"tan(pi/2", "inf"},*/
 	{"tan(2pi/3", "-sqrt(3"},
 	{"tan(3pi/4", "-1"},
 	{"tan(5pi/6", "-sqrt(3)/3"},
-	{"tan(pi", "0"},
-	{"tan(7pi/6", "sqrt(3)/3"},
-	{"tan(5pi/4", "1"},
-	{"tan(4pi/3", "sqrt(3"},
-	/*{"tan(3pi/2", "0"},*/
-	{"tan(5pi/3", "-sqrt(3"},
-	{"tan(7pi/4", "-1"},
-	{"tan(11pi/6", "-sqrt(3)/3"},
+	{"tan(pi", "0"}
 };
 
 id_t id_hyperbolic[ID_NUM_HYPERBOLIC] = {
 	{"sinh(X)/cosh(X", "tanh(X"},
-	{"cosh(X)^2_sinh(X)^2", "1"}
+	{"cosh(X)^2_sinh(X)^2+C", "1+C"}
 };
 
 /*TODO: I and J should be strictly real*/
 id_t id_complex[ID_NUM_COMPLEX] = {
 	{"abs(I+Ji", "sqrt(I^2+J^2"},
-	{"abs(Ji", "J"},
-	{"abs(i", "1"},
-
-	{"ln(I+Ji", "ln(abs(I+Ji))+iatan(J/I)"},
-	{"ln(Ji", "ln(abs(Ji))+pi/2"},
 	{"ln(i", "ipi/2"},
-
+	{"ln(I+Ji", "ln(abs(I+Ji))+iatan(J/I)"},
+	{"logb(X,I+Ji", "ln(X)/ln(I+Ji"},
 	{"sin(I+Ji", "sin(I)cosh(J)+icos(I)sinh(J"},
-	{"sin(Ji", "isinh(J"},
-	{"sin(i", "isinh(1"},
-
 	{"cos(I+Ji", "cos(I)cosh(J)_isin(I)sinh(J)"},
-	{"cos(Ji", "cosh(J)"},
-	{"cos(i", "cosh(1"},
-
-	{"tan(I+Ji", "sin(I+Ji)/cos(I+Ji"}
+	{"tan(I+Ji", "sin(I+Ji)/cos(I+Ji"},
+	{"e^(X(I+Ji", "cos(X)+isin(X"}
 };
 
 typedef ast_t** Dictionary;
@@ -228,12 +202,6 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 			/*Only integers allowed*/
 			if(!(e->type == NODE_NUMBER && mp_rat_is_integer(e->op.num)))
 				return false;
-		} else if(id->op.symbol == 'Z') {
-			/*Only complex numbers allowed*/
-
-			if(isoptype(e, OP_ADD)) {
-
-			}
 		}
 
 		/*Check if dictionary does not yet have value*/
@@ -257,60 +225,70 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 		if(is_op_commutative(optype(id))) {
 			/*Order does not matter*/
 			bool matched, combined = false, *matched_e_children, *matched_id_children;
-			char combined_character;
+			char combined_character = '\0';
 
 			ast_t *id_copy, *e_copy;
 
 			id_copy = ast_Copy(id);
 			e_copy = ast_Copy(e);
 
+			/*Divide numerical constants from each side.*/
 			fix_number(id_copy, e_copy);
 
-			/*If simplified 2N, 4 to N, 2 */
-			if(id_copy->type != NODE_OPERATOR && e_copy->type != NODE_OPERATOR) {
-				matched = matches(id_copy, e_copy, dict_copy);
-
-				if(matched) {
-					dict_Cleanup(dict);
-					dict_Write(dict, dict_copy);
-				} else {
-					dict_Cleanup(dict_copy);
-				}
-
-				ast_Cleanup(id_copy);
-				ast_Cleanup(e_copy);
-
-				return matched;
-			}
-			/*If simplified 4N, 2 to 2N, 1 */ 
-			else if(id_copy->type != e_copy->type) {
+			/*Constants do not fit description.*/
+			if(isoptype(e_copy, OP_DIV)) {
 				dict_Cleanup(dict_copy);
 				ast_Cleanup(id_copy);
 				ast_Cleanup(e_copy);
 				return false;
+			}
+
+			/*Make e_copy an addition or multiplication node with one child so the algorithm below works.*/
+			if(!isoptype(e_copy, optype(id)))
+				replace_node(e_copy, ast_MakeUnary(id->op.operator.type, ast_Copy(e_copy)));
+
+			if(!isoptype(id_copy, optype(id)))
+				replace_node(id_copy, ast_MakeUnary(id->op.operator.type, ast_Copy(id_copy)));
+
+			/*Remove the symbol. Do not simplify commutative. id_copy may be a node with one child.*/
+			for(i = 0; i < ast_ChildLength(id_copy); i++) {
+				ast_t *child = ast_ChildGet(id_copy, i);
+
+				if(child->type == NODE_SYMBOL && child->op.symbol < SYM_IMAG && child->op.symbol != 'N') {
+					combined = true;
+					combined_character = child->op.symbol;
+
+					ast_Cleanup(ast_ChildRemoveIndex(id_copy, i));
+
+					if(isoptype(id, OP_ADD))
+						dict_copy[combined_character - 'A'] = ast_MakeNumber(num_FromInt(0));
+					else /*OP_MULT*/
+						dict_copy[combined_character - 'A'] = ast_MakeNumber(num_FromInt(1));
+
+					break;
+				}
 			}
 
 			/*At this point, id_copy and e_copy are both the same either addition
 			or multiplication nodes and we can continue normally*/
 
-			
-			if(optype(e) != optype(id) || ast_ChildLength(id_copy) > ast_ChildLength(e_copy)) {
+			/*We know they will not match if id has more elements than e*/
+			if(ast_ChildLength(id_copy) > ast_ChildLength(e_copy)) {
 				dict_Cleanup(dict_copy);
 				ast_Cleanup(id_copy);
 				ast_Cleanup(e_copy);
 				return false;
 			}
 
-			for(i = 0; i < ast_ChildLength(id_copy); i++) {
-				ast_t *child = ast_ChildGet(id_copy, i);
-
-				if(child->type == NODE_SYMBOL && (child->op.symbol == 'I' || child->op.symbol == 'J')) {
-					combined = true;
-					combined_character = child->op.symbol;
-					ast_Cleanup(ast_ChildRemoveIndex(id_copy, i));
-					break;
-				}
+			/*We know we are comparing constants, they need to be same size. */
+			if(!combined && ast_ChildLength(id_copy) != ast_ChildLength(e_copy)) {
+				dict_Cleanup(dict_copy);
+				ast_Cleanup(id_copy);
+				ast_Cleanup(e_copy);
+				return false;
 			}
+
+			/*Loop through all children and match them and record which children got matched.*/
 
 			matched_e_children = calloc(ast_ChildLength(e_copy), sizeof(bool));
 			matched_id_children = calloc(ast_ChildLength(id_copy), sizeof(bool));
@@ -361,7 +339,7 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 			for(i = 0; i < ast_ChildLength(id_copy); i++)
 				matched &= matched_id_children[i];
 
-			/*Make the I or J variable set equal to the nodes not included matched_e_children*/
+			/*Make the grouped variable set equal to the nodes not included matched_e_children*/
 			if(matched && combined) {
 				ast_t *c;
 
@@ -374,15 +352,13 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 						ast_ChildAppend(c, ast_Copy(child));
 				}
 
-				/*If there was nothing to combine, replace with dummy placeholder to be simplified later.*/
-				if(ast_ChildLength(c) == 0) {
-					if(isoptype(c, OP_ADD))
-						replace_node(c, ast_MakeNumber(num_FromInt(0)));
-					else
-						replace_node(c, ast_MakeNumber(num_FromInt(1)));
+				if(ast_ChildLength(c) > 0) {
+					/*If child length is 1, fix it*/
+					simplify(c, SIMP_COMMUTATIVE);
+					/*Cleanup and overwrite dummy placeholder*/
+					ast_Cleanup(dict_copy[combined_character - 'A']);
+					dict_copy[combined_character - 'A'] = c;
 				}
-
-				dict_copy[combined_character - 'A'] = c;
 			}
 
 			free(matched_e_children);
@@ -449,61 +425,21 @@ bool id_Execute(ast_t *e, id_t *id) {
         }
     }
 
+    if(matches(id->from, e, dict)) {
+		ast_t *to = ast_Copy(id->to);
+		
+		fill(to, dict);
+
+		replace_node(e, to);
+
+		/*LOG(("Matched identity from=%s to=%s", id->from_text, id->to_text));*/
+		
+        changed = true;
+	}
+
 	if(e->type == NODE_OPERATOR) {
 		for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
 			changed |= id_Execute(child, id);
-	}
-
-    if(matches(id->from, e, dict)) {
-		ast_t *to = ast_Copy(id->to);
-			
-		fill(to, dict);
-
-		if(is_op_commutative(optype(e))) {
-			ast_t *found, *replacement = NULL;
-
-			found = ast_Copy(id->from);
-			fill(found, dict);
-
-            /*If we found an identity among the nodes of a commutative operator.
-            For example, sin(X)^2 + cos(X)^2 + A changes to 1 + sin(X)^2 + cos(X)^2 _ (sin(X)^2 + cos(X)^2) + A
-            and is later simplified to just A + 1 */
-            if(ast_ChildLength(e) > ast_ChildLength(found)) {
-
-
-                if(isoptype(e, OP_MULT)) {
-                	replacement = ast_MakeBinary(OP_MULT,
-                                                    ast_MakeBinary(OP_DIV,
-                                                        ast_Copy(e),
-                                                        found	
-                                                    ),
-                                                    to
-                                                );
-                } else if(isoptype(e, OP_ADD)) {
-                    replacement = ast_MakeBinary(OP_ADD,
-                                                    ast_MakeBinary(OP_ADD,
-                                                        ast_Copy(e),
-                                                        ast_MakeBinary(OP_MULT,
-                                                            found,
-                                                            ast_MakeNumber(num_FromInt(-1))
-                                                        )
-                                                    ),
-                                                    to
-                                                );
-                }
-
-				simplify(replacement, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);
-				replace_node(e, replacement);
-            } else {
-				ast_Cleanup(found);
-				replace_node(e, to);
-			}
-            
-		} else {
-			replace_node(e, to);
-		}
-			
-        changed = true;
 	}
 
     dict_Cleanup(dict);

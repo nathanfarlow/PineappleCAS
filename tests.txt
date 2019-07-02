@@ -196,7 +196,11 @@ simplify; cos(I+Ji; cos(I)cosh(J)_isin(I)sinh(J)
 simplify; cos(Ji; cosh(J)
 simplify; cos(i; cosh(1
 
+simplify; e^((I+Ji)X; cos(X)+isin(X
+
 simplify; sin(5i + A + B); sin(A+B)cosh(5)+icos(A+B)sinh(5)
+
+simplify; sin(5A + B^2 + C + DEFi); sin(5A+B^2+C)cosh(DEF)+icos(5A+B^2+C)sinh(DEF)
 
 #Factoring tests
 
