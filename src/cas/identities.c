@@ -377,8 +377,8 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 						dict_copy[combined_character - 'A'] = c;
 					} else {
 						matched = false;
+						ast_Cleanup(c);
 					}
-
 					
 				} else {
 					ast_Cleanup(c);
