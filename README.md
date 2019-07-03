@@ -23,7 +23,7 @@ PineappleCAS uses the imath library for arbitrary precision math: https://github
   - [X] Rationals
   - [X] Like terms
   - [X] Identities
-- [ ] Complex numbers
+- [X] Complex numbers
 - [ ] Solve derivative
 - [ ] Solve limits
 - [ ] Integrals? (Probably not)
