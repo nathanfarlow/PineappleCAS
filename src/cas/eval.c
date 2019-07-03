@@ -496,10 +496,38 @@ static bool eval_abs(ast_t *e) {
 }
 
 static bool eval_log(ast_t *e) {
-    if(is_ast_int(ast_ChildGet(e, 1), 1)) {
+    ast_t *base, *val;
+
+    base = ast_ChildGet(e, 0);
+    val = ast_ChildGet(e, 1);
+
+    /*log(1) = 0*/
+    if(is_ast_int(val, 1)) {
         replace_node(e, ast_MakeNumber(num_FromInt(0)));
         return true;
     }
+
+    /*This is hardcoded here because we want this to happen before
+    powers are evaluated*/
+    /*log(A^B)=Blog(A)*/
+
+    if(isoptype(val, OP_POW)) {
+        ast_t *power_base, *power_exponent;
+
+        power_base = ast_ChildGet(val, 0);
+        power_exponent = ast_ChildGet(val, 1);
+
+        replace_node(e, ast_MakeBinary(OP_MULT,
+                            ast_Copy(power_exponent),
+                            ast_MakeBinary(OP_LOG,
+                                ast_Copy(base),
+                                ast_Copy(power_base)
+                            )
+                        ));
+        return true;
+
+    }
+
     return false;
 }
 
@@ -545,6 +573,11 @@ bool eval(ast_t *e) {
     bool changed = false;
     ast_t *current;
 
+    /*Get a head start to evaluate the identity ln(A^B)=Bln(A)
+    before child power node is evaluated*/
+    if(isoptype(e, OP_LOG))
+        changed |= eval_log(e);
+
     if(e->type != NODE_OPERATOR)
         return false;
 
@@ -562,7 +595,6 @@ bool eval(ast_t *e) {
             case OP_POW: changed |= eval_pow(e); break;
             case OP_INT: changed |= eval_int(e); break;
             case OP_ABS: changed |= eval_abs(e); break;
-            case OP_LOG: changed |= eval_log(e); break;
             case OP_FACTORIAL: changed |= eval_factorial(e); break;
             default:
                 break;

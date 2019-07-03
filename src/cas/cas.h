@@ -138,6 +138,9 @@ void derivative(ast_t *e);
 /*Cleanup a. Copy a to b and cleanup b.*/
 void replace_node(ast_t *a, ast_t *b);
 
+/*Returns true if the node has an imaginary node.*/
+bool has_imaginary_node(ast_t *e);
+
 /*Returns true if the node is being multiplied by at least one negative or is already a negative number node.
 The node must be completely simplified for this to work, because it does not detect
 multiplying by more than one negative to make a positive. */

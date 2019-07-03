@@ -16,8 +16,11 @@
 */
 id_t id_general[ID_NUM_GENERAL] = {
 	/*logb(value, base)*/
+	
+	/*This identity is hardcoded in eval.c so that it executes before
+	the power node is evaluated with two numerical values*/
+	/*{"logb(X^D,B", "Dlogb(X,B"}*/
 
-	{"logb(X^D,B", "Dlogb(X,B"},
 	{"logb(X,B)+logb(Y,B)+C", "logb(XY,B)+C"},
 	{"logb(X,B)_logb(Y,B)+C", "logb(X/Y,B)+C"},
 
@@ -120,14 +123,13 @@ id_t id_hyperbolic[ID_NUM_HYPERBOLIC] = {
 	{"cosh(X)^2_sinh(X)^2+C", "1+C"},
 };
 
-/*TODO: I and J should be strictly real*/
 id_t id_complex[ID_NUM_COMPLEX] = {
 	{"1/i", "-i"},
 	{"e^(X(I+Ji", "cos(X)+isin(X"},
 	{"(I+Ji)^X", "e^(Xln(I+Ji"},
 	{"X^(I+Ji", "e^((I+Ji)ln(X"},
 	{"abs(I+Ji", "sqrt(I^2+J^2"},
-	{"ln(i", "ipi/2"},
+	{"atan(X/0", "pi/2"}, /*Lol is this cheating?*/
 	{"ln(I+Ji", "ln(abs(I+Ji))+iatan(J/I)"},
 	{"logb(X,I+Ji", "ln(X)/ln(I+Ji"},
 	{"sin(I+Ji", "sin(I)cosh(J)+icos(I)sinh(J"},
@@ -208,6 +210,10 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 		if(id->op.symbol == 'N') {
 			/*Only integers allowed*/
 			if(!(e->type == NODE_NUMBER && mp_rat_is_integer(e->op.num)))
+				return false;
+		} else if(id->op.symbol == 'I' || id->op.symbol == 'J') {
+			/*We assume something is real if it does not have an imaginary node. This could be wrong.*/
+			if(has_imaginary_node(e))
 				return false;
 		}
 
@@ -362,9 +368,18 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 				if(ast_ChildLength(c) > 0) {
 					/*If child length is 1, fix it*/
 					simplify(c, SIMP_COMMUTATIVE);
-					/*Cleanup and overwrite dummy placeholder*/
-					ast_Cleanup(dict_copy[combined_character - 'A']);
-					dict_copy[combined_character - 'A'] = c;
+
+					/*If the combined parts need to be real and they are or if they don't need to be real*/
+					/*We assume something is real if it does not have an imaginary node. This could be wrong.*/
+					if(!((combined_character == 'I' || combined_character == 'J') && has_imaginary_node(c))) {
+						/*Cleanup and overwrite dummy placeholder*/
+						ast_Cleanup(dict_copy[combined_character - 'A']);
+						dict_copy[combined_character - 'A'] = c;
+					} else {
+						matched = false;
+					}
+
+					
 				} else {
 					ast_Cleanup(c);
 				}

@@ -232,6 +232,20 @@ bool simplify_normalize(ast_t *e) {
     return changed;
 }
 
+bool has_imaginary_node(ast_t *e) {
+    ast_t *child;
+
+    if(e->type == NODE_SYMBOL && e->op.symbol == SYM_IMAG)
+        return true;
+
+    if(e->type == NODE_OPERATOR)
+        for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
+            if(has_imaginary_node(child))
+                return true;
+
+    return false;
+}
+
 /*Expects everything to be completely simplified*/
 bool is_negative_for_sure(ast_t *a) {
     if(a->type == NODE_NUMBER && mp_rat_compare_zero(a->op.num) < 0)
@@ -711,6 +725,9 @@ bool simplify_identities(ast_t *e, const unsigned short flags) {
     if(flags & SIMP_ID_GENERAL)
         while(id_ExecuteTable(e, id_general, ID_NUM_GENERAL))                   changed = true;
 
+    if(flags & SIMP_ID_COMPLEX)
+        while(id_ExecuteTable(e, id_complex, ID_NUM_COMPLEX))                   changed = true;
+
     if(flags & SIMP_ID_TRIG) {
         while(simplify_periodic(e))                                             changed = true;
         while(id_ExecuteTable(e, id_trig_identities, ID_NUM_TRIG_IDENTITIES))   changed = true;
@@ -722,8 +739,6 @@ bool simplify_identities(ast_t *e, const unsigned short flags) {
     if(flags & SIMP_ID_HYPERBOLIC)
         while(id_ExecuteTable(e, id_hyperbolic, ID_NUM_HYPERBOLIC))             changed = true;
 
-    if(flags & SIMP_ID_COMPLEX)
-        while(id_ExecuteTable(e, id_complex, ID_NUM_COMPLEX))                   changed = true;
 
     return changed;
 }
@@ -747,6 +762,8 @@ bool simplify(ast_t *e, const unsigned short flags) {
             while(simplify_commutative(e))  intermediate_change = did_change = true;
         if(flags & SIMP_RATIONAL)
             while(simplify_rational(e))     intermediate_change = did_change = true;
+        if(flags & SIMP_EVAL)
+            while(eval(e))                  intermediate_change = did_change = true;
 
         /*Simplify identities. First factor the expression and simplify identities.
         Then expand the expression and simplify identities that we missed. Only factor and expand if 
@@ -781,9 +798,6 @@ bool simplify(ast_t *e, const unsigned short flags) {
             /*This would fix AA to A^2 if it exists*/
             while(simplify_like_terms_multiplication(e))        intermediate_change = did_change = true;
         }
-
-        if(flags & SIMP_EVAL)
-            while(eval(e))                  intermediate_change = did_change = true;
         
     } while(intermediate_change);
     

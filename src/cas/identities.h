@@ -11,7 +11,7 @@ typedef struct {
     ast_t *from, *to;
 } id_t;
 
-#define ID_NUM_GENERAL 18
+#define ID_NUM_GENERAL 17
 extern id_t id_general[ID_NUM_GENERAL];
 #define ID_NUM_TRIG_IDENTITIES 18
 extern id_t id_trig_identities[ID_NUM_TRIG_IDENTITIES];
