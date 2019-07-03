@@ -749,7 +749,8 @@ bool simplify(ast_t *e, const unsigned short flags) {
             while(simplify_rational(e))     intermediate_change = did_change = true;
 
         /*Simplify identities. First factor the expression and simplify identities.
-        Then expand the expression and simplify identities. Only factor and expand if */
+        Then expand the expression and simplify identities that we missed. Only factor and expand if 
+        at least one id flag is set. The expression remains in the expanded state at the end of simplify().*/
 
         if(flags & SIMP_ID_ALL) {
             factor(e, FAC_SIMPLE_ADDITION_EVALUATEABLE | FAC_SIMPLE_ADDITION_NONEVALUATEABLE);
@@ -759,12 +760,17 @@ bool simplify(ast_t *e, const unsigned short flags) {
         did_change |= intermediate_change;
 
         if(flags & SIMP_ID_ALL) {
-            expand(e, EXP_DISTRIB_NUMBERS | EXP_DISTRIB_MULTIPLICATION);
+            expand(e, EXP_DISTRIB_NUMBERS | EXP_DISTRIB_MULTIPLICATION | EXP_DISTRIB_DIVISION);
             simplify(e, SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_LIKE_TERMS);
         }
 
         intermediate_change |= simplify_identities(e, flags);
         did_change |= intermediate_change;
+
+        if(flags & SIMP_ID_ALL) {
+            /*Undo expansion of division*/
+            simplify(e, SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
+        }
 
         /*Simplify like terms*/
         if(flags & SIMP_LIKE_TERMS) {

@@ -198,7 +198,12 @@ simplify; cos(i; cosh(1
 
 simplify; e^((I+Ji)X; cos(X)+isin(X
 
-#Euler's identity, I can't believe this actually works
+#These identities are simplified twice
+simplify; (I+Ji)^X; cos(X)+isin(X)
+simplify; X^(I+Ji; cos(ln(X))+isin(ln(X))
+
+#HOW I cannot believe these actually work
+simplify; i^i; 1/e^(pi/2)
 simplify; e^(ipi); -1
 
 simplify; sin(5i + A + B); sin(A+B)cosh(5)+icos(A+B)sinh(5)
@@ -224,6 +229,7 @@ factor; 14(AX)^2 + 2X; 2X(7A^2X + 1)
 factor; AA+AB; A(A+B)
 factor; A+B+C+D+E+F+G; A+B+C+D+E+F+G
 factor; 2A+2; 2(A + 1)
+factor; A/2 + B/2; (A+B)/2
 
 #GCD tests
 gcd; X^3; X; X
@@ -236,6 +242,7 @@ gcd; (22XA)^3; 144A; 8A
 gcd; X(X+3); (AX)^2; X
 gcd; sin(X)ln(X) + 1; sin(X); 1
 gcd; pi/4; 2pi; pi
+gcd; A/2; B/2; 1/2
 
 #Expand tests
 expand; (X+3)^5; 243 + 405 X + 270 X^2 + 90 X^3 + 15 X^4 + X^5

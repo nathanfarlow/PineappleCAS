@@ -48,21 +48,27 @@ static ast_t *gcd_add(ast_t *add, ast_t *b) {
 }
 
 static ast_t *gcd_div(ast_t *div, ast_t *b) {
-    ast_t *num1, *num2, *g;
+    ast_t *num1, *num2, *den1, *den2, *num_g, *den_g;
 
-    num1 = ast_Copy(ast_ChildGet(div, 0));
+    num1 = ast_ChildGet(div, 0);
+    den1 = ast_ChildGet(div, 1);
 
-    if(isoptype(b, OP_DIV))
-        num2 = ast_Copy(ast_ChildGet(b, 0));
-    else
-        num2 = ast_Copy(b);
-    
-    g = gcd(num1, num2);
+    if(isoptype(b, OP_DIV)) {
+        num2 = ast_ChildGet(b, 0);
+        den2 = ast_ChildGet(b, 1);
+    }
+    else {
+        num2 = b;
+        den2 = ast_MakeNumber(num_FromInt(1));
+    }
 
-    ast_Cleanup(num1);
-    ast_Cleanup(num2);
+    num_g = gcd(num1, num2);
+    den_g = gcd(den1, den2);
 
-    return g;
+    if(!isoptype(b, OP_DIV))
+        ast_Cleanup(den2);
+
+    return ast_MakeBinary(OP_DIV, num_g, den_g);
 }
 
 /*gcd of both bases, raised to smallest power*/

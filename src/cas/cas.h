@@ -112,14 +112,15 @@ bool factor(ast_t *e, const unsigned char flags);
 #define EXP_DISTRIB_NUMBERS        (1 << 0)
 /*Expand any f(x)*g(x)*(A+B) to  f(x)g(x)A + f(x)g(x)B*/
 #define EXP_DISTRIB_MULTIPLICATION (1 << 1)
+/*Expand (AB)/2 to (1/2)AB and (A+B)/2 to 1/2A + 1/2B*/
+#define EXP_DISTRIB_DIVISION       (1 << 2)
 /*Expand (A+B)(C+D) to AC+AD+BC+BD */
-#define EXP_DISTRIB_ADDITION       (1 << 2)
+#define EXP_DISTRIB_ADDITION       (1 << 3)
 /*Expand (A+B)^2 to A^2 + 2AB + B^2 */
-#define EXP_EXPAND_POWERS          (1 << 3)
+#define EXP_EXPAND_POWERS          (1 << 4)
 #define EXP_ALL                    0xFF
 
 bool expand(ast_t *e, const unsigned char flags);
-
 
 /*Evaluates constants such as 5+5 or 6^5. Also implements basic identities
 such as 1A = A, A + 0 = A. Returns true if the ast was changed.*/

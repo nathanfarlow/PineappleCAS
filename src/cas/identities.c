@@ -16,12 +16,13 @@
 */
 id_t id_general[ID_NUM_GENERAL] = {
 	/*logb(value, base)*/
-	{"A^logb(B,A", "B"},
-	{"logb(A,A", "1"},
 
+	{"logb(X^D,B", "Dlogb(X,B"},
 	{"logb(X,B)+logb(Y,B)+C", "logb(XY,B)+C"},
 	{"logb(X,B)_logb(Y,B)+C", "logb(X/Y,B)+C"},
-	{"logb(X^D,B", "Dlogb(X,B"},
+
+	{"A^logb(B,A", "B"},
+	{"logb(A,A", "1"},
 
 	{"(ArootB)^A", "B"}, /*Todo ignores negatives*/
 	{"Aroot(B^A)", "B"},
@@ -114,21 +115,24 @@ id_t id_trig_constants[ID_NUM_TRIG_CONSTANTS] = {
 };
 
 id_t id_hyperbolic[ID_NUM_HYPERBOLIC] = {
+	{"cosh(X)_sinh(X)", "e^(-X"},
 	{"sinh(X)/cosh(X", "tanh(X"},
-	{"cosh(X)^2_sinh(X)^2+C", "1+C"}
+	{"cosh(X)^2_sinh(X)^2+C", "1+C"},
 };
 
 /*TODO: I and J should be strictly real*/
 id_t id_complex[ID_NUM_COMPLEX] = {
 	{"1/i", "-i"},
+	{"e^(X(I+Ji", "cos(X)+isin(X"},
+	{"(I+Ji)^X", "e^(Xln(I+Ji"},
+	{"X^(I+Ji", "e^((I+Ji)ln(X"},
 	{"abs(I+Ji", "sqrt(I^2+J^2"},
 	{"ln(i", "ipi/2"},
 	{"ln(I+Ji", "ln(abs(I+Ji))+iatan(J/I)"},
 	{"logb(X,I+Ji", "ln(X)/ln(I+Ji"},
 	{"sin(I+Ji", "sin(I)cosh(J)+icos(I)sinh(J"},
 	{"cos(I+Ji", "cos(I)cosh(J)_isin(I)sinh(J)"},
-	{"tan(I+Ji", "sin(I+Ji)/cos(I+Ji"},
-	{"e^(X(I+Ji", "cos(X)+isin(X"}
+	{"tan(I+Ji", "sin(I+Ji)/cos(I+Ji"}
 };
 
 typedef ast_t** Dictionary;
@@ -173,8 +177,8 @@ bool divide_numerical_constants(ast_t *id, ast_t *e) {
 			replace_node(e, ast_MakeBinary(OP_DIV, ast_Copy(e), ast_Copy(child)));
 			replace_node(id, ast_MakeBinary(OP_DIV, ast_Copy(id), ast_Copy(child)));
 
-			simplify(e, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
-			simplify(id, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
+			simplify(e, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL);
+			simplify(id, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL);
 
 			return true;
 		}
@@ -494,6 +498,7 @@ bool id_ExecuteTable(ast_t *e, id_t *table, unsigned table_len) {
 
 		/*Break if changed to save time on the calculator becaus chances are good
 		that after an identity is applied, we do not need to go through the rest.*/
+		simplify(e, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL); /*Maybe shouldn't eval here*/
 		if(changed)
 			break;
 	}

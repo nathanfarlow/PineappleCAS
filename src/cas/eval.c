@@ -496,6 +496,10 @@ static bool eval_abs(ast_t *e) {
 }
 
 static bool eval_log(ast_t *e) {
+    if(is_ast_int(ast_ChildGet(e, 1), 1)) {
+        replace_node(e, ast_MakeNumber(num_FromInt(0)));
+        return true;
+    }
     return false;
 }
 

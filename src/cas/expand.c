@@ -89,6 +89,20 @@ bool expand(ast_t *e, const unsigned char flags) {
                 }
             }
             
+        } else if((flags & EXP_DISTRIB_DIVISION) && isoptype(e, OP_DIV)) {
+            ast_t *num, *den;
+
+            num = ast_ChildGet(e, 0);
+            den = ast_ChildGet(e, 1);
+
+            replace_node(e, ast_MakeBinary(OP_MULT, ast_Copy(num), ast_MakeBinary(OP_DIV, ast_MakeNumber(num_FromInt(1)), ast_Copy(den))));
+
+            /*This could be dangerous, but we'll cross that bridge when we get there.*/
+            expand(e, EXP_DISTRIB_NUMBERS | EXP_DISTRIB_ADDITION | EXP_DISTRIB_MULTIPLICATION | EXP_DISTRIB_ADDITION);
+
+            intermediate_change = true;
+            did_change = true;
+
         } else if((flags & EXP_EXPAND_POWERS) && isoptype(e, OP_POW)) {
             mp_int val;
             ast_t *base, *power, *replacement;
