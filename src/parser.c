@@ -19,6 +19,7 @@ struct Identifier ti_table[AMOUNT_TOKENS] = {
     {1, {0x2D}},                            /*TOK_FACTORIAL*/
 
     {2, {0xEF, 0x34}},          /*TOK_LOG_BASE*/
+    {1, {0x25}},                /*TOK_DERIV*/
 
     {1, {0xB1}}, {1, {0xB2}},   /*TOK_INT, TOK_ABS*/
     {1, {0xBC}}, {1, {0xBD}},   /*TOK_SQRT, TOK_CUBED_ROOT*/
@@ -57,6 +58,7 @@ struct Identifier str_table[AMOUNT_TOKENS] = {
     {1, "!"},                               /*TOK_FACTORIAL*/
 
     {5, "logb("},                   /*TOK_LOG_BASE*/
+    {6, "deriv("},                  /*TOK_DERIV*/
 
     {4, "int("}, {4, "abs("},       /*TOK_INT, TOK_ABS*/
     {5, "sqrt("}, {7, "cbroot("},   /*TOK_SQRT, TOK_CUBED_ROOT*/
@@ -293,8 +295,15 @@ bool should_multiply_by_next_token(tokenizer_t *tokenizer, unsigned index) {
 uint8_t operand_count(TokenType type) {
     if(is_tok_unary_operator(type) || is_tok_unary_function(type))
         return 1;
-    if(is_tok_binary_operator(type) || is_tok_nary_function(type))
+    if(is_tok_binary_operator(type))
         return 2;
+
+    if(type == TOK_LOG_BASE)
+        return 2;
+    
+    if(type == TOK_DERIV)
+        return 3;
+
     return 0;
 }
 
@@ -347,6 +356,7 @@ void translate(ast_t *e) {
         /*Swap the operands*/
         ast_ChildAppend(e, ast_ChildRemoveIndex(e, 0));
         break;
+    case TOK_DERIV:      optype(e) = OP_DERIV; break;
     case TOK_INT:        optype(e) = OP_INT; break;
     case TOK_ABS:        optype(e) = OP_ABS; break;
     case TOK_SQRT:
@@ -385,7 +395,6 @@ void translate(ast_t *e) {
     case TOK_COSH_INV:   optype(e) = OP_COSH_INV; break;
     case TOK_TANH:       optype(e) = OP_TANH; break;
     case TOK_TANH_INV:   optype(e) = OP_TANH_INV; break;
-
     default:
         break;
     }

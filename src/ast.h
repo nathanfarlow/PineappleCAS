@@ -30,6 +30,9 @@ typedef enum {
     OP_POW, OP_ROOT,
     OP_LOG,
 
+    /*1st child = f(var), 2nd child = var, 3rd child = value for var*/
+    OP_DERIV,
+
     /*Unary*/
     OP_FACTORIAL,
 
