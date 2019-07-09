@@ -205,6 +205,7 @@ simplify; X^(I+Ji; cos(ln(X))+isin(ln(X))
 #HOW I cannot believe these actually work
 simplify; i^i; 1/e^(pi/2)
 simplify; e^(ipi); -1
+simplify; 1/i^(2i/pi; e
 
 simplify; sin(5i + A + B); sin(A+B)cosh(5)+icos(A+B)sinh(5)
 

@@ -751,10 +751,11 @@ bool simplify_identities(ast_t *e, const unsigned short flags) {
     Returns true if ast was changed
 */
 bool simplify(ast_t *e, const unsigned short flags) {
-    bool did_change = false, intermediate_change;
+    bool did_change = false, intermediate_change, factor_changed;
 
     do {
         intermediate_change = false;
+        factor_changed = false;
 
         if(flags & SIMP_NORMALIZE)
             while(simplify_normalize(e))    intermediate_change = did_change = true;
@@ -770,24 +771,34 @@ bool simplify(ast_t *e, const unsigned short flags) {
         at least one id flag is set. The expression remains in the expanded state at the end of simplify().*/
 
         if(flags & SIMP_ID_ALL) {
-            factor(e, FAC_SIMPLE_ADDITION_EVALUATEABLE | FAC_SIMPLE_ADDITION_NONEVALUATEABLE);
+            factor_changed = factor(e, FAC_SIMPLE_ADDITION_EVALUATEABLE | FAC_SIMPLE_ADDITION_NONEVALUATEABLE);
+
+            intermediate_change |= simplify_identities(e, flags);
+            did_change |= intermediate_change;
         }
 
-        intermediate_change |= simplify_identities(e, flags);
-        did_change |= intermediate_change;
+        if(factor_changed) {
+            bool expand_changed;
 
-        if(flags & SIMP_ID_ALL) {
-            expand(e, EXP_DISTRIB_NUMBERS | EXP_DISTRIB_MULTIPLICATION | EXP_DISTRIB_DIVISION);
-            simplify(e, SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_LIKE_TERMS);
+            if(flags & SIMP_ID_ALL) {
+                expand_changed = expand(e, EXP_DISTRIB_NUMBERS | EXP_DISTRIB_MULTIPLICATION | EXP_DISTRIB_DIVISION);
+
+                if(expand_changed) {
+
+                    /*Expand leaves constants unevaluated and commutative operators with 1 or 0 children.*/
+                    simplify(e, SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_LIKE_TERMS);
+
+                    intermediate_change |= simplify_identities(e, flags);
+                    did_change |= intermediate_change;
+
+                    /*Fix the expansion of division here*/
+                    simplify(e, SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);
+                }
+            }
+
         }
 
-        intermediate_change |= simplify_identities(e, flags);
-        did_change |= intermediate_change;
-
-        if(flags & SIMP_ID_ALL) {
-            /*Undo expansion of division*/
-            simplify(e, SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
-        }
+       
 
         /*Simplify like terms*/
         if(flags & SIMP_LIKE_TERMS) {
