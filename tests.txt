@@ -259,3 +259,38 @@ expand ((A + B)^5 + 1)^4; 1+2 A^4+A^8+8 A^3 B+8 A^7 B+12 A^2 B^2+28 A^6 B^2+8 A 
 expand; AB(X+1); ABX + AB
 expand; (A + B)(B + C); AB + AC + B^2 + BC
 expand; (ABC)^6; A^6B^6C^6
+
+#Derivative tests
+deriv; X; X; 1
+deriv; sin(X)/ln(X); X; ((-sin(X))/X+ln(X)cos(X))/ln(X)^2
+deriv; e^(5X); X; 5e^(5X);
+deriv; X^X; X; (ln(X)+1)X^X
+deriv; ln(X); X; 1/X
+
+#log base 3 of X
+deriv; logb(X,3); X; 1/(Xln(3))
+#log base X of 3
+deriv; logb(3,X); X; -ln(3)/(Xln(X)^2)
+
+deriv; sin(X); X; cos(X)
+deriv; cos(X); X; -sin(X)
+deriv; tan(X); X; 1/cos(X)^2
+deriv; asin(X); X; 1/sqrt(1_X^2)
+deriv; acos(X); X; -1/sqrt(1_X^2)
+deriv; atan(X); X; 1/(1+X^2)
+
+deriv; sinh(X); X; cosh(X)
+deriv; cosh(X); X; sinh(X)
+deriv; tanh(X); X; 1/cosh(X)^2
+deriv; asinh(X); X; 1/sqrt(X^2+1)
+deriv; acosh(X); X; 1/sqrt(X^2_1)
+deriv; atanh(X); X; 1/(1_X^2)
+
+deriv; X^5; X; 5X^4
+deriv; sin(X); A; 0
+deriv; 5X; X; 5
+deriv; sin(X)ln(X); X; sin(X)/X+ln(X)cos(X)
+deriv; sin(X)cos(X); X; cos(2X)
+deriv; sin(X) + cos(X) + ln(X); X; 1/X_sin(X)+cos(X)
+
+deriv; sin(sin(sin(X))); X; cos(X)cos(sin(X))cos(sin(sin(X)))

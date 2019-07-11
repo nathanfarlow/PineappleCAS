@@ -37,6 +37,7 @@ TestType resolve_type(char *type) {
     if(!strcmp(type, "gcd"))        return TEST_GCD;
     if(!strcmp(type, "factor"))     return TEST_FACTOR;
     if(!strcmp(type, "expand"))     return TEST_EXPAND;
+    if(!strcmp(type, "deriv"))      return TEST_DERIV;
 
     return TEST_INVALID;
 }
@@ -241,6 +242,31 @@ bool test_Run(test_t *t) {
 
         passed = check(t, actual, expected);
         break;
+    case TEST_DERIV: {
+
+        if(c == NULL) {
+            printf("Test failed on line %u. Empty third argument.\n", t->line);
+            break;
+        }
+
+        actual = ast_MakeOperator(OP_DERIV);
+        ast_ChildAppend(actual, ast_Copy(a)); /*value to take the derivative of*/
+        ast_ChildAppend(actual, ast_Copy(b)); /*variable in respect to*/
+        ast_ChildAppend(actual, ast_Copy(b)); /*evaluate at*/
+
+        expected = c;
+
+        /*We do this to change -1 * 23 to -23 to be able to compare*/
+        simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
+
+        simplify(actual, SIMP_ALL);
+        eval_derivative_nodes(actual);
+        simplify(actual, SIMP_ALL);
+
+        passed = check(t, actual, expected);
+
+        break;
+    }
     default:
         break;
     }
