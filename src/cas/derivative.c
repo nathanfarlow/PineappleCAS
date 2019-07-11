@@ -72,6 +72,8 @@ bool eval_derivative_nodes(ast_t *e) {
     /*Hardcode constant rule*/
     if(is_constant(expr, respect_to)) {
         replace_node(e, ast_MakeNumber(num_FromInt(0)));
+        ast_Cleanup(respect_to);
+        ast_Cleanup(at);
         return true;
     }
     /*Hardcode multiplication rules*/

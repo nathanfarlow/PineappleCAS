@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 #include <string.h>
 
@@ -318,6 +319,8 @@ int run_test(int argc, char **argv) {
     unsigned len, i, failed = 0, passed = 0;
     test_t **arr;
 
+    clock_t delta;
+
     if(argc < 3) {
         display_help();
         return -1;
@@ -332,6 +335,7 @@ int run_test(int argc, char **argv) {
 
     printf("Running tests...\n");
     
+    delta = clock();
     for(i = 0; i < len; i++) {
         test_t *t = arr[i];
         if(!test_Run(t))
@@ -339,9 +343,11 @@ int run_test(int argc, char **argv) {
         else
             passed++;
     }
+    delta = clock() - delta;
     
     test_CleanupArr(arr, len);
 
+    printf("Finished in %li microseconds.\n", delta / (CLOCKS_PER_SEC / 1000));
     printf("Passed: %u/%u, Failed: %u/%u\n", passed, len, failed, len);
 
     if(failed == 0) {

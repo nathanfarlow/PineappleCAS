@@ -265,6 +265,8 @@ bool test_Run(test_t *t) {
 
         passed = check(t, actual, expected);
 
+        ast_Cleanup(actual);
+
         break;
     }
     default:

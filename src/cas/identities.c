@@ -182,8 +182,8 @@ bool divide_numerical_constants(ast_t *id, ast_t *e) {
 			replace_node(e, ast_MakeBinary(OP_DIV, ast_Copy(e), ast_Copy(child)));
 			replace_node(id, ast_MakeBinary(OP_DIV, ast_Copy(id), ast_Copy(child)));
 
-			simplify(e, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL);
-			simplify(id, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL);
+			simplify(e, SIMP_COMMUTATIVE | SIMP_EVAL);
+			simplify(id, SIMP_COMMUTATIVE | SIMP_EVAL);
 
 			return true;
 		}
@@ -517,7 +517,7 @@ bool id_ExecuteTable(ast_t *e, id_t *table, unsigned table_len, bool recursive) 
 
 		/*Break if changed to save time on the calculator becaus chances are good
 		that after an identity is applied, we do not need to go through the rest.*/
-		simplify(e, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL);
+		simplify(e, SIMP_COMMUTATIVE | SIMP_EVAL);
 		if(changed)
 			break;
 	}
