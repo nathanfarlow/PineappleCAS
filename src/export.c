@@ -34,6 +34,18 @@ static uint8_t precedence(ast_t *e) {
                                     || precedence(child) < precedence(parent)) \
                                     || (is_right_operator_type(optype(parent)) && child->type == NODE_NUMBER && mp_rat_compare_zero(child->op.num) < 0) )
 
+ast_t *rightmost(ast_t *e) {
+    if(e->type == NODE_OPERATOR) {
+        switch(optype(e)) {
+        case OP_POW:
+            return rightmost(ast_ChildGetLast(e));
+        default:
+            break;
+        }
+    }
+
+    return e;
+}
 ast_t *leftmost(ast_t *e) {
 
     if(e->type == NODE_OPERATOR) {
@@ -146,7 +158,7 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Ident
                 }
 
                 needs_mult = !need_paren(e, child) && !root_special_case &&
-                        ((child->type == NODE_NUMBER && leftmost(next)->type == NODE_NUMBER)
+                        ((rightmost(child)->type == NODE_NUMBER && !is_ast_int(rightmost(child), -1) && leftmost(next)->type == NODE_NUMBER)
                         /*Should never happen, because the tree should have been flattened. This is just in case*/
                         || isoptype(child, OP_MULT));
 

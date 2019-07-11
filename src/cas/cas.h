@@ -123,9 +123,31 @@ bool factor(ast_t *e, const unsigned char flags);
 
 bool expand(ast_t *e, const unsigned char flags);
 
+/*Evaluates identities that are too basic to put in identities.c*/
+#define EVAL_BASIC_IDENTITIES   (1 << 0)
+/*Evaluates addition and multiplication of constants*/
+#define EVAL_COMMUTATIVE        (1 << 1)
+/*Evaluates 4/2 to 2 and 15/20 to 3/4*/
+#define EVAL_DIVISION           (1 << 2)
+/*Evaluates a^b if a <= 10 and b <= 10*/
+#define EVAL_POWERS_SMALL       (1 << 3)
+#define EVAL_POWERS_FULL        (1 << 4)
+/*Evaluates int(5.5) = 5*/
+#define EVAL_INT                (1 << 5)
+/*Evaluates absolute value of strictly real constants*/
+#define EVAL_ABS                (1 << 6)
+/*Evaluates X! where X <= 10*/
+#define EVAL_FACTORIAL_SMALL    (1 << 7)
+#define EVAL_FACTORIAL_FULL     (1 << 8)
+/*Things that can be computed in a reasonable amount of time*/
+#define EVAL_EASY               (EVAL_BASIC_IDENTITIES | EVAL_COMMUTATIVE | EVAL_DIVISION | EVAL_INT | EVAL_ABS | EVAL_POWERS_SMALL | EVAL_FACTORIAL_SMALL)
+/*Things that take a lot of computation to compute*/
+#define EVAL_HARD               (EVAL_POWERS_FULL | EVAL_FACTORIAL_FULL)
+#define EVAL_ALL                0xFFFF
+
 /*Evaluates constants such as 5+5 or 6^5. Also implements basic identities
 such as 1A = A, A + 0 = A. Returns true if the ast was changed.*/
-bool eval(ast_t *e);
+bool eval(ast_t *e, unsigned short flags);
 
 /*Replaces all instances of from ast to to ast in e*/
 bool substitute(ast_t *e, ast_t *from, ast_t *to);

@@ -765,7 +765,7 @@ bool simplify(ast_t *e, const unsigned short flags) {
         if(flags & SIMP_RATIONAL)
             while(simplify_rational(e))     intermediate_change = did_change = true;
         if(flags & SIMP_EVAL)
-            while(eval(e))                  intermediate_change = did_change = true;
+            while(eval(e, EVAL_EASY))       intermediate_change = did_change = true;
 
         /*Simplify identities. First factor the expression and simplify identities.
         Then expand the expression and simplify identities that we missed. Only factor and expand if 
