@@ -80,7 +80,12 @@ simplify; tanh(atanh(X; X
 simplify; atanh(tanh(X; X
 
 simplify; sin(X)/cos(X; tan(X
+simplify; 5sin(X)/(3cos(X)); 5tan(X)/3
 simplify; cos(X)/sin(X; 1/tan(X
+simplify; 3cos(X)/(Bsin(X)); 3/(Btan(X))
+
+simplify; Atan(X)cos(X; Asin(X
+simplify; Asin(X)/(Btan(X; Acos(X)/B
 
 simplify; sin(pi/2_X; cos(X
 simplify; cos(pi/2_X; sin(X
@@ -170,6 +175,7 @@ simplify; 2sin(sqrt(3))^2 + 2cos(sqrt(3))^2; 2
 simplify; ln(2sin(pi/3)) + ln(cos(pi/3)); ln(sqrt(3)/2
 simplify; ln(ln(e^ln(2))); ln(ln(2))
 simplify; ln(e); 1
+simplify; e^(5ln(X); X^5
 simplify; ln(e^5); 5
 simplify; ln(5^9); 9ln(5)
 

@@ -13,7 +13,7 @@ typedef struct {
 
 #define ID_NUM_GENERAL 17
 extern id_t id_general[ID_NUM_GENERAL];
-#define ID_NUM_TRIG_IDENTITIES 18
+#define ID_NUM_TRIG_IDENTITIES 20
 extern id_t id_trig_identities[ID_NUM_TRIG_IDENTITIES];
 #define ID_NUM_TRIG_CONSTANTS 40
 extern id_t id_trig_constants[ID_NUM_TRIG_CONSTANTS];
@@ -24,9 +24,9 @@ extern id_t id_complex[ID_NUM_COMPLEX];
 
 bool id_Load(id_t *id);
 void id_Unload(id_t *id);
-bool id_Execute(ast_t *e, id_t *id);
+bool id_Execute(ast_t *e, id_t *id, bool recursive);
 
-bool id_ExecuteTable(ast_t *e, id_t *table, unsigned table_len);
+bool id_ExecuteTable(ast_t *e, id_t *table, unsigned table_len, bool recursive);
 void id_UnloadTable(id_t *table, unsigned table_len);
 /*Calls unload table for all tables*/
 void id_UnloadAll();

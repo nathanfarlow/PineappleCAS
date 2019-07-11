@@ -723,22 +723,21 @@ bool simplify_identities(ast_t *e, const unsigned short flags) {
     bool changed = false;
 
     if(flags & SIMP_ID_GENERAL)
-        while(id_ExecuteTable(e, id_general, ID_NUM_GENERAL))                   changed = true;
+        while(id_ExecuteTable(e, id_general, ID_NUM_GENERAL, true))                   changed = true;
 
     if(flags & SIMP_ID_COMPLEX)
-        while(id_ExecuteTable(e, id_complex, ID_NUM_COMPLEX))                   changed = true;
+        while(id_ExecuteTable(e, id_complex, ID_NUM_COMPLEX, true))                   changed = true;
 
     if(flags & SIMP_ID_TRIG) {
-        while(simplify_periodic(e))                                             changed = true;
-        while(id_ExecuteTable(e, id_trig_identities, ID_NUM_TRIG_IDENTITIES))   changed = true;
+        while(simplify_periodic(e))                                                   changed = true;
+        while(id_ExecuteTable(e, id_trig_identities, ID_NUM_TRIG_IDENTITIES, true))   changed = true;
     }
 
     if(flags & SIMP_ID_TRIG_CONSTANTS)
-        while(id_ExecuteTable(e, id_trig_constants, ID_NUM_TRIG_CONSTANTS))     changed = true;
+        while(id_ExecuteTable(e, id_trig_constants, ID_NUM_TRIG_CONSTANTS, true))     changed = true;
 
     if(flags & SIMP_ID_HYPERBOLIC)
-        while(id_ExecuteTable(e, id_hyperbolic, ID_NUM_HYPERBOLIC))             changed = true;
-
+        while(id_ExecuteTable(e, id_hyperbolic, ID_NUM_HYPERBOLIC, true))             changed = true;
 
     return changed;
 }

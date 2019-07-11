@@ -2,6 +2,7 @@
 #define CAS_H_
 
 #include "../ast.h"
+#include "derivative.h"
 
 /*
     Changes ast to a form we work with in the simpilfier.
@@ -126,12 +127,13 @@ bool expand(ast_t *e, const unsigned char flags);
 such as 1A = A, A + 0 = A. Returns true if the ast was changed.*/
 bool eval(ast_t *e);
 
+/*Replaces all instances of from ast to to ast in e*/
+bool substitute(ast_t *e, ast_t *from, ast_t *to);
+
 /*Returns the greatest common divisor of two expressions.
 gcd(X(X+1)^2, AX) = X 
 gcd(6AX, 10X) = 2X*/
 ast_t *gcd(ast_t *a, ast_t *b);
-
-void derivative(ast_t *e);
 
 /*Helper functions*/
 

@@ -24,7 +24,7 @@ id_t id_general[ID_NUM_GENERAL] = {
 	{"logb(X,B)+logb(Y,B)+C", "logb(XY,B)+C"},
 	{"logb(X,B)_logb(Y,B)+C", "logb(X/Y,B)+C"},
 
-	{"A^logb(B,A", "B"},
+	{"A^(Clogb(B,A", "B^C"},
 	{"logb(A,A", "1"},
 
 	{"(ArootB)^A", "B"}, /*Todo ignores negatives*/
@@ -45,9 +45,6 @@ id_t id_general[ID_NUM_GENERAL] = {
 };
 
 id_t id_trig_identities[ID_NUM_TRIG_IDENTITIES] = {
-    {"sin(X)/cos(X", "tan(X"},
-	{"cos(X)/sin(X", "1/tan(X"},
-
 	{"sin(pi/2_X+C", "cos(X+C"},
 	{"cos(pi/2_X+C", "sin(X+C"},
 
@@ -68,7 +65,13 @@ id_t id_trig_identities[ID_NUM_TRIG_IDENTITIES] = {
 	{"2cos(X)^2_1+C", "cos(2X)+C"},
 	{"1_2sin(X)^2+C", "cos(2X)+C"},
 
-    {"sin(X)^2+cos(X)^2+C", "1+C"}
+    {"sin(X)^2+cos(X)^2+C", "1+C"},
+
+	/*tan identities*/
+    {"Asin(X)/(Bcos(X", "Atan(X)/B"},
+	{"Acos(X)/(Bsin(X", "A/(Btan(X"},
+	{"Atan(X)cos(X", "Asin(X"},
+	{"Asin(X)/(Btan(X", "Acos(X)/B"},
 };
 
 id_t id_trig_constants[ID_NUM_TRIG_CONSTANTS] = {
@@ -227,7 +230,7 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 			return ast_Compare(dict_Get(dict, id), e);
 		}
 	} else if(id->type == NODE_OPERATOR) {
-		unsigned i, j;
+		int i, j;
 
 		/*Make a copy of the dictionary in case the children do not match
 		We do not fill the dictionary with bad values*/
@@ -401,19 +404,20 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 			return matched;
 			
 		} else {
-			/*Order does matter*/
+			/*Order and length do matter*/
 
 			if(e->type != NODE_OPERATOR) {
 				dict_Cleanup(dict_copy);
 				return false;
 			}
 
-			if(optype(e) != optype(id)) {
+			if(optype(e) != optype(id) || ast_ChildLength(e) != ast_ChildLength(id)) {
 				dict_Cleanup(dict_copy);				
 				return false;
 			}
 
-			for(i = 0; i < ast_ChildLength(e); i++) {
+			/*Reverse loop to better guess variables for derivative nodes*/
+			for(i = ast_ChildLength(e) - 1; i >= 0; i--) {
 				ast_t *e_child = ast_ChildGet(e, i);
 				ast_t *id_child = ast_ChildGet(id, i);
 				if(!matches(id_child, e_child, dict_copy)) {
@@ -437,7 +441,7 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 /*
 	Requires that constants are already evaluated.
 */
-bool id_Execute(ast_t *e, id_t *id) {
+bool id_Execute(ast_t *e, id_t *id, bool recursive) {
     ast_t *child;
 	ast_t *dict[AMOUNT_SYMBOLS] = {0};
     bool changed = false;
@@ -461,9 +465,9 @@ bool id_Execute(ast_t *e, id_t *id) {
         changed = true;
 	}
 
-	if(e->type == NODE_OPERATOR) {
+	if(recursive && e->type == NODE_OPERATOR) {
 		for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
-			changed |= id_Execute(child, id);
+			changed |= id_Execute(child, id, recursive);
 	}
 
     dict_Cleanup(dict);
@@ -504,16 +508,16 @@ void id_Unload(id_t *id) {
     id->to = NULL;
 }
 
-bool id_ExecuteTable(ast_t *e, id_t *table, unsigned table_len) {
+bool id_ExecuteTable(ast_t *e, id_t *table, unsigned table_len, bool recursive) {
     unsigned i;
 	bool changed = false;
 
 	for(i = 0; i < table_len; i++) {
-		changed |= id_Execute(e, &table[i]);
+		changed |= id_Execute(e, &table[i], recursive);
 
 		/*Break if changed to save time on the calculator becaus chances are good
 		that after an identity is applied, we do not need to go through the rest.*/
-		simplify(e, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL); /*Maybe shouldn't eval here*/
+		simplify(e, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL);
 		if(changed)
 			break;
 	}
@@ -527,10 +531,17 @@ void id_UnloadTable(id_t *table, unsigned table_len) {
 		id_Unload(&table[i]);
 }
 
+#include "derivative.h"
 void id_UnloadAll() {
 	id_UnloadTable(id_general, ID_NUM_GENERAL);
 	id_UnloadTable(id_trig_identities, ID_NUM_TRIG_IDENTITIES);
 	id_UnloadTable(id_trig_constants, ID_NUM_TRIG_CONSTANTS);
 	id_UnloadTable(id_hyperbolic, ID_NUM_HYPERBOLIC);
 	id_UnloadTable(id_complex, ID_NUM_COMPLEX);
+
+	id_UnloadTable(id_derivative, ID_NUM_DERIV);
+
+	id_Unload(&id_deriv_power_rule);
+	id_Unload(&id_deriv_constant_rule);
+	id_Unload(&id_deriv_product_rule);
 }

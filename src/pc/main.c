@@ -30,6 +30,7 @@ void display_help() {
     printf("\tgcd [expression1] [expression2]\tPrints the GCD of the two expressions\n");
     printf("\tfactor [expression]\t\tFactors expression\n");
     printf("\texpand [expression]\t\tExpands expression\n");
+    printf("\tderivative [expression] [respect to] [(optional) eval at]\n");
 }
 
 /*Trim null terminated string*/
@@ -351,6 +352,99 @@ int run_test(int argc, char **argv) {
     return -1;
 }
 
+int run_derivative(int argc, char **argv) {
+
+    uint8_t *trimmed;
+    unsigned trimmed_len;
+
+    error_t err;
+    ast_t *e = NULL, *e_copy = NULL, *respect_to = NULL, *at = NULL;
+
+    uint8_t *output;
+    unsigned output_len;
+
+    if(argc <= 3) {
+        display_help();
+        return -1;
+    }
+
+    trimmed = trim(argv[2], &trimmed_len);
+    printf("Parsing \"%s\"\n", trimmed);
+    e = parse(trimmed, trimmed_len, str_table, &err);
+    printf("%s\n", error_text[err]);
+    free(trimmed);
+
+    if(err == E_SUCCESS) {
+        trimmed = trim(argv[3], &trimmed_len);
+        printf("Parsing \"%s\"\n", trimmed);
+        respect_to = parse(trimmed, trimmed_len, str_table, &err);
+        printf("%s\n", error_text[err]);
+        free(trimmed);
+    }
+
+    if(err == E_SUCCESS) {
+
+        if(argc >= 5) {
+            trimmed = trim(argv[4], &trimmed_len);
+            printf("Parsing \"%s\"\n", trimmed);
+            at = parse(trimmed, trimmed_len, str_table, &err);
+            printf("%s\n", error_text[err]);
+            free(trimmed);
+        } else {
+            at = ast_Copy(respect_to);
+        }
+        
+    }
+    
+    if(err == E_SUCCESS && e != NULL && respect_to != NULL && at != NULL) {
+
+        e_copy = ast_Copy(e);
+        replace_node(e, ast_MakeOperator(OP_DERIV));
+
+        ast_ChildAppend(e, e_copy);
+        ast_ChildAppend(e, respect_to);
+        ast_ChildAppend(e, at);
+
+        printf("\n");
+        dbg_print_tree(e, 4);
+
+        printf("\n");
+
+        printf("Simplifying...\n\n");
+
+        simplify(e, SIMP_ALL);
+
+        dbg_print_tree(e, 4);
+
+        printf("\n");
+
+        printf("Taking derivative...\n");
+
+        eval_derivative_nodes(e);
+        printf("Simplifying...\n\n");
+
+        simplify(e, SIMP_ALL);
+        simplify_canonical_form(e);
+
+        dbg_print_tree(e, 4);
+        printf("\n");
+
+        output = export_to_binary(e, &output_len, str_table, &err);
+
+        if(err == E_SUCCESS && output != NULL) {
+            printf("Output: ");
+            printf("%.*s\n", output_len, output);
+
+            free(output);
+        }
+
+    }
+
+    ast_Cleanup(e);
+
+    return 0;
+}
+
 int main(int argc, char **argv) {
     int ret;
 
@@ -360,6 +454,7 @@ int main(int argc, char **argv) {
         else if(!strcmp(argv[1], "gcd"))        ret = run_gcd(argc, argv);
         else if(!strcmp(argv[1], "factor"))     ret = run_factor(argc, argv);
         else if(!strcmp(argv[1], "expand"))     ret = run_expand(argc, argv);
+        else if(!strcmp(argv[1], "derivative")) ret = run_derivative(argc, argv);
         else {
             display_help();
             return -1;

@@ -603,3 +603,23 @@ bool eval(ast_t *e) {
 
     return changed;
 }
+
+bool substitute(ast_t *e, ast_t *from, ast_t *to) {
+
+    if(ast_Compare(e, from)) {
+        replace_node(e, ast_Copy(to));
+        return true;
+    }
+
+    if(e->type == NODE_OPERATOR) {
+        ast_t *child;
+        bool changed = false;
+
+        for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
+            changed |= substitute(child, from, to);
+
+        return changed;
+    }
+
+    return false;
+}
