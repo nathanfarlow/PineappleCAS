@@ -6,7 +6,6 @@ which could be easily copied here. */
 
 #include <string.h>
 
-
 #define add_byte(byte) do {if(data != NULL) data[index] = (byte); index++;} while(0)
 #define add_token(token) do {uint8_t i; for(i = 0; i < lookup[(token)].length; i++) add_byte(lookup[token].bytes[i]);} while(0)
 
