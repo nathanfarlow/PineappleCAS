@@ -14,9 +14,7 @@ PineappleCAS uses the imath library for arbitrary precision math: https://github
   - [X] Power
   - [X] Factorial
   - [X] Abs/Int
-- [ ] Factor
-  - [X] Simple A + AB becomes A(B + 1)
-  - [ ] Polynomial x^3 + 2x^2 - 5x - 6 becomes (x + 1)(x + 3)(x - 2)
+- [X] Simple factoring A + AB becomes A(B + 1) (no polynomial)
 - [X] Expand
 - [X] Simplify expression
   - [X] Canonical form
@@ -25,5 +23,3 @@ PineappleCAS uses the imath library for arbitrary precision math: https://github
   - [X] Identities
 - [X] Complex numbers
 - [X] Solve derivative
-- [ ] Solve limits
-- [ ] Integrals? (Probably not)
