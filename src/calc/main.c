@@ -1,5 +1,6 @@
 #ifndef COMPILE_PC
 
+/*
 #include <tice.h>
 #include <fileioc.h>
 
@@ -8,7 +9,11 @@
 #include "../parser.h"
 #include "../cas/cas.h"
 #include "../cas/identities.h"
+*/
 
+#include "gui.h"
+
+/*
 void main() {
     ti_var_t y1;
 
@@ -18,7 +23,6 @@ void main() {
     os_ClrHome();
     ti_CloseAll();
 
-    /*Read equation from Y1*/
     y1 = ti_OpenVar(ti_Y1, "r", TI_EQU_TYPE);
 
     if(y1 != NULL) {
@@ -32,7 +36,6 @@ void main() {
 
         ti_Close(y1);
 
-        /*Simplify and export to Y2*/
         if(err == E_SUCCESS) {
 
             unsigned bin_len;
@@ -61,8 +64,15 @@ void main() {
         LOG(("Couldn't open equation"));
     }
 
-    /*Try to avoid that weird effect on the graph screen*/
     _OS(asm_ClrTxtShd);
+}
+*/
+
+void main() {
+
+    gui_Run();
+    gui_Cleanup();
+
 }
 
 #else
