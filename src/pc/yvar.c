@@ -3,7 +3,7 @@
 #include "yvar.h"
 
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 int read_header(header_t *header, FILE *file) {
     char buffer[9] = { 0 };
