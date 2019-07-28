@@ -7,7 +7,7 @@ which could be easily copied here. */
 #include <string.h>
 
 #define add_byte(byte) do {if(data != NULL) data[index] = (byte); index++;} while(0)
-#define add_token(token) do {uint8_t i; for(i = 0; i < lookup[(token)].length; i++) add_byte(lookup[token].bytes[i]);} while(0)
+#define add_token(token) do {uint8_t _tmp_i; for(_tmp_i = 0; _tmp_i < lookup[(token)].length; _tmp_i++) add_byte(lookup[token].bytes[_tmp_i]);} while(0)
 
 static uint8_t precedence_type(OperatorType type) {
     switch(type) {

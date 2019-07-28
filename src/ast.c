@@ -127,7 +127,7 @@ pcas_ast_t *ast_Copy(pcas_ast_t *e) {
     return NULL;
 }
 
-static bool has_used(unsigned *buffer, unsigned top, unsigned index) {
+static bool has_used(const unsigned *buffer, unsigned top, unsigned index) {
     unsigned i;
 
     for(i = 0; i < top; i++) {

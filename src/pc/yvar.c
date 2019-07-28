@@ -9,7 +9,7 @@ int read_header(header_t *header, FILE *file) {
     char buffer[9] = { 0 };
     fread(buffer, 1, 8, file);
 
-    if (strcmp(buffer, "**TI83F*"))
+    if (strcmp(buffer, "**TI83F*") != 0)
         return -1;
 
     fread(buffer, 1, 3, file);

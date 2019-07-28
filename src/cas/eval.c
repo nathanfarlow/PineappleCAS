@@ -509,8 +509,6 @@ static bool eval_int(pcas_ast_t *e, unsigned short flags) {
     return changed;
 }
 
-bool absolute_val(pcas_ast_t *e);
-
 static bool eval_abs(pcas_ast_t *e, unsigned short flags) {
     bool changed = false;
     pcas_ast_t *a = ast_ChildGet(e, 0);

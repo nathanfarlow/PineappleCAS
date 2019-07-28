@@ -1996,7 +1996,10 @@ STATIC mp_digit *s_realloc(mp_digit *old, mp_size osize, mp_size nsize)
 
   memcpy(new, old, osize * sizeof(mp_digit));
 #else
-  mp_digit *new = realloc(old, nsize * sizeof(mp_digit));
+  mp_digit *new;
+  (void)osize;
+
+  new = realloc(old, nsize * sizeof(mp_digit));
 
   assert(new != NULL); /* for debugging */
 #endif
