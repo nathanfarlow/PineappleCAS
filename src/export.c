@@ -22,7 +22,7 @@ static uint8_t precedence_type(OperatorType type) {
     }
 }
 
-static uint8_t precedence(ast_t *e) {
+static uint8_t precedence(pcas_ast_t *e) {
     if(e->type == NODE_OPERATOR)
         return precedence_type(optype(e));
     return 255;
@@ -34,7 +34,7 @@ static uint8_t precedence(ast_t *e) {
                                     || precedence(child) < precedence(parent)) \
                                     || (is_right_operator_type(optype(parent)) && child->type == NODE_NUMBER && mp_rat_compare_zero(child->op.num) < 0) )
 
-ast_t *rightmost(ast_t *e) {
+pcas_ast_t *rightmost(pcas_ast_t *e) {
     if(e->type == NODE_OPERATOR) {
         switch(optype(e)) {
         case OP_POW:
@@ -46,7 +46,7 @@ ast_t *rightmost(ast_t *e) {
 
     return e;
 }
-ast_t *leftmost(ast_t *e) {
+pcas_ast_t *leftmost(pcas_ast_t *e) {
 
     if(e->type == NODE_OPERATOR) {
         switch(optype(e)) {
@@ -64,7 +64,7 @@ ast_t *leftmost(ast_t *e) {
 }
 
 /*Returns length of buffer. Writes to buffer is buffer != NULL*/
-static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Identifier *lookup, error_t *err) {
+static unsigned _to_binary(pcas_ast_t *e, uint8_t *data, unsigned index, struct Identifier *lookup, pcas_error_t *err) {
     
     switch(e->type) {
     case NODE_NUMBER: {
@@ -100,11 +100,11 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Ident
 
         switch(optype(e)) {
         case OP_ADD: {
-            ast_t *child;
-            ast_t *e_copy = ast_Copy(e);
+            pcas_ast_t *child;
+            pcas_ast_t *e_copy = ast_Copy(e);
 
             for(i = 0; i < ast_ChildLength(e_copy) - 1; i++) {
-                ast_t *next;
+                pcas_ast_t *next;
 
                 child = ast_ChildGet(e_copy, i);
                 next = child->next;
@@ -130,12 +130,12 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Ident
             break;
         }
         case OP_MULT: {
-            ast_t *child;
+            pcas_ast_t *child;
             bool needs_mult;
             bool root_special_case;
 
             for(i = 0; i < ast_ChildLength(e) - 1; i++) {
-                ast_t *next;
+                pcas_ast_t *next;
 
                 child = ast_ChildGet(e, i);
                 next = child->next;
@@ -179,7 +179,7 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Ident
             break;
         } case OP_DIV:
           case OP_POW: {
-            ast_t *a, *b;
+            pcas_ast_t *a, *b;
 
             a = ast_ChildGet(e, 0);
             b = ast_ChildGet(e, 1);
@@ -196,7 +196,7 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Ident
 
             break;
         } case OP_ROOT: {
-            ast_t *a, *b;
+            pcas_ast_t *a, *b;
 
             a = ast_ChildGet(e, 0);
             b = ast_ChildGet(e, 1);
@@ -214,7 +214,7 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Ident
             break;
         }
         case OP_LOG: {
-            ast_t *a, *b;
+            pcas_ast_t *a, *b;
 
             a = ast_ChildGet(e, 0);
             b = ast_ChildGet(e, 1);
@@ -239,7 +239,7 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Ident
 
             break;
         }  case OP_DERIV: {
-            ast_t *a, *b, *c;
+            pcas_ast_t *a, *b, *c;
             
             a = ast_ChildGet(e, 0);
             b = ast_ChildGet(e, 1);
@@ -256,7 +256,7 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Ident
             break;
         } case OP_FACTORIAL: {
 
-            ast_t *a;
+            pcas_ast_t *a;
 
             a = ast_ChildGet(e, 0);
 
@@ -299,7 +299,7 @@ static unsigned _to_binary(ast_t *e, uint8_t *data, unsigned index, struct Ident
     return index;
 }
 
-uint8_t *export_to_binary(ast_t *e, unsigned *len, struct Identifier *lookup, error_t *err) {
+uint8_t *export_to_binary(pcas_ast_t *e, unsigned *len, struct Identifier *lookup, pcas_error_t *err) {
     uint8_t *data;
 
     *err = E_SUCCESS;

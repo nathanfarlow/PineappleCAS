@@ -65,7 +65,7 @@ struct Identifier {
 extern struct Identifier ti_table[AMOUNT_TOKENS];
 extern struct Identifier str_table[AMOUNT_TOKENS];
 
-ast_t *parse(const uint8_t *equation, unsigned length, struct Identifier *lookup, error_t *e);
-uint8_t *export_to_binary(ast_t *e, unsigned *len, struct Identifier *lookup, error_t *err);
+pcas_ast_t *parse(const uint8_t *equation, unsigned length, struct Identifier *lookup, pcas_error_t *e);
+uint8_t *export_to_binary(pcas_ast_t *e, unsigned *len, struct Identifier *lookup, pcas_error_t *err);
 
 #endif

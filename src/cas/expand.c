@@ -1,11 +1,11 @@
 #include "cas.h"
 
 /*In simplify.c*/
-bool simplify_like_terms(ast_t *e);
+bool simplify_like_terms(pcas_ast_t *e);
 
-ast_t *combine(ast_t *add, ast_t *b) {
+pcas_ast_t *combine(pcas_ast_t *add, pcas_ast_t *b) {
     unsigned i, j;
-    ast_t *expanded = ast_MakeOperator(OP_ADD);
+    pcas_ast_t *expanded = ast_MakeOperator(OP_ADD);
 
     if(isoptype(b, OP_ADD)) {
 
@@ -33,7 +33,7 @@ ast_t *combine(ast_t *add, ast_t *b) {
 }
 
 
-bool expand(ast_t *e, const unsigned char flags) {
+bool expand(pcas_ast_t *e, unsigned char flags) {
     unsigned i, j;
 
     bool did_change = false;
@@ -48,12 +48,12 @@ bool expand(ast_t *e, const unsigned char flags) {
         if(isoptype(e, OP_MULT)) {
 
             for(i = 0; i < ast_ChildLength(e); i++) {
-                ast_t *ichild = ast_ChildGet(e, i);
+                pcas_ast_t *ichild = ast_ChildGet(e, i);
 
                 if(isoptype(ichild, OP_ADD)) {
 
                     for(j = 0; j < ast_ChildLength(e); j++) {
-                        ast_t *jchild = ast_ChildGet(e, j);
+                        pcas_ast_t *jchild = ast_ChildGet(e, j);
                         if(i != j) {
                             bool should_expand;
 
@@ -69,7 +69,7 @@ bool expand(ast_t *e, const unsigned char flags) {
                             
 
                             if(should_expand) {
-                                ast_t *combined = combine(ichild, jchild);
+                                pcas_ast_t *combined = combine(ichild, jchild);
 
                                 ast_ChildAppend(e, combined);
 
@@ -90,7 +90,7 @@ bool expand(ast_t *e, const unsigned char flags) {
             }
             
         } else if((flags & EXP_DISTRIB_DIVISION) && isoptype(e, OP_DIV)) {
-            ast_t *num, *den;
+            pcas_ast_t *num, *den;
 
             num = ast_ChildGet(e, 0);
             den = ast_ChildGet(e, 1);
@@ -105,7 +105,7 @@ bool expand(ast_t *e, const unsigned char flags) {
 
         } else if((flags & EXP_EXPAND_POWERS) && isoptype(e, OP_POW)) {
             mp_int val;
-            ast_t *base, *power, *replacement;
+            pcas_ast_t *base, *power, *replacement;
 
             base = ast_ChildGet(e, 0);
             power = ast_ChildGet(e, 1);

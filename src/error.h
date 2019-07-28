@@ -1,7 +1,7 @@
 #ifndef ERROR_H_
 #define ERROR_H_
 
-typedef enum _Error {
+typedef enum {
     E_SUCCESS,
 
     /*Because of bad programming*/
@@ -21,7 +21,7 @@ typedef enum _Error {
     E_EVAL_NO_MAPPING,
 
     AMOUNT_ERRORS
-} error_t;
+} pcas_error_t;
 
 extern const char *error_text[AMOUNT_ERRORS];
 

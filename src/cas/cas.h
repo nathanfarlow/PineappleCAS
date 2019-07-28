@@ -80,7 +80,7 @@
 #define SIMP_ALL                        (0xFFFF)
 
 /*Simplifies ast. Returns true if changed*/
-bool simplify(ast_t *e, const unsigned short flags);
+bool simplify(pcas_ast_t *e, unsigned short flags);
 
 /*
     Order multiplication and division.
@@ -94,7 +94,7 @@ bool simplify(ast_t *e, const unsigned short flags);
 
     Sorting for addition and multiplication is O(n^2) by insertion sort
 */
-bool simplify_canonical_form(ast_t *e);
+bool simplify_canonical_form(pcas_ast_t *e);
 
 /*Factor A + A to A(1 + 1) where at least one part of the
 resulting multiplication can be evauated numerically*/
@@ -105,7 +105,7 @@ resulting multiplication can be evauated numerically*/
 #define FAC_POLYNOMIAL                      (1 << 2)
 #define FAC_ALL                             0xFF
 
-bool factor(ast_t *e, const unsigned char flags);
+bool factor(pcas_ast_t *e, unsigned char flags);
 
 /*EVAL_DISTRIBUTE_NUMBERS, EVAL_DISTRIBUTE_MULTIPLICATION, EVAL_DISTRIBUTE_ADDITION, EVAL_EXPAND_POWERS*/
 
@@ -121,7 +121,7 @@ bool factor(ast_t *e, const unsigned char flags);
 #define EXP_EXPAND_POWERS          (1 << 4)
 #define EXP_ALL                    0xFF
 
-bool expand(ast_t *e, const unsigned char flags);
+bool expand(pcas_ast_t *e, unsigned char flags);
 
 /*Evaluates identities that are too basic to put in identities.c*/
 #define EVAL_BASIC_IDENTITIES   (1 << 0)
@@ -147,30 +147,30 @@ bool expand(ast_t *e, const unsigned char flags);
 
 /*Evaluates constants such as 5+5 or 6^5. Also implements basic identities
 such as 1A = A, A + 0 = A. Returns true if the ast was changed.*/
-bool eval(ast_t *e, unsigned short flags);
+bool eval(pcas_ast_t *e, unsigned short flags);
 
 /*Replaces all instances of from ast to to ast in e*/
-bool substitute(ast_t *e, ast_t *from, ast_t *to);
+bool substitute(pcas_ast_t *e, pcas_ast_t *from, pcas_ast_t *to);
 
 /*Returns the greatest common divisor of two expressions.
 gcd(X(X+1)^2, AX) = X 
 gcd(6AX, 10X) = 2X*/
-ast_t *gcd(ast_t *a, ast_t *b);
+pcas_ast_t *gcd(pcas_ast_t *a, pcas_ast_t *b);
 
 /*Helper functions*/
 
 /*Cleanup a. Copy a to b and cleanup b.*/
-void replace_node(ast_t *a, ast_t *b);
+void replace_node(pcas_ast_t *a, pcas_ast_t *b);
 
 /*Returns true if the node has an imaginary node.*/
-bool has_imaginary_node(ast_t *e);
+bool has_imaginary_node(pcas_ast_t *e);
 
 /*Returns true if the node is being multiplied by at least one negative or is already a negative number node.
 The node must be completely simplified for this to work, because it does not detect
 multiplying by more than one negative to make a positive. */
-bool is_negative_for_sure(ast_t *a);
+bool is_negative_for_sure(pcas_ast_t *a);
 
 /*Returns true if changed. Expects completely simplified. Removes the negative in the multiplier or number.*/
-bool absolute_val(ast_t *e);
+bool absolute_val(pcas_ast_t *e);
 
 #endif

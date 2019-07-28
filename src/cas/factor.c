@@ -1,17 +1,17 @@
 #include "cas.h"
 
 /*Handles gcd for AB, BC gcd = B*/
-static ast_t *gcd_mult(ast_t *mult, ast_t *b) {
+static pcas_ast_t *gcd_mult(pcas_ast_t *mult, pcas_ast_t *b) {
     unsigned i;
-    ast_t *current_gcd, *copy;
+    pcas_ast_t *current_gcd, *copy;
 
     copy = ast_Copy(b);
 
     current_gcd = ast_MakeOperator(OP_MULT);
 
     for(i = 0; i < ast_ChildLength(mult); i++) {
-        ast_t *inner_gcd;
-        ast_t *child = ast_ChildGet(mult, i);
+        pcas_ast_t *inner_gcd;
+        pcas_ast_t *child = ast_ChildGet(mult, i);
 
         inner_gcd = gcd(child, copy);
 
@@ -28,14 +28,14 @@ static ast_t *gcd_mult(ast_t *mult, ast_t *b) {
 }
 
 /*Handles gcd for A + AB, A gcd = A*/
-static ast_t *gcd_add(ast_t *add, ast_t *b) {
+static pcas_ast_t *gcd_add(pcas_ast_t *add, pcas_ast_t *b) {
     unsigned i;
-    ast_t *current_gcd;
+    pcas_ast_t *current_gcd;
 
     current_gcd = gcd(ast_ChildGet(add, 0), b);
 
     for(i = 1; i < ast_ChildLength(add); i++) {
-        ast_t *temp_gcd, *child;
+        pcas_ast_t *temp_gcd, *child;
         
         child = ast_ChildGet(add, i);
         temp_gcd = gcd(current_gcd, child);
@@ -47,8 +47,8 @@ static ast_t *gcd_add(ast_t *add, ast_t *b) {
     return current_gcd;
 }
 
-static ast_t *gcd_div(ast_t *div, ast_t *b) {
-    ast_t *num1, *num2, *den1, *den2, *num_g, *den_g;
+static pcas_ast_t *gcd_div(pcas_ast_t *div, pcas_ast_t *b) {
+    pcas_ast_t *num1, *num2, *den1, *den2, *num_g, *den_g;
 
     num1 = ast_ChildGet(div, 0);
     den1 = ast_ChildGet(div, 1);
@@ -72,8 +72,8 @@ static ast_t *gcd_div(ast_t *div, ast_t *b) {
 }
 
 /*gcd of both bases, raised to smallest power*/
-static ast_t *gcd_pow(ast_t *pow, ast_t *b) {
-    ast_t *base1, *power1;
+static pcas_ast_t *gcd_pow(pcas_ast_t *pow, pcas_ast_t *b) {
+    pcas_ast_t *base1, *power1;
 
     base1 = ast_ChildGet(pow, 0);
     power1 = ast_ChildGet(pow, 1);
@@ -82,7 +82,7 @@ static ast_t *gcd_pow(ast_t *pow, ast_t *b) {
     we can determine the numerical powers*/
 
     if(isoptype(b, OP_POW)) {
-        ast_t *power2, *base2;
+        pcas_ast_t *power2, *base2;
 
         power1 = ast_ChildGet(pow, 1);
         base2 = ast_ChildGet(b, 0);
@@ -90,7 +90,7 @@ static ast_t *gcd_pow(ast_t *pow, ast_t *b) {
 
         if(power1->type == NODE_NUMBER && power2->type == NODE_NUMBER) {
             bool use_first;
-            ast_t *current_gcd;
+            pcas_ast_t *current_gcd;
 
             use_first = mp_rat_compare(power1->op.num, power2->op.num) < 0;
 
@@ -106,8 +106,8 @@ static ast_t *gcd_pow(ast_t *pow, ast_t *b) {
     return ast_MakeNumber(num_FromInt(1));
 }
 
-ast_t *gcd(ast_t *a, ast_t *b) {
-    ast_t *ret = NULL;
+pcas_ast_t *gcd(pcas_ast_t *a, pcas_ast_t *b) {
+    pcas_ast_t *ret = NULL;
 
     if(ast_Compare(a, b))
         return ast_Copy(a);
@@ -149,8 +149,8 @@ ast_t *gcd(ast_t *a, ast_t *b) {
     return ast_MakeNumber(num_FromInt(1));
 }
 
-bool factor_addition(ast_t *e, const unsigned char flags) {
-    ast_t *child;
+bool factor_addition(pcas_ast_t *e, unsigned char flags) {
+    pcas_ast_t *child;
     bool changed = false;
 
     if(e->type != NODE_OPERATOR)
@@ -161,19 +161,19 @@ bool factor_addition(ast_t *e, const unsigned char flags) {
 
     if(isoptype(e, OP_ADD)) {
         unsigned i, j;
-        ast_t *g;
+        pcas_ast_t *g;
 
         for(i = 0; i < ast_ChildLength(e); i++) {
-            ast_t *a = ast_ChildGet(e, i);
+            pcas_ast_t *a = ast_ChildGet(e, i);
 
             for(j = i + 1; j < ast_ChildLength(e); j++) {
-                ast_t *b = ast_ChildGet(e, j);
+                pcas_ast_t *b = ast_ChildGet(e, j);
 
                 g = gcd(a, b);
 
                 if(!is_ast_int(g, 1)) {
                     bool can_factor;
-                    ast_t *append, *first, *second;
+                    pcas_ast_t *append, *first, *second;
 
                     first = ast_MakeBinary(OP_DIV,
                                             ast_Copy(a),
@@ -230,7 +230,7 @@ bool factor_addition(ast_t *e, const unsigned char flags) {
     return changed;
 }
 
-bool factor(ast_t *e, const unsigned char flags) {
+bool factor(pcas_ast_t *e, unsigned char flags) {
     bool changed = false;
 
     if(flags & (FAC_SIMPLE_ADDITION_EVALUATEABLE | FAC_SIMPLE_ADDITION_NONEVALUATEABLE))

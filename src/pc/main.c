@@ -19,7 +19,6 @@
 #include "../dbg.h"
 
 #include "../cas/cas.h"
-#include "../cas/identities.h"
 
 #include "tests.h"
 
@@ -61,8 +60,8 @@ int run_gcd(int argc, char **argv) {
     uint8_t *trimmed_a, *trimmed_b;
     unsigned trimmed_a_len, trimmed_b_len;
 
-    error_t err;
-    ast_t *a, *b, *g;
+    pcas_error_t err;
+    pcas_ast_t *a, *b, *g;
 
     uint8_t *output;
     unsigned output_len;
@@ -127,14 +126,14 @@ int run_gcd(int argc, char **argv) {
 
     return 0;
 }
-extern bool simplify_periodic(ast_t *e);
+extern bool simplify_periodic(pcas_ast_t *e);
 int run_simplify(int argc, char **argv) {
 
     uint8_t *trimmed;
     unsigned trimmed_len;
 
-    error_t err;
-    ast_t *e;
+    pcas_error_t err;
+    pcas_ast_t *e;
 
     uint8_t *output;
     unsigned output_len;
@@ -189,8 +188,8 @@ int run_factor(int argc, char **argv) {
 uint8_t *trimmed;
     unsigned trimmed_len;
 
-    error_t err;
-    ast_t *e;
+    pcas_error_t err;
+    pcas_ast_t *e;
 
     uint8_t *output;
     unsigned output_len;
@@ -255,8 +254,8 @@ int run_expand(int argc, char **argv) {
     uint8_t *trimmed;
     unsigned trimmed_len;
 
-    error_t err;
-    ast_t *e;
+    pcas_error_t err;
+    pcas_ast_t *e;
 
     uint8_t *output;
     unsigned output_len;
@@ -363,8 +362,8 @@ int run_derivative(int argc, char **argv) {
     uint8_t *trimmed;
     unsigned trimmed_len;
 
-    error_t err;
-    ast_t *e = NULL, *e_copy = NULL, *respect_to = NULL, *at = NULL;
+    pcas_error_t err;
+    pcas_ast_t *e = NULL, *e_copy = NULL, *respect_to = NULL, *at = NULL;
 
     uint8_t *output;
     unsigned output_len;

@@ -503,7 +503,7 @@ void gui_Run() {
     gui_Cleanup();
 }
 
-void compile(id_t *arr, unsigned len) {
+void compile(pcas_id_t *arr, unsigned len) {
     unsigned i;
     for(i = 0; i < len; i++) {
         id_Load(&arr[i]);
@@ -584,7 +584,7 @@ char *token_table[21] = {
     ti_Ans
 };
 
-ast_t *parse_from_dropdown_index(unsigned index, error_t *err) {
+pcas_ast_t *parse_from_dropdown_index(unsigned index, pcas_error_t *err) {
     ti_var_t var;
 
     ti_CloseAll();
@@ -595,7 +595,7 @@ ast_t *parse_from_dropdown_index(unsigned index, error_t *err) {
         const uint8_t *data;
         uint16_t size;
 
-        ast_t *result;
+        pcas_ast_t *result;
 
         data = ti_GetDataPtr(var);
         size = ti_GetSize(var);
@@ -614,7 +614,7 @@ ast_t *parse_from_dropdown_index(unsigned index, error_t *err) {
     return NULL;
 }
 
-void write_to_dropdown_index(unsigned index, ast_t *expression, error_t *err) {
+void write_to_dropdown_index(unsigned index, pcas_ast_t *expression, pcas_error_t *err) {
     unsigned bin_len;
     uint8_t *bin;
     ti_var_t var;
@@ -639,8 +639,8 @@ void write_to_dropdown_index(unsigned index, ast_t *expression, error_t *err) {
 char buffer[50];
 
 void execute_simplify() {
-    ast_t *expression;
-    error_t err;
+    pcas_ast_t *expression;
+    pcas_error_t err;
 
     unsigned short flags = SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL;
 
@@ -711,8 +711,8 @@ void execute_simplify() {
 
 void execute_evaluate() {
     bool should_sub, should_eval;
-    ast_t *expression;
-    error_t err;
+    pcas_ast_t *expression;
+    pcas_error_t err;
 
     should_eval = evaluate_context[0]->checked;
     should_sub = evaluate_context[1]->checked;
@@ -727,8 +727,8 @@ void execute_evaluate() {
         if(expression != NULL) {
 
             if(should_sub) {
-                ast_t *sub_from, *sub_to;
-                error_t err;
+                pcas_ast_t *sub_from, *sub_to;
+                pcas_error_t err;
 
                 console_write("Parsing sub from...");
                 sub_from = parse_from_dropdown_index(evaluate_context[2]->index, &err);
@@ -802,8 +802,8 @@ void execute_evaluate() {
 }
 
 void execute_expand() {
-    ast_t *expression;
-    error_t err;
+    pcas_ast_t *expression;
+    pcas_error_t err;
 
     unsigned short flags = 0;
 
@@ -857,8 +857,8 @@ void execute_expand() {
 }
 
 void execute_derivative() {
-    ast_t *expression;
-    error_t err;
+    pcas_ast_t *expression;
+    pcas_error_t err;
     bool should_simplify;
 
     should_simplify = derivative_context[0]->checked;
