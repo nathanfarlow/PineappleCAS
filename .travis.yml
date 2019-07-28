@@ -1,7 +1,9 @@
-language: C
+language: c
 
 sudo: false
-os: linux
+os:
+  - linux
+  - osx
 
 script:
   - make -f pc.makefile
