@@ -305,14 +305,18 @@ static bool eval_div(pcas_ast_t *e, unsigned short flags) {
 #define power_in_small_range(a, b) (mp_rat_compare_value(a->op.num, -1, 1) == 0 || (mp_rat_compare_value(a->op.num, 10, 1) <= 0 && mp_rat_compare_value(b->op.num, 10, 1) <= 0))
 
 static bool eval_pow(pcas_ast_t *e, unsigned short flags) {
+    /*a^b*/
     pcas_ast_t *a, *b;
     bool changed = false;
 
-    if(flags & EVAL_BASIC_IDENTITIES) {
-        /*a^b*/
-        a = ast_ChildGet(e, 0);
-        b = ast_ChildGet(e, 1);
+    a = ast_ChildGet(e, 0);
+    b = ast_ChildGet(e, 1);
 
+    if (!a || !b) {
+        return false;
+    }
+
+    if(flags & EVAL_BASIC_IDENTITIES) {
         /*If a == 0*/
         if(is_ast_int(a, 0)) {
             /*If b != 0, e = 0*/
