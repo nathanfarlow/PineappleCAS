@@ -375,7 +375,8 @@ ast_t *ast_ChildRemoveIndex(ast_t *parent, LSIZE index) {
         if(i == index) {
             ast_t *temp = current->next;
             current->next = temp == NULL ? NULL : temp->next;
-            temp->next = NULL;
+            if(temp != NULL)
+                temp->next = NULL;
             return temp;
         }
 
