@@ -635,6 +635,9 @@ void write_to_dropdown_index(unsigned index, ast_t *expression, error_t *err) {
     *err = E_SUCCESS;
 }
 
+/*Buffer for error text, had to do this becuase we are running out of space in our binary*/
+char buffer[50];
+
 void execute_simplify() {
     ast_t *expression;
     error_t err;
@@ -687,7 +690,6 @@ void execute_simplify() {
             if(err == E_SUCCESS) {
                 console_write("Success.");
             } else {
-                char buffer[100];
                 sprintf(buffer, "Failed. %s.", error_text[err]);
                 console_write(buffer);
             }
@@ -697,7 +699,6 @@ void execute_simplify() {
         }
         
     } else {
-        char buffer[100];
         sprintf(buffer, "Failed. %s.", error_text[err]);
         console_write(buffer);
         if(from_drop->index == 20)
@@ -712,7 +713,6 @@ void execute_evaluate() {
     bool should_sub, should_eval;
     ast_t *expression;
     error_t err;
-    char buffer[100];
 
     should_eval = evaluate_context[0]->checked;
     should_sub = evaluate_context[1]->checked;
@@ -720,6 +720,7 @@ void execute_evaluate() {
     console_write("Parsing input...");
 
     expression = parse_from_dropdown_index(from_drop->index, &err);
+    simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
 
     if(err == E_SUCCESS) {
 
@@ -731,12 +732,14 @@ void execute_evaluate() {
 
                 console_write("Parsing sub from...");
                 sub_from = parse_from_dropdown_index(evaluate_context[2]->index, &err);
+                simplify(sub_from, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
 
                 if(err == E_SUCCESS) {
 
                     if(sub_from != NULL) {
                         console_write("Parsing sub to...");
                         sub_to = parse_from_dropdown_index(evaluate_context[3]->index, &err);
+                        simplify(sub_to, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
 
                         if(err == E_SUCCESS) {
                             if(sub_to != NULL) {
@@ -759,12 +762,13 @@ void execute_evaluate() {
                 } else {
                     sprintf(buffer, "Failed. %s.", error_text[err]);
                     console_write(buffer);
+                    if(evaluate_context[3]->index == 20)
+                        console_write("Make sure Ans is a string.");
                 }
             }
 
             if(should_eval) {
                 console_write("Evaluating constants..");
-                simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
                 eval(expression, EVAL_ALL);
                 simplify_canonical_form(expression);
             }
@@ -787,7 +791,6 @@ void execute_evaluate() {
         }
         
     } else {
-        char buffer[100];
         sprintf(buffer, "Failed. %s.", error_text[err]);
         console_write(buffer);
         if(from_drop->index == 20)
@@ -799,11 +802,114 @@ void execute_evaluate() {
 }
 
 void execute_expand() {
+    ast_t *expression;
+    error_t err;
 
+    unsigned short flags = 0;
+
+    if(simplify_context[0]->checked) {
+        flags |= EXP_DISTRIB_NUMBERS | EXP_DISTRIB_MULTIPLICATION | EXP_DISTRIB_DIVISION | EXP_DISTRIB_ADDITION;
+    }
+    if(simplify_context[1]->checked) {
+        flags |= EXP_EXPAND_POWERS;
+    }
+
+    console_write("Parsing input...");
+
+    expression = parse_from_dropdown_index(from_drop->index, &err);
+
+    if(err == E_SUCCESS) {
+
+        if(expression != NULL) {
+
+            console_write("Expanding...");
+
+            simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
+            expand(expression, flags);
+            simplify_canonical_form(expression);
+
+            console_write("Exporting...");
+
+            write_to_dropdown_index(to_drop->index, expression, &err);
+
+            ast_Cleanup(expression);
+
+            if(err == E_SUCCESS) {
+                console_write("Success.");
+            } else {
+                sprintf(buffer, "Failed. %s.", error_text[err]);
+                console_write(buffer);
+            }
+            
+        } else {
+            console_write("Failed. Empty input.");
+        }
+        
+    } else {
+        sprintf(buffer, "Failed. %s.", error_text[err]);
+        console_write(buffer);
+        if(from_drop->index == 20)
+            console_write("Make sure Ans is a string.");
+    }
+
+    console_button->active = true;
+    view_draw(console_button);
 }
 
 void execute_derivative() {
+    ast_t *expression;
+    error_t err;
+    bool should_simplify;
 
+    should_simplify = derivative_context[0]->checked;
+
+    console_write("Parsing input...");
+
+    expression = parse_from_dropdown_index(from_drop->index, &err);
+
+    if(err == E_SUCCESS) {
+
+        if(expression != NULL) {
+
+            console_write("Differentiating...");
+
+            simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
+            /*
+            derivative(expression);
+            */
+            if(should_simplify) {
+                console_write("Performing full simplification...");
+                compile_all();
+                simplify(expression, SIMP_ALL);
+            }
+            simplify_canonical_form(expression);
+
+            console_write("Exporting...");
+
+            write_to_dropdown_index(to_drop->index, expression, &err);
+
+            ast_Cleanup(expression);
+
+            if(err == E_SUCCESS) {
+                console_write("Success.");
+            } else {
+                sprintf(buffer, "Failed. %s.", error_text[err]);
+                console_write(buffer);
+            }
+            
+        } else {
+            console_write("Failed. Empty input.");
+        }
+        
+    } else {
+        sprintf(buffer, "Failed. %s.", error_text[err]);
+        console_write(buffer);
+        if(from_drop->index == 20)
+            console_write("Make sure Ans is a string.");
+    }
+
+    console_button->active = true;
+    view_draw(console_button);
 }
 
 #else
