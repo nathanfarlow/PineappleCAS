@@ -71,7 +71,6 @@ void main() {
 void main() {
 
     gui_Run();
-    gui_Cleanup();
 
 }
 

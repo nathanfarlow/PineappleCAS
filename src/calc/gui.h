@@ -3,8 +3,6 @@
 #ifndef GUI_H_
 #define GUI_H_
 
-#include <graphx.h>
-
 #define COLOR_TRANSPARENT   10
 
 #define COLOR_BACKGROUND    0x00
@@ -12,8 +10,9 @@
 #define COLOR_PURPLE        0xBC
 #define COLOR_TEXT          0xFF
 
+#define TEXT_HEIGHT 8
+
 void gui_Run();
-void gui_Cleanup();
 
 #endif
 
