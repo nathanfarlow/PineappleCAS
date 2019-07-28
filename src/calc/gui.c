@@ -12,6 +12,7 @@
 #include "../parser.h"
 #include "../cas/cas.h"
 #include "../cas/identities.h"
+#include "../cas/derivative.h"
 
 void draw_string_centered(char *text, int x, int y) {
     unsigned len = gfx_GetStringWidth(text);
@@ -90,9 +91,9 @@ char *dropdown_entries[NUM_DROPDOWN_ENTRIES] = {
 #define NUM_IO 2
 #define NUM_FUNCTION 5
 #define NUM_SIMPLIFY 7
-#define NUM_EVALUATE 4
+#define NUM_EVALUATE 5
 #define NUM_EXPAND 3
-#define NUM_DERIVATIVE 1
+#define NUM_DERIVATIVE 2
 #define NUM_HELP 0
 
 view_t *io_context[NUM_IO];
@@ -245,8 +246,8 @@ void draw_context(Context c) {
     }
 
     if(c == CONTEXT_EVALUATE) {
-        gfx_PrintStringXY("From: ", 124 + 25, 96 + 10 - TEXT_HEIGHT / 2);
-        gfx_PrintStringXY("To: ", 124 + 25, 96 + 24 + 10 - TEXT_HEIGHT / 2);
+        gfx_PrintStringXY("From: ", 124 + 25, 96 + 12 + 10 - TEXT_HEIGHT / 2);
+        gfx_PrintStringXY("To: ", 124 + 25, 96 + 12 + 24 + 10 - TEXT_HEIGHT / 2);
     } else if(c == CONTEXT_HELP) {
         gfx_SetTextFGColor(COLOR_TEXT);
         gfx_PrintStringXY("View https://github.com/", 115, 80 + 10 * 0);
@@ -442,22 +443,24 @@ void gui_Init() {
     simplify_context[5] = view_create_checkbox(124, 80 + 12 * 5, "Evaluate trig constants", true);
     simplify_context[6] = button_simplify = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 184, "Simplify");
 
-    evaluate_context[0] = view_create_checkbox(124, 80, "Substitue expression:", false);
-    evaluate_context[1] = view_create_dropdown(124 + 80, 96, 10);
-    evaluate_context[2] = view_create_dropdown(124 + 80, 96 + 24, 11);
-    evaluate_context[3] = button_evaluate = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 184, "Evaluate");
+    evaluate_context[0] = view_create_checkbox(124, 80, "Evaluate constants", true);
+    evaluate_context[1] = view_create_checkbox(124, 80 + 12, "Substitue expression:", false);
+    evaluate_context[2] = view_create_dropdown(124 + 80, 96 + 12, 10);
+    evaluate_context[3] = view_create_dropdown(124 + 80, 96 + 12 + 24, 11);
+    evaluate_context[4] = button_evaluate = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 184, "Evaluate");
 
     expand_context[0] = view_create_checkbox(124, 80 + 12 * 0, "Expand multiplication", true);
     expand_context[1] = view_create_checkbox(124, 80 + 12 * 1, "Expand powers", true);
     expand_context[2] = button_expand = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 184, "Expand");
 
+    derivative_context[0] = view_create_checkbox(124, 80, "Full simplify result", false);
     derivative_context[0] = button_derivative = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 184, "Differentiate");
 
     console_button = view_create_button(LCD_WIDTH / 2, LCD_HEIGHT - LCD_HEIGHT / 6 - 20, "Close");
 
-    current_context = CONTEXT_IO;
+    current_context = CONTEXT_FUNCTION;
     active_index = 0;
-    io_context[0]->active = true;
+    function_context[0]->active = true;
 }
 
 void gui_Cleanup() {
@@ -484,6 +487,7 @@ void gui_Run() {
     draw_background();
     draw_context(CONTEXT_IO);
     draw_context(CONTEXT_FUNCTION);
+    draw_context(CONTEXT_SIMPLIFY);
 
     while(true) {
         uint8_t key = os_GetCSC();
@@ -497,6 +501,81 @@ void gui_Run() {
     gfx_End();
 
     gui_Cleanup();
+}
+
+void compile(id_t *arr, unsigned len) {
+    unsigned i;
+    for(i = 0; i < len; i++) {
+        id_Load(&arr[i]);
+    }
+}
+
+void compile_general() {
+    static bool compiled = false;
+
+    if(!compiled) {
+        console_write("Compiling basic ids...");
+        compile(id_general, ID_NUM_GENERAL);
+        compiled = true;
+    }
+}
+
+void compile_trig() {
+    static bool compiled = false;
+
+    if(!compiled) {
+        console_write("Compiling trig ids...");
+        compile(id_trig_identities, ID_NUM_TRIG_IDENTITIES);
+        compiled = true;
+    }
+}
+
+void compile_trig_constants() {
+    static bool compiled = false;
+
+    if(!compiled) {
+        console_write("Compiling trig constant ids...");
+        compile(id_trig_constants, ID_NUM_TRIG_CONSTANTS);
+        compiled = true;
+    }
+}
+
+void compile_hyperbolic() {
+    static bool compiled = false;
+
+    if(!compiled) {
+        console_write("Compiling hyperbolic ids...");
+        compile(id_hyperbolic, ID_NUM_HYPERBOLIC);
+        compiled = true;
+    }
+}
+
+void compile_complex() {
+    static bool compiled = false;
+
+    if(!compiled) {
+        console_write("Compiling complex ids...");
+        compile(id_complex, ID_NUM_COMPLEX);
+        compiled = true;
+    }
+}
+
+void compile_derivative() {
+    static bool compiled = false;
+
+    if(!compiled) {
+        console_write("Compiling derivative ids...");
+        compile(id_derivative, ID_NUM_DERIV);
+        compiled = true;
+    }
+}
+
+void compile_all() {
+    compile_general();
+    compile_trig();
+    compile_trig_constants();
+    compile_hyperbolic();
+    compile_complex();
 }
 
 char *token_table[21] = {
@@ -562,33 +641,65 @@ void execute_simplify() {
 
     unsigned short flags = SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL;
 
-    if(simplify_context[0]->checked) flags |= SIMP_LIKE_TERMS;
-    if(simplify_context[1]->checked) flags |= SIMP_ID_GENERAL;
-    if(simplify_context[2]->checked) flags |= SIMP_ID_TRIG;
-    if(simplify_context[3]->checked) flags |= SIMP_ID_HYPERBOLIC;
-    if(simplify_context[4]->checked) flags |= SIMP_ID_TRIG_CONSTANTS;
+    if(simplify_context[0]->checked) {
+        flags |= SIMP_LIKE_TERMS;
+    }
+    if(simplify_context[1]->checked) {
+        compile_general();
+        flags |= SIMP_ID_GENERAL;
+    }
+    if(simplify_context[2]->checked) {
+        compile_trig();
+        flags |= SIMP_ID_TRIG;
+    }
+    if(simplify_context[3]->checked) {
+        compile_hyperbolic();
+        flags |= SIMP_ID_HYPERBOLIC;
+    }
+    if(simplify_context[4]->checked) {
+        compile_complex();
+        flags |= SIMP_ID_COMPLEX;
+    }
+    if(simplify_context[5]->checked) {
+        compile_trig_constants();
+        flags |= SIMP_ID_TRIG_CONSTANTS;
+    }
 
-    console_write("Simplifying...");
+    console_write("Parsing input...");
 
     expression = parse_from_dropdown_index(from_drop->index, &err);
 
     if(err == E_SUCCESS) {
 
         if(expression != NULL) {
+
+            console_write("Simplifying...");
+
             simplify(expression, flags);
             simplify_canonical_form(expression);
+
+            console_write("Exporting...");
 
             write_to_dropdown_index(to_drop->index, expression, &err);
 
             ast_Cleanup(expression);
 
-            console_write(error_text[err]);
+            if(err == E_SUCCESS) {
+                console_write("Success.");
+            } else {
+                char buffer[100];
+                sprintf(buffer, "Failed. %s.", error_text[err]);
+                console_write(buffer);
+            }
+            
         } else {
-            console_write("Empty input.");
+            console_write("Failed. Empty input.");
         }
         
     } else {
-        console_write(error_text[err]);
+        char buffer[100];
+        sprintf(buffer, "Failed. %s.", error_text[err]);
+        console_write(buffer);
         if(from_drop->index == 20)
             console_write("Make sure Ans is a string.");
     }
@@ -598,7 +709,93 @@ void execute_simplify() {
 }
 
 void execute_evaluate() {
+    bool should_sub, should_eval;
+    ast_t *expression;
+    error_t err;
+    char buffer[100];
 
+    should_eval = evaluate_context[0]->checked;
+    should_sub = evaluate_context[1]->checked;
+
+    console_write("Parsing input...");
+
+    expression = parse_from_dropdown_index(from_drop->index, &err);
+
+    if(err == E_SUCCESS) {
+
+        if(expression != NULL) {
+
+            if(should_sub) {
+                ast_t *sub_from, *sub_to;
+                error_t err;
+
+                console_write("Parsing sub from...");
+                sub_from = parse_from_dropdown_index(evaluate_context[2]->index, &err);
+
+                if(err == E_SUCCESS) {
+
+                    if(sub_from != NULL) {
+                        console_write("Parsing sub to...");
+                        sub_to = parse_from_dropdown_index(evaluate_context[3]->index, &err);
+
+                        if(err == E_SUCCESS) {
+                            if(sub_to != NULL) {
+                                console_write("Substituting...");
+                                substitute(expression, sub_from, sub_to);
+
+                                ast_Cleanup(sub_from);
+                                ast_Cleanup(sub_to);
+                            } else {
+                                console_write("Failed. Empty input.");
+                            }
+                        } else {
+                            sprintf(buffer, "Failed. %s.", error_text[err]);
+                            console_write(buffer);
+                        }
+                    } else {
+                        console_write("Failed. Empty input.");
+                    }
+                    
+                } else {
+                    sprintf(buffer, "Failed. %s.", error_text[err]);
+                    console_write(buffer);
+                }
+            }
+
+            if(should_eval) {
+                console_write("Evaluating constants..");
+                simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
+                eval(expression, EVAL_ALL);
+                simplify_canonical_form(expression);
+            }
+
+            console_write("Exporting...");
+
+            write_to_dropdown_index(to_drop->index, expression, &err);
+
+            ast_Cleanup(expression);
+
+            if(err == E_SUCCESS) {
+                console_write("Success.");
+            } else {
+                sprintf(buffer, "Failed. %s.", error_text[err]);
+                console_write(buffer);
+            }
+            
+        } else {
+            console_write("Failed. Empty input.");
+        }
+        
+    } else {
+        char buffer[100];
+        sprintf(buffer, "Failed. %s.", error_text[err]);
+        console_write(buffer);
+        if(from_drop->index == 20)
+            console_write("Make sure Ans is a string.");
+    }
+
+    console_button->active = true;
+    view_draw(console_button);
 }
 
 void execute_expand() {
