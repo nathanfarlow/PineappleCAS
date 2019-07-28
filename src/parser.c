@@ -61,7 +61,7 @@ struct Identifier str_table[AMOUNT_TOKENS] = {
     {6, "deriv("},                  /*TOK_DERIV*/
 
     {4, "int("}, {4, "abs("},       /*TOK_INT, TOK_ABS*/
-    {5, "sqrt("}, {7, "cbroot("},   /*TOK_SQRT, TOK_CUBED_ROOT*/
+    {5, "sqrt("}, {7, "cbrt("},     /*TOK_SQRT, TOK_CUBED_ROOT*/
     {3, "ln("}, {3, "e^("},         /*TOK_LN, TOK_E_TO_POWER*/
     {4, "log("}, {4, "10^("},       /*TOK_LOG, TOK_10_TO_POWER*/
     {4, "sin("}, {5, "asin("},      /*TOK_SIN, TOK_SIN_INV*/
