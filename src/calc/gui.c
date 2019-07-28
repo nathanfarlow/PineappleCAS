@@ -3,8 +3,15 @@
 #include "gui.h"
 
 #include <tice.h>
+#include <fileioc.h>
+
 #include <graphx.h>
 #include <keypadc.h>
+
+
+#include "../parser.h"
+#include "../cas/cas.h"
+#include "../cas/identities.h"
 
 void draw_string_centered(char *text, int x, int y) {
     unsigned len = gfx_GetStringWidth(text);
@@ -96,10 +103,14 @@ view_t *expand_context[NUM_EXPAND];
 view_t *derivative_context[NUM_DERIVATIVE];
 view_t *help_context[1];
 
+view_t *from_drop, *to_drop;
+
 view_t *button_simplify;
 view_t *button_evaluate;
 view_t *button_expand;
 view_t *button_derivative;
+
+view_t *console_button;
 
 typedef enum {
     CONTEXT_IO,
@@ -256,12 +267,52 @@ void draw_context(Context c) {
     }
 }
 
+bool console_drawn = false;
+int console_index = 0;
+
+void draw_console() {
+
+    gfx_SetColor(COLOR_BACKGROUND);
+    gfx_FillRectangle(LCD_WIDTH / 6, LCD_HEIGHT / 6, LCD_WIDTH - LCD_WIDTH / 3, LCD_HEIGHT - LCD_HEIGHT / 3);
+    gfx_SetColor(COLOR_BLUE);
+    gfx_Rectangle(LCD_WIDTH / 6, LCD_HEIGHT / 6, LCD_WIDTH - LCD_WIDTH / 3, LCD_HEIGHT - LCD_HEIGHT / 3);
+    gfx_Rectangle(LCD_WIDTH / 6 + 2, LCD_HEIGHT / 6 + 2, LCD_WIDTH - LCD_WIDTH / 3 - 4, LCD_HEIGHT - LCD_HEIGHT / 3 - 30);
+
+    view_draw(console_button);
+
+    console_drawn = true;
+
+}
+
+void console_write(char *text) {
+    if(!console_drawn)
+        draw_console();
+
+    gfx_PrintStringXY(text, LCD_WIDTH / 6 + 2 + 4, LCD_HEIGHT / 6 + 2 + 4 + console_index * TEXT_HEIGHT);
+
+    console_index++;
+}
+
 void execute_simplify();
 void execute_evaluate();
 void execute_expand();
 void execute_derivative();
 
 void handle_input(uint8_t key) {
+
+    if(console_drawn) {
+        if(console_button->active && key == sk_Enter) {
+            draw_background();
+            draw_context(CONTEXT_IO);
+            draw_context(CONTEXT_FUNCTION);
+            draw_context(current_context);
+
+            console_button->active = false;
+            console_drawn = false;
+            console_index = 0;
+        }
+        return;
+    }
     
     switch(current_context) {
     case CONTEXT_IO:
@@ -374,8 +425,8 @@ void handle_input(uint8_t key) {
 }
 
 void gui_Init() {
-    io_context[0] = view_create_dropdown(LCD_WIDTH / 4 + 20 - 25, 14 + 8 + 4, 0);
-    io_context[1] = view_create_dropdown(LCD_WIDTH / 4 * 3 - 20 - 25, 14 + 8 + 4, 1);
+    io_context[0] = from_drop = view_create_dropdown(LCD_WIDTH / 4 + 20 - 25, 14 + 8 + 4, 0);
+    io_context[1] = to_drop = view_create_dropdown(LCD_WIDTH / 4 * 3 - 20 - 25, 14 + 8 + 4, 1);
 
     function_context[0] = view_create_label(26, 80, "Simplify");
     function_context[1] = view_create_label(26, 96, "Evaluate");
@@ -389,18 +440,20 @@ void gui_Init() {
     simplify_context[3] = view_create_checkbox(124, 80 + 12 * 3, "Hyperbolic identities", true);
     simplify_context[4] = view_create_checkbox(124, 80 + 12 * 4, "Complex identities", true);
     simplify_context[5] = view_create_checkbox(124, 80 + 12 * 5, "Evaluate trig constants", true);
-    simplify_context[6] = button_simplify = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 185, "Simplify");
+    simplify_context[6] = button_simplify = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 184, "Simplify");
 
     evaluate_context[0] = view_create_checkbox(124, 80, "Substitue expression:", false);
     evaluate_context[1] = view_create_dropdown(124 + 80, 96, 10);
     evaluate_context[2] = view_create_dropdown(124 + 80, 96 + 24, 11);
-    evaluate_context[3] = button_evaluate = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 185, "Evaluate");
+    evaluate_context[3] = button_evaluate = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 184, "Evaluate");
 
     expand_context[0] = view_create_checkbox(124, 80 + 12 * 0, "Expand multiplication", true);
     expand_context[1] = view_create_checkbox(124, 80 + 12 * 1, "Expand powers", true);
-    expand_context[2] = button_expand = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 185, "Expand");
+    expand_context[2] = button_expand = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 184, "Expand");
 
-    derivative_context[0] = button_derivative = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 185, "Differentiate");
+    derivative_context[0] = button_derivative = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 184, "Differentiate");
+
+    console_button = view_create_button(LCD_WIDTH / 2, LCD_HEIGHT - LCD_HEIGHT / 6 - 20, "Close");
 
     current_context = CONTEXT_IO;
     active_index = 0;
@@ -415,6 +468,10 @@ void gui_Cleanup() {
             free(context_lookup[i][j]);
         }
     }
+
+    free(console_button);
+
+    id_UnloadAll();
 }
 
 void gui_Run() {
@@ -442,8 +499,102 @@ void gui_Run() {
     gui_Cleanup();
 }
 
-void execute_simplify() {
+char *token_table[21] = {
+    ti_Y1, ti_Y2, ti_Y3, ti_Y4, ti_Y5, ti_Y6, ti_Y7, ti_Y8, ti_Y9, ti_Y0,
+    ti_Str1, ti_Str2, ti_Str3, ti_Str4, ti_Str5, ti_Str6, ti_Str7, ti_Str8, ("\xAA\x8\0"), ("\xAA\x9\0"), /*Str0 is misnamed and ti_Str9 does not exist?*/
+    ti_Ans
+};
 
+ast_t *parse_from_dropdown_index(unsigned index, error_t *err) {
+    ti_var_t var;
+
+    ti_CloseAll();
+
+    var = ti_OpenVar(token_table[index], "r", index > 9 ? TI_STRING_TYPE : TI_EQU_TYPE);
+
+    if(var != NULL) {
+        const uint8_t *data;
+        uint16_t size;
+
+        ast_t *result;
+
+        data = ti_GetDataPtr(var);
+        size = ti_GetSize(var);
+
+        result = parse(data, size, ti_table, err);
+
+        ti_Close(var);
+
+        if(*err == E_SUCCESS)
+            return result;
+
+        return NULL;
+    }
+
+    *err = E_GENERIC;
+    return NULL;
+}
+
+void write_to_dropdown_index(unsigned index, ast_t *expression, error_t *err) {
+    unsigned bin_len;
+    uint8_t *bin;
+    ti_var_t var;
+
+    ti_CloseAll();
+
+    var = ti_OpenVar(token_table[index], "w", index > 9 ? TI_STRING_TYPE : TI_EQU_TYPE);
+
+    if(var != NULL) {
+        bin = export_to_binary(expression, &bin_len, ti_table, err);
+        ti_Write(bin, bin_len, 1, var);
+        ti_Close(var);
+    } else {
+        *err = E_GENERIC;
+        return;
+    }
+
+    *err = E_SUCCESS;
+}
+
+void execute_simplify() {
+    ast_t *expression;
+    error_t err;
+
+    unsigned short flags = SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL;
+
+    if(simplify_context[0]->checked) flags |= SIMP_LIKE_TERMS;
+    if(simplify_context[1]->checked) flags |= SIMP_ID_GENERAL;
+    if(simplify_context[2]->checked) flags |= SIMP_ID_TRIG;
+    if(simplify_context[3]->checked) flags |= SIMP_ID_HYPERBOLIC;
+    if(simplify_context[4]->checked) flags |= SIMP_ID_TRIG_CONSTANTS;
+
+    console_write("Simplifying...");
+
+    expression = parse_from_dropdown_index(from_drop->index, &err);
+
+    if(err == E_SUCCESS) {
+
+        if(expression != NULL) {
+            simplify(expression, flags);
+            simplify_canonical_form(expression);
+
+            write_to_dropdown_index(to_drop->index, expression, &err);
+
+            ast_Cleanup(expression);
+
+            console_write(error_text[err]);
+        } else {
+            console_write("Empty input.");
+        }
+        
+    } else {
+        console_write(error_text[err]);
+        if(from_drop->index == 20)
+            console_write("Make sure Ans is a string.");
+    }
+
+    console_button->active = true;
+    view_draw(console_button);
 }
 
 void execute_evaluate() {
