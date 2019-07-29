@@ -1,7 +1,7 @@
 #include "cas.h"
 
 /*Sum rule, constant rule, product rule, and power rule are hardcoded for speed or because of limitations in identity searching*/
-id_t id_derivative[ID_NUM_DERIV] = {
+pcas_id_t id_derivative[ID_NUM_DERIV] = {
     {"deriv(X,X,T", "1"},
 
     {"deriv(A/B,X,T", "(deriv(A,X,T)B_deriv(B,X,T)A)/B^2"},
@@ -30,17 +30,17 @@ id_t id_derivative[ID_NUM_DERIV] = {
 };
 
 /*Identities we have to check manually because we have to check for constants*/
-id_t id_deriv_power_rule = {"deriv(A^B,X,T", "deriv(A,X,T)BA^(B_1"};
-id_t id_deriv_constant_rule = {"deriv(CX,X,T", "C"};
-id_t id_deriv_product_rule = {"deriv(AB,X,T", "Aderiv(B,X,T)+Bderiv(A,X,T"};
+pcas_id_t id_deriv_power_rule = {"deriv(A^B,X,T", "deriv(A,X,T)BA^(B_1"};
+pcas_id_t id_deriv_constant_rule = {"deriv(CX,X,T", "C"};
+pcas_id_t id_deriv_product_rule = {"deriv(AB,X,T", "Aderiv(B,X,T)+Bderiv(A,X,T"};
 
-bool is_constant(ast_t *e, ast_t *respect_to) {
+bool is_constant(pcas_ast_t *e, pcas_ast_t *respect_to) {
 
     if(ast_Compare(e, respect_to))
         return false;
 
     if(e->type == NODE_OPERATOR) {
-        ast_t *child;
+        pcas_ast_t *child;
         for(child = ast_ChildGet(e, 0); child != NULL; child = child->next) {
             if(!is_constant(child, respect_to))
                 return false;
@@ -50,9 +50,9 @@ bool is_constant(ast_t *e, ast_t *respect_to) {
     return true;
 }
 
-bool eval_derivative_nodes(ast_t *e) {
-    ast_t *expr, *respect_to, *at;
-    ast_t *child;
+bool eval_derivative_nodes(pcas_ast_t *e) {
+    pcas_ast_t *expr, *respect_to, *at;
+    pcas_ast_t *child;
 
     if(e->type != NODE_OPERATOR)
         return false;
@@ -78,7 +78,7 @@ bool eval_derivative_nodes(ast_t *e) {
     }
     /*Hardcode multiplication rules*/
     else if(isoptype(expr, OP_MULT)) {
-        ast_t *copy = ast_Copy(e);
+        pcas_ast_t *copy = ast_Copy(e);
         id_Execute(copy, &id_deriv_constant_rule, false);
 
         /*Multiplication of a constant*/
@@ -93,10 +93,10 @@ bool eval_derivative_nodes(ast_t *e) {
     }
     /*Hardcode sum rule*/
     else if(isoptype(expr, OP_ADD)) {
-        ast_t *n = ast_MakeOperator(OP_ADD);
-        
+        pcas_ast_t *n = ast_MakeOperator(OP_ADD);
+
         for(child = ast_ChildGet(expr, 0); child != NULL; child = child->next) {
-            ast_t *deriv = ast_MakeOperator(OP_DERIV);
+            pcas_ast_t *deriv = ast_MakeOperator(OP_DERIV);
 
             ast_ChildAppend(deriv, ast_Copy(child));
             ast_ChildAppend(deriv, ast_Copy(respect_to));

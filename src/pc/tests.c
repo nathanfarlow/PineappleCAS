@@ -121,11 +121,11 @@ test_t **test_Load(char *file, unsigned *len) {
     return arr;
 }
 
-bool check(test_t *t, ast_t *actual, ast_t *expected) {
+bool check(test_t *t, pcas_ast_t *actual, pcas_ast_t *expected) {
     char *output_expected, *output_actual;
     unsigned expected_len, actual_len;
 
-    error_t expted_err, actual_err;
+    pcas_error_t expted_err, actual_err;
 
     if(!ast_Compare(expected, actual)) {
 
@@ -154,8 +154,8 @@ bool check(test_t *t, ast_t *actual, ast_t *expected) {
 }
 
 bool test_Run(test_t *t) {
-    ast_t *a = NULL, *b = NULL, *c = NULL, *expected, *actual;
-    error_t err;
+    pcas_ast_t *a = NULL, *b = NULL, *c = NULL, *expected, *actual;
+    pcas_error_t err;
     bool passed = false;
 
     a = parse((uint8_t*)t->arg1, strlen(t->arg1), str_table, &err);
@@ -208,7 +208,7 @@ bool test_Run(test_t *t) {
 
         /*We do this to change -1 * 23 to -23 to be able to compare*/
         simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
-        
+
         simplify(a, SIMP_ALL);
         simplify(b, SIMP_ALL);
         actual = gcd(a, b);
@@ -292,7 +292,6 @@ void test_CleanupArr(test_t **arr, unsigned len) {
     }
     free(arr);
 }
-
 
 #else
 typedef int make_iso_compilers_happy;

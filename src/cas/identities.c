@@ -14,9 +14,9 @@
 
     I and J are reserved for real numbers.
 */
-id_t id_general[ID_NUM_GENERAL] = {
+pcas_id_t id_general[ID_NUM_GENERAL] = {
     /*logb(value, base)*/
-    
+
     /*This identity is hardcoded in eval.c so that it executes before
     the power node is evaluated with two numerical values*/
     /*{"logb(X^D,B", "Dlogb(X,B"}*/
@@ -44,7 +44,7 @@ id_t id_general[ID_NUM_GENERAL] = {
     {"atanh(tanh(X", "X"}
 };
 
-id_t id_trig_identities[ID_NUM_TRIG_IDENTITIES] = {
+pcas_id_t id_trig_identities[ID_NUM_TRIG_IDENTITIES] = {
     {"sin(pi/2_X+C", "cos(X+C"},
     {"cos(pi/2_X+C", "sin(X+C"},
 
@@ -74,7 +74,7 @@ id_t id_trig_identities[ID_NUM_TRIG_IDENTITIES] = {
     {"Asin(X)/(Btan(X", "Acos(X)/B"},
 };
 
-id_t id_trig_constants[ID_NUM_TRIG_CONSTANTS] = {
+pcas_id_t id_trig_constants[ID_NUM_TRIG_CONSTANTS] = {
     {"sin(0", "0"},
     {"sin(pi/6", "1/2"},
     {"sin(pi/4", "sqrt(2)/2"},
@@ -120,13 +120,13 @@ id_t id_trig_constants[ID_NUM_TRIG_CONSTANTS] = {
     {"tan(pi", "0"}
 };
 
-id_t id_hyperbolic[ID_NUM_HYPERBOLIC] = {
+pcas_id_t id_hyperbolic[ID_NUM_HYPERBOLIC] = {
     {"cosh(X)_sinh(X)", "e^(-X"},
     {"sinh(X)/cosh(X", "tanh(X"},
     {"cosh(X)^2_sinh(X)^2+C", "1+C"},
 };
 
-id_t id_complex[ID_NUM_COMPLEX] = {
+pcas_id_t id_complex[ID_NUM_COMPLEX] = {
     {"1/i", "-i"},
     {"e^(X(I+Ji", "cos(X)+isin(X"},
     {"(I+Ji)^X", "e^(Xln(I+Ji"},
@@ -140,9 +140,9 @@ id_t id_complex[ID_NUM_COMPLEX] = {
     {"tan(I+Ji", "sin(I+Ji)/cos(I+Ji"}
 };
 
-typedef ast_t** Dictionary;
+typedef pcas_ast_t** Dictionary;
 
-#define dict_Get(dict, ast_symbol) 	dict[ast_symbol->op.symbol - 'A']
+#define dict_Get(dict, ast_symbol) 	dict[(ast_symbol)->op.symbol - 'A']
 
 void dict_Copy(Dictionary dest, Dictionary source) {
     unsigned i;
@@ -155,7 +155,7 @@ void dict_Copy(Dictionary dest, Dictionary source) {
 }
 
 void dict_Write(Dictionary dest, Dictionary source) {
-    memcpy(dest, source, AMOUNT_SYMBOLS * sizeof(ast_t*));
+    memcpy(dest, source, AMOUNT_SYMBOLS * sizeof(pcas_ast_t*));
 }
 
 void dict_Cleanup(Dictionary dict) {
@@ -168,8 +168,8 @@ void dict_Cleanup(Dictionary dict) {
 }
 
 /*Simplifies 2N, 4 to N, 2 to correctly set N*/
-bool divide_numerical_constants(ast_t *id, ast_t *e) {
-    ast_t *child;
+bool divide_numerical_constants(pcas_ast_t *id, pcas_ast_t *e) {
+    pcas_ast_t *child;
 
     if(!isoptype(id, OP_MULT))
         return false;
@@ -193,13 +193,13 @@ bool divide_numerical_constants(ast_t *id, ast_t *e) {
 }
 
 /*Fills in id->to with discovered values from dictionary */
-void fill(ast_t *to, Dictionary dict) {
+void fill(pcas_ast_t *to, Dictionary dict) {
 
     if(to->type == NODE_SYMBOL) {
         if(dict_Get(dict, to) != NULL)
             replace_node(to, ast_Copy(dict_Get(dict, to)));
     } else if(to->type == NODE_OPERATOR) {
-        ast_t *child;
+        pcas_ast_t *child;
         for(child = ast_ChildGet(to, 0); child != NULL; child = child->next) {
             fill(child, dict);
         }
@@ -207,7 +207,7 @@ void fill(ast_t *to, Dictionary dict) {
 
 }
 
-bool matches(ast_t *id, ast_t *e, Dictionary dict) {
+bool matches(pcas_ast_t *id, pcas_ast_t *e, Dictionary dict) {
 
     if(id->type == NODE_SYMBOL && id->op.symbol < SYM_IMAG) {
         if(id->op.symbol == 'N') {
@@ -230,20 +230,19 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
             return ast_Compare(dict_Get(dict, id), e);
         }
     } else if(id->type == NODE_OPERATOR) {
-        int i, j;
-
         /*Make a copy of the dictionary in case the children do not match
         We do not fill the dictionary with bad values*/
-        ast_t *dict_copy[AMOUNT_SYMBOLS];
+        pcas_ast_t *dict_copy[AMOUNT_SYMBOLS];
 
         dict_Copy(dict_copy, dict);
 
         if(is_op_commutative(optype(id))) {
             /*Order does not matter*/
+            unsigned i, j;
             bool matched, combined = false, *matched_e_children, *matched_id_children;
             char combined_character = '\0';
 
-            ast_t *id_copy, *e_copy;
+            pcas_ast_t *id_copy, *e_copy;
 
             id_copy = ast_Copy(id);
             e_copy = ast_Copy(e);
@@ -268,7 +267,7 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 
             /*Remove the symbol. Do not simplify commutative. id_copy may be a node with one child.*/
             for(i = 0; i < ast_ChildLength(id_copy); i++) {
-                ast_t *child = ast_ChildGet(id_copy, i);
+                pcas_ast_t *child = ast_ChildGet(id_copy, i);
 
                 if(child->type == NODE_SYMBOL && child->op.symbol < SYM_IMAG && child->op.symbol != 'N') {
                     combined = true;
@@ -313,19 +312,19 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
                 matched = false;
 
                 for(i = 0; i < ast_ChildLength(e_copy); i++) {
-                    ast_t *e_child = ast_ChildGet(e_copy, i);
+                    pcas_ast_t *e_child = ast_ChildGet(e_copy, i);
 
                     if(matched_e_children[i])
                         continue;
 
                     for(j = 0; j < ast_ChildLength(id_copy); j++) {
-                        ast_t *dict_copy_copy[AMOUNT_SYMBOLS];
-                        ast_t *id_child = ast_ChildGet(id_copy, j);
+                        pcas_ast_t *dict_copy_copy[AMOUNT_SYMBOLS];
+                        pcas_ast_t *id_child = ast_ChildGet(id_copy, j);
 
                         dict_Copy(dict_copy_copy, dict_copy);
 
                         if(!matched_id_children[j]) {
-                            
+
                             if(matches(id_child, e_child, dict_copy_copy)) {
                                 matched_e_children[i] = true;
                                 matched_id_children[j] = true;
@@ -357,12 +356,12 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 
             /*Make the grouped variable set equal to the nodes not included matched_e_children*/
             if(matched && combined) {
-                ast_t *c;
+                pcas_ast_t *c;
 
                 c = ast_MakeOperator(id->op.operator.type);
 
                 for(i = 0; i < ast_ChildLength(e_copy); i++) {
-                    ast_t *child = ast_ChildGet(e_copy, i);
+                    pcas_ast_t *child = ast_ChildGet(e_copy, i);
 
                     if(!matched_e_children[i])
                         ast_ChildAppend(c, ast_Copy(child));
@@ -382,7 +381,7 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
                         matched = false;
                         ast_Cleanup(c);
                     }
-                    
+
                 } else {
                     ast_Cleanup(c);
                 }
@@ -390,7 +389,7 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 
             free(matched_e_children);
             free(matched_id_children);
-            
+
             ast_Cleanup(e_copy);
             ast_Cleanup(id_copy);
 
@@ -402,9 +401,10 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
             }
 
             return matched;
-            
+
         } else {
             /*Order and length do matter*/
+            int i;
 
             if(e->type != NODE_OPERATOR) {
                 dict_Cleanup(dict_copy);
@@ -418,8 +418,8 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 
             /*Reverse loop to better guess variables for derivative nodes*/
             for(i = ast_ChildLength(e) - 1; i >= 0; i--) {
-                ast_t *e_child = ast_ChildGet(e, i);
-                ast_t *id_child = ast_ChildGet(id, i);
+                pcas_ast_t *e_child = ast_ChildGet(e, i);
+                pcas_ast_t *id_child = ast_ChildGet(id, i);
                 if(!matches(id_child, e_child, dict_copy)) {
                     dict_Cleanup(dict_copy);
                     return false;
@@ -441,9 +441,9 @@ bool matches(ast_t *id, ast_t *e, Dictionary dict) {
 /*
     Requires that constants are already evaluated.
 */
-bool id_Execute(ast_t *e, id_t *id, bool recursive) {
-    ast_t *child;
-    ast_t *dict[AMOUNT_SYMBOLS] = {0};
+bool id_Execute(pcas_ast_t *e, pcas_id_t *id, bool recursive) {
+    pcas_ast_t *child;
+    pcas_ast_t *dict[AMOUNT_SYMBOLS] = {0};
     bool changed = false;
 
     if(id->from == NULL || id->to == NULL) {
@@ -454,14 +454,14 @@ bool id_Execute(ast_t *e, id_t *id, bool recursive) {
     }
 
     if(matches(id->from, e, dict)) {
-        ast_t *to = ast_Copy(id->to);
-        
+        pcas_ast_t *to = ast_Copy(id->to);
+
         fill(to, dict);
 
         replace_node(e, to);
 
         /*LOG(("Matched identity from=%s to=%s", id->from_text, id->to_text));*/
-        
+
         changed = true;
     }
 
@@ -475,8 +475,8 @@ bool id_Execute(ast_t *e, id_t *id, bool recursive) {
     return changed;
 }
 
-bool id_Load(id_t *id) {
-    error_t err;
+bool id_Load(pcas_id_t *id) {
+    pcas_error_t err;
 
     id->from = parse((uint8_t*)id->from_text, strlen(id->from_text), str_table, &err);
 
@@ -498,17 +498,17 @@ bool id_Load(id_t *id) {
     return false;
 }
 
-void id_Unload(id_t *id) {
+void id_Unload(pcas_id_t *id) {
     if(id->from != NULL)
         ast_Cleanup(id->from);
     id->from = NULL;
-    
+
     if(id->to != NULL)
         ast_Cleanup(id->to);
     id->to = NULL;
 }
 
-bool id_ExecuteTable(ast_t *e, id_t *table, unsigned table_len, bool recursive) {
+bool id_ExecuteTable(pcas_ast_t *e, pcas_id_t *table, unsigned table_len, bool recursive) {
     unsigned i;
     bool changed = false;
 
@@ -525,7 +525,7 @@ bool id_ExecuteTable(ast_t *e, id_t *table, unsigned table_len, bool recursive) 
     return changed;
 }
 
-void id_UnloadTable(id_t *table, unsigned table_len) {
+void id_UnloadTable(pcas_id_t *table, unsigned table_len) {
     unsigned i;
     for(i = 0; i < table_len; i++)
         id_Unload(&table[i]);

@@ -19,7 +19,6 @@
 #include "../dbg.h"
 
 #include "../cas/cas.h"
-#include "../cas/identities.h"
 
 #include "tests.h"
 
@@ -61,8 +60,8 @@ int run_gcd(int argc, char **argv) {
     uint8_t *trimmed_a, *trimmed_b;
     unsigned trimmed_a_len, trimmed_b_len;
 
-    error_t err;
-    ast_t *a, *b, *g;
+    pcas_error_t err;
+    pcas_ast_t *a, *b, *g;
 
     uint8_t *output;
     unsigned output_len;
@@ -127,14 +126,14 @@ int run_gcd(int argc, char **argv) {
 
     return 0;
 }
-extern bool simplify_periodic(ast_t *e);
+extern bool simplify_periodic(pcas_ast_t *e);
 int run_simplify(int argc, char **argv) {
 
     uint8_t *trimmed;
     unsigned trimmed_len;
 
-    error_t err;
-    ast_t *e;
+    pcas_error_t err;
+    pcas_ast_t *e;
 
     uint8_t *output;
     unsigned output_len;
@@ -189,8 +188,8 @@ int run_factor(int argc, char **argv) {
 uint8_t *trimmed;
     unsigned trimmed_len;
 
-    error_t err;
-    ast_t *e;
+    pcas_error_t err;
+    pcas_ast_t *e;
 
     uint8_t *output;
     unsigned output_len;
@@ -255,8 +254,8 @@ int run_expand(int argc, char **argv) {
     uint8_t *trimmed;
     unsigned trimmed_len;
 
-    error_t err;
-    ast_t *e;
+    pcas_error_t err;
+    pcas_ast_t *e;
 
     uint8_t *output;
     unsigned output_len;
@@ -334,17 +333,21 @@ int run_test(int argc, char **argv) {
     }
 
     printf("Running tests...\n");
-    
+
     delta = clock();
     for(i = 0; i < len; i++) {
         test_t *t = arr[i];
-        if(!test_Run(t))
+        printf("Running test %d/%d... ", i, len);
+        if(!test_Run(t)) {
+            puts("[FAIL]");
             failed++;
-        else
+        } else {
+            puts("[OK]");
             passed++;
+        }
     }
     delta = clock() - delta;
-    
+
     test_CleanupArr(arr, len);
 
     printf("Finished in %li microseconds.\n", delta / (CLOCKS_PER_SEC / 1000));
@@ -363,8 +366,8 @@ int run_derivative(int argc, char **argv) {
     uint8_t *trimmed;
     unsigned trimmed_len;
 
-    error_t err;
-    ast_t *e = NULL, *e_copy = NULL, *respect_to = NULL, *at = NULL;
+    pcas_error_t err;
+    pcas_ast_t *e = NULL, *e_copy = NULL, *respect_to = NULL, *at = NULL;
 
     uint8_t *output;
     unsigned output_len;
@@ -399,9 +402,9 @@ int run_derivative(int argc, char **argv) {
         } else {
             at = ast_Copy(respect_to);
         }
-        
+
     }
-    
+
     if(err == E_SUCCESS && e != NULL && respect_to != NULL && at != NULL) {
 
         e_copy = ast_Copy(e);

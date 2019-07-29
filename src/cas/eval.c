@@ -1,6 +1,6 @@
 #include "cas.h"
 
-static bool eval_commutative(ast_t *e, unsigned short flags) {
+static bool eval_commutative(pcas_ast_t *e, unsigned short flags) {
     /*How many numbers were accumulated. If <= 1, nothing changed*/
     unsigned num_changed = false;
     unsigned i;
@@ -12,7 +12,7 @@ static bool eval_commutative(ast_t *e, unsigned short flags) {
     accumulator = num_FromInt(optype(e) == OP_MULT ? 1 : 0);
 
     for(i = 0; i < ast_ChildLength(e); i++) {
-        ast_t *child = ast_ChildGet(e, i);
+        pcas_ast_t *child = ast_ChildGet(e, i);
 
         if(child->type == NODE_NUMBER) {
             if(optype(e) == OP_MULT)
@@ -25,7 +25,7 @@ static bool eval_commutative(ast_t *e, unsigned short flags) {
             num_changed++;
         } else if(isoptype(e, OP_ADD) && isoptype(child, OP_DIV)) {
 
-            ast_t *c_num, *c_den;
+            pcas_ast_t *c_num, *c_den;
 
             c_num = ast_ChildGet(child, 0);
             c_den = ast_ChildGet(child, 1);
@@ -67,7 +67,6 @@ static bool eval_commutative(ast_t *e, unsigned short flags) {
                 mp_int_free(num);
                 mp_int_free(den);
 
-
                 ast_Cleanup(ast_ChildRemoveIndex(e, i));
 
                 i--;
@@ -93,11 +92,11 @@ static bool eval_commutative(ast_t *e, unsigned short flags) {
     return num_changed > 1;
 }
 
-static bool eval_div(ast_t *e, unsigned short flags);
+static bool eval_div(pcas_ast_t *e, unsigned short flags);
 
-static bool eval_div_mult(ast_t *num, ast_t *den, unsigned short flags) {
+static bool eval_div_mult(pcas_ast_t *num, pcas_ast_t *den, unsigned short flags) {
 
-    ast_t *temp_num, *temp_den, *temp_div;
+    pcas_ast_t *temp_num, *temp_den, *temp_div;
 
     bool changed = false;
     bool div_changed = false;
@@ -186,8 +185,8 @@ static bool eval_div_mult(ast_t *num, ast_t *den, unsigned short flags) {
     return changed;
 }
 
-static bool eval_div(ast_t *e, unsigned short flags) {
-    ast_t *num, *den;
+static bool eval_div(pcas_ast_t *e, unsigned short flags) {
+    pcas_ast_t *num, *den;
 
     bool changed = false;
 
@@ -197,7 +196,7 @@ static bool eval_div(ast_t *e, unsigned short flags) {
     if(flags & EVAL_BASIC_IDENTITIES) {
 
         if(is_negative_for_sure(num) && is_negative_for_sure(den)) {
-            ast_t *new_div;
+            pcas_ast_t *new_div;
 
             absolute_val(num);
             absolute_val(den);
@@ -226,18 +225,18 @@ static bool eval_div(ast_t *e, unsigned short flags) {
             return true;
         }
     }
-    
+
     if(!(flags & EVAL_DIVISION))
         return false;
 
     if(isoptype(num, OP_POW)) {
-        ast_t *base1, *power1;
+        pcas_ast_t *base1, *power1;
 
         base1 = ast_ChildGet(num, 0);
         power1 = ast_ChildGet(num, 1);
 
         if(isoptype(den, OP_POW)) {
-            ast_t *base2, *power2;
+            pcas_ast_t *base2, *power2;
 
             base2 = ast_ChildGet(den, 0);
             power2 = ast_ChildGet(den, 1);
@@ -264,7 +263,7 @@ static bool eval_div(ast_t *e, unsigned short flags) {
         }
     } else if(isoptype(den, OP_POW) && ast_Compare(num, ast_ChildGet(den, 0))) {
         /*Subtract powers*/
-        ast_t *power2 = ast_ChildGet(den, 1);
+        pcas_ast_t *power2 = ast_ChildGet(den, 1);
 
         replace_node(power2, ast_MakeBinary(OP_ADD,
                                                 ast_MakeNumber(num_FromInt(-1)),
@@ -302,18 +301,21 @@ static bool eval_div(ast_t *e, unsigned short flags) {
     return changed; 
 }
 
-#define power_in_small_range(a, b) (mp_rat_compare_value(a->op.num, -1, 1) == 0 || (mp_rat_compare_value(a->op.num, 10, 1) <= 0 && mp_rat_compare_value(b->op.num, 10, 1) <= 0))
+#define power_in_small_range(a, b) (mp_rat_compare_value((a)->op.num, -1, 1) == 0 || (mp_rat_compare_value((a)->op.num, 10, 1) <= 0 && mp_rat_compare_value((b)->op.num, 10, 1) <= 0))
 
-static bool eval_pow(ast_t *e, unsigned short flags) {
-    ast_t *a, *b;
-
+static bool eval_pow(pcas_ast_t *e, unsigned short flags) {
+    /*a^b*/
+    pcas_ast_t *a, *b;
     bool changed = false;
 
-    if(flags & EVAL_BASIC_IDENTITIES) {
-        /*a^b*/
-        a = ast_ChildGet(e, 0);
-        b = ast_ChildGet(e, 1);
+    a = ast_ChildGet(e, 0);
+    b = ast_ChildGet(e, 1);
 
+    if (!a || !b) {
+        return false;
+    }
+
+    if(flags & EVAL_BASIC_IDENTITIES) {
         /*If a == 0*/
         if(is_ast_int(a, 0)) {
             /*If b != 0, e = 0*/
@@ -366,7 +368,7 @@ static bool eval_pow(ast_t *e, unsigned short flags) {
             return true;
         }
     }
-    
+
     /*Evaluate a^b if a and b are integers*/
     if(a->type == NODE_NUMBER && b->type == NODE_NUMBER) {
 
@@ -385,7 +387,7 @@ static bool eval_pow(ast_t *e, unsigned short flags) {
 
                 return true;
             }
-           
+
         }
 
     }
@@ -413,7 +415,7 @@ static bool eval_pow(ast_t *e, unsigned short flags) {
     /*Do roots*/
     if((flags & EVAL_POWERS_SMALL || flags & EVAL_POWERS_FULL) && a->type == NODE_NUMBER && b->type == NODE_OPERATOR && optype(b) == OP_DIV && is_ast_int(ast_ChildGet(b, 0), 1) && ast_ChildGet(b, 1)->type == NODE_NUMBER) {
         /*a root of b*/
-        ast_t *temp = b;
+        pcas_ast_t *temp = b;
         b = a;
         a = ast_ChildGet(temp, 1);
 
@@ -453,10 +455,10 @@ static bool eval_pow(ast_t *e, unsigned short flags) {
     return changed;
 }
 
-static bool eval_int(ast_t *e, unsigned short flags) {
+static bool eval_int(pcas_ast_t *e, unsigned short flags) {
     bool changed = false;
     mp_rat res;
-    ast_t *a;
+    pcas_ast_t *a;
     mp_int remainder;
 
     if(!(flags & EVAL_INT))
@@ -480,7 +482,7 @@ static bool eval_int(ast_t *e, unsigned short flags) {
 
         changed = true;
     } else if(isoptype(a, OP_DIV)) {
-        ast_t *num, *den;
+        pcas_ast_t *num, *den;
 
         num = ast_ChildGet(a, 0);
         den = ast_ChildGet(a, 1);
@@ -502,15 +504,12 @@ static bool eval_int(ast_t *e, unsigned short flags) {
 
     mp_int_free(remainder);
 
-
     return changed;
 }
 
-bool absolute_val(ast_t *e);
-
-static bool eval_abs(ast_t *e, unsigned short flags) {
+static bool eval_abs(pcas_ast_t *e, unsigned short flags) {
     bool changed = false;
-    ast_t *a = ast_ChildGet(e, 0);
+    pcas_ast_t *a = ast_ChildGet(e, 0);
 
     if(!(flags & EVAL_ABS))
         return false;
@@ -523,8 +522,8 @@ static bool eval_abs(ast_t *e, unsigned short flags) {
     return changed;
 }
 
-static bool eval_log(ast_t *e, unsigned short flags) {
-    ast_t *base, *val;
+static bool eval_log(pcas_ast_t *e, unsigned short flags) {
+    pcas_ast_t *base, *val;
 
     base = ast_ChildGet(e, 0);
     val = ast_ChildGet(e, 1);
@@ -541,7 +540,7 @@ static bool eval_log(ast_t *e, unsigned short flags) {
         /*log(A^B)=Blog(A)*/
 
         if(isoptype(val, OP_POW)) {
-            ast_t *power_base, *power_exponent;
+            pcas_ast_t *power_base, *power_exponent;
 
             power_base = ast_ChildGet(val, 0);
             power_exponent = ast_ChildGet(val, 1);
@@ -563,11 +562,11 @@ static bool eval_log(ast_t *e, unsigned short flags) {
     return false;
 }
 
-#define factorial_in_small_range(a) (mp_rat_compare_value(a->op.num, 10, 1) <= 0)
+#define factorial_in_small_range(a) (mp_rat_compare_value((a)->op.num, 10, 1) <= 0)
 
-static bool eval_factorial(ast_t *e, unsigned short flags) {
+static bool eval_factorial(pcas_ast_t *e, unsigned short flags) {
 
-    ast_t *a = ast_ChildGet(e, 0);
+    pcas_ast_t *a = ast_ChildGet(e, 0);
 
     if(a->type == NODE_NUMBER) {
 
@@ -582,7 +581,7 @@ static bool eval_factorial(ast_t *e, unsigned short flags) {
         if(mp_rat_is_integer(a->op.num) && mp_rat_compare_zero(a->op.num) > 0) {
             mp_rat accumulator;
             mp_int i;
-            
+
             if(flags & EVAL_FACTORIAL_FULL
             || (flags & EVAL_FACTORIAL_SMALL && factorial_in_small_range(a))) {
                 accumulator = num_FromInt(1);
@@ -600,7 +599,7 @@ static bool eval_factorial(ast_t *e, unsigned short flags) {
 
                 return true;
             }
-            
+
         }
 
     }
@@ -609,10 +608,10 @@ static bool eval_factorial(ast_t *e, unsigned short flags) {
 }
 
 /*Simplifies expressions like 5 + 5 to 10*/
-bool eval(ast_t *e, unsigned short flags) {
+bool eval(pcas_ast_t *e, unsigned short flags) {
 
     bool changed = false;
-    ast_t *current;
+    pcas_ast_t *current;
 
     /*Get a head start to evaluate the identity ln(A^B)=Bln(A)
     before child power node is evaluated*/
@@ -645,7 +644,7 @@ bool eval(ast_t *e, unsigned short flags) {
     return changed;
 }
 
-bool substitute(ast_t *e, ast_t *from, ast_t *to) {
+bool substitute(pcas_ast_t *e, pcas_ast_t *from, pcas_ast_t *to) {
 
     if(ast_Compare(e, from)) {
         replace_node(e, ast_Copy(to));
@@ -653,7 +652,7 @@ bool substitute(ast_t *e, ast_t *from, ast_t *to) {
     }
 
     if(e->type == NODE_OPERATOR) {
-        ast_t *child;
+        pcas_ast_t *child;
         bool changed = false;
 
         for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)

@@ -2,7 +2,7 @@
 #include "identities.h"
 
 /*Executes the SIMP_COMMUTATIVE flag*/
-bool simplify_commutative(ast_t *e) {
+bool simplify_commutative(pcas_ast_t *e) {
     unsigned i;
     bool changed = false;
 
@@ -18,14 +18,14 @@ bool simplify_commutative(ast_t *e) {
 
     for(i = 0; i < ast_ChildLength(e); i++) {
 
-        ast_t *child = ast_ChildGet(e, i);
+        pcas_ast_t *child = ast_ChildGet(e, i);
 
         /*If this child is the same type as parent and
         the parent's type is commutative*/
         if(child->type == NODE_OPERATOR 
             && is_op_commutative(optype(e))
             && optype(child) == optype(e)) {
-            
+
             /*Append children of child to end of parent*/
             ast_ChildGetLast(e)->next = child->op.operator.base;
             /*Remove child node*/
@@ -45,12 +45,12 @@ bool simplify_commutative(ast_t *e) {
 }
 
 /*Change a to b and delete b*/
-void replace_node(ast_t *a, ast_t *b) {
+void replace_node(pcas_ast_t *a, pcas_ast_t *b) {
 
     if(a->type == NODE_OPERATOR) {
 
         while(opbase(a) != NULL) {
-            ast_t *child = ast_ChildRemoveIndex(a, 0);
+            pcas_ast_t *child = ast_ChildRemoveIndex(a, 0);
             if(child != b)
                 ast_Cleanup(child);
         }
@@ -66,7 +66,7 @@ void replace_node(ast_t *a, ast_t *b) {
 }
 
 /*Executes the SIMP_RATIONAL flag*/
-bool simplify_rational(ast_t *e) {
+bool simplify_rational(pcas_ast_t *e) {
     unsigned i;
     bool changed = false;
 
@@ -74,16 +74,16 @@ bool simplify_rational(ast_t *e) {
         return false;
 
     for(i = 0; i < ast_ChildLength(e); i++) {
-        ast_t *child = ast_ChildGet(e, i);
+        pcas_ast_t *child = ast_ChildGet(e, i);
 
         if(isoptype(child, OP_DIV)) {
-            ast_t *child_num, *child_den;
+            pcas_ast_t *child_num, *child_den;
 
             child_num = ast_ChildGet(child, 0);
             child_den = ast_ChildGet(child, 1);
 
             if(optype(e) == OP_DIV) {
-                ast_t *e_num, *e_den;
+                pcas_ast_t *e_num, *e_den;
 
                 e_num = ast_ChildGet(e, 0);
                 e_den = ast_ChildGet(e, 1);
@@ -94,7 +94,7 @@ bool simplify_rational(ast_t *e) {
                 */
                 if(i == 0) {
 
-                    ast_t *new_num, *new_den;
+                    pcas_ast_t *new_num, *new_den;
 
                     new_num = ast_Copy(child_num);
                     new_den = ast_MakeBinary(OP_MULT,
@@ -113,7 +113,7 @@ bool simplify_rational(ast_t *e) {
                 */ 
                 else {
 
-                    ast_t *new_num, *new_den;
+                    pcas_ast_t *new_num, *new_den;
 
                     new_num = ast_MakeBinary(OP_MULT,
                                                    ast_Copy(e_num),
@@ -132,8 +132,8 @@ bool simplify_rational(ast_t *e) {
                 (A / B) * C = (C * A) / B
             */
             else if(optype(e) == OP_MULT) {
-                ast_t *mult, *num_copy, *den_copy;
-            
+                pcas_ast_t *mult, *num_copy, *den_copy;
+
                 mult = ast_Copy(e);
                 num_copy = ast_Copy(child_num);
                 den_copy = ast_Copy(child_den);
@@ -165,8 +165,8 @@ bool simplify_rational(ast_t *e) {
 }
 
 /*Executes the SIMP_NORMALIZE flag*/
-bool simplify_normalize(ast_t *e) {
-    ast_t *child;
+bool simplify_normalize(pcas_ast_t *e) {
+    pcas_ast_t *child;
     bool changed = false;
 
     if(e->type == NODE_OPERATOR) {
@@ -176,7 +176,7 @@ bool simplify_normalize(ast_t *e) {
 
         if(optype(e) == OP_ROOT) {
             /*a root of b*/
-            ast_t *a, *b;
+            pcas_ast_t *a, *b;
 
             a = ast_Copy(ast_ChildGet(e, 0));
             b = ast_Copy(ast_ChildGet(e, 1));
@@ -190,17 +190,17 @@ bool simplify_normalize(ast_t *e) {
 
             changed = true;
         } else if(optype(e) == OP_POW) {
-            ast_t *base, *power;
+            pcas_ast_t *base, *power;
 
             base = ast_ChildGet(e, 0);
             power = ast_ChildGet(e, 1);
 
             if(isoptype(base, OP_MULT)) {
                 unsigned j;
-                ast_t *replacement = ast_MakeOperator(OP_MULT);
+                pcas_ast_t *replacement = ast_MakeOperator(OP_MULT);
 
                 for(j = 0; j < ast_ChildLength(base); j++) {
-                    ast_t *cur = ast_ChildGet(base, j);
+                    pcas_ast_t *cur = ast_ChildGet(base, j);
 
                     ast_ChildAppend(replacement, ast_MakeBinary(OP_POW,
                                                                 ast_Copy(cur),
@@ -225,15 +225,14 @@ bool simplify_normalize(ast_t *e) {
 
         replace_node(e, ast_MakeBinary(OP_DIV, ast_MakeNumber(num), ast_MakeNumber(den)));
 
-
         changed = true;
     }
-    
+
     return changed;
 }
 
-bool has_imaginary_node(ast_t *e) {
-    ast_t *child;
+bool has_imaginary_node(pcas_ast_t *e) {
+    pcas_ast_t *child;
 
     if(e->type == NODE_SYMBOL && e->op.symbol == SYM_IMAG)
         return true;
@@ -247,12 +246,12 @@ bool has_imaginary_node(ast_t *e) {
 }
 
 /*Expects everything to be completely simplified*/
-bool is_negative_for_sure(ast_t *a) {
+bool is_negative_for_sure(pcas_ast_t *a) {
     if(a->type == NODE_NUMBER && mp_rat_compare_zero(a->op.num) < 0)
         return true;
 
     if(isoptype(a, OP_MULT)) {
-        ast_t *child;
+        pcas_ast_t *child;
         for(child = ast_ChildGet(a, 0); child != NULL; child = child->next)
             if(is_negative_for_sure(child))
                 return true;
@@ -264,14 +263,14 @@ bool is_negative_for_sure(ast_t *a) {
 }
 
 /*Returns true if changed. Expects completely simplified.*/
-bool absolute_val(ast_t *e) {
+bool absolute_val(pcas_ast_t *e) {
     if(e->type == NODE_NUMBER && mp_rat_compare_zero(e->op.num) < 0) {
         mp_rat_abs(e->op.num, e->op.num);
         return true;
     }
 
     if(isoptype(e, OP_MULT)) {
-        ast_t *child;
+        pcas_ast_t *child;
         for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
             if(absolute_val(child))
                 return true;
@@ -283,8 +282,8 @@ bool absolute_val(ast_t *e) {
 }
 
 /*returns negative if a < b, 0 if a=b, positive if a > b in terms of sorting order*/
-int compare(ast_t *a, ast_t *b, bool add) {
-    ast_t *temp;
+int compare(pcas_ast_t *a, pcas_ast_t *b, bool add) {
+    pcas_ast_t *temp;
     int multiplier = 1;
 
     if(isoptype(b, OP_MULT)) {
@@ -295,10 +294,10 @@ int compare(ast_t *a, ast_t *b, bool add) {
     }
 
     if(isoptype(a, OP_MULT)) {
-        ast_t *g = gcd(a, b);
+        pcas_ast_t *g = gcd(a, b);
 
         if(!is_ast_int(g, 1)) {
-            ast_t *newa, *newb;
+            pcas_ast_t *newa, *newb;
             int val;
 
             newa = ast_MakeBinary(OP_DIV, ast_Copy(a), ast_Copy(g));
@@ -320,7 +319,7 @@ int compare(ast_t *a, ast_t *b, bool add) {
     }
 
     /*Compare power bases to sort alphabetically when multiplying, and by degree when adding*/
-    
+
     if(isoptype(b, OP_POW)) {
         temp = a;
         a = b;
@@ -328,14 +327,14 @@ int compare(ast_t *a, ast_t *b, bool add) {
         multiplier *= -1;
     }
     if(isoptype(a, OP_POW)) {
-        ast_t *abase, *apower;
+        pcas_ast_t *abase, *apower;
 
         abase = ast_ChildGet(a, 0);
         apower = ast_ChildGet(a, 1);
 
         if(isoptype(b, OP_POW)) {
-            ast_t *bbase, *bpower;
-            
+            pcas_ast_t *bbase, *bpower;
+
             bbase = ast_ChildGet(b, 0);
             bpower = ast_ChildGet(b, 1);
 
@@ -374,7 +373,7 @@ int compare(ast_t *a, ast_t *b, bool add) {
 
     Sorting for addition and multiplication is O(n^2) by insertion sort
 */
-bool simplify_canonical_form(ast_t *e) {
+bool simplify_canonical_form(pcas_ast_t *e) {
     bool changed = false, intermediate_change;
     unsigned i;
 
@@ -391,13 +390,13 @@ bool simplify_canonical_form(ast_t *e) {
                 inner_intermediate = false;
 
                 for(i = 0; i < ast_ChildLength(e); i++) {
-                    ast_t *ichild = ast_ChildGet(e, i);
+                    pcas_ast_t *ichild = ast_ChildGet(e, i);
 
                     if(!isoptype(ichild, OP_POW))
                         continue;
 
                     for(j = i + 1; j < ast_ChildLength(e); j++) {
-                        ast_t *jchild = ast_ChildGet(e, j);
+                        pcas_ast_t *jchild = ast_ChildGet(e, j);
 
                         if(!isoptype(jchild, OP_POW))
                             continue;
@@ -429,9 +428,9 @@ bool simplify_canonical_form(ast_t *e) {
                 }
 
             } while(inner_intermediate);
-            
+
         } else if(isoptype(e, OP_POW)) {
-            ast_t *base, *power;
+            pcas_ast_t *base, *power;
 
             /*Change powers to roots*/
 
@@ -445,7 +444,7 @@ bool simplify_canonical_form(ast_t *e) {
                 intermediate_change = changed = true;
             }
         } else if(isoptype(e, OP_DIV)) {
-            ast_t *num, *den;
+            pcas_ast_t *num, *den;
 
             /*Rationalize denominator*/
 
@@ -462,13 +461,13 @@ bool simplify_canonical_form(ast_t *e) {
                                     ast_Copy(den),
                                     ast_Copy(den)
                                 ));
-                
+
                 simplify(num, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_RATIONAL | SIMP_LIKE_TERMS);
                 simplify(den, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_RATIONAL | SIMP_LIKE_TERMS);
 
                 intermediate_change = changed = true;
             } else if(isoptype(den, OP_MULT)) {
-                ast_t *child;
+                pcas_ast_t *child;
                 for(child = ast_ChildGet(den, 0); child != NULL; child = child->next) {
                     if(isoptype(child, OP_ROOT)) {
                         replace_node(num, ast_MakeBinary(OP_MULT,
@@ -479,7 +478,7 @@ bool simplify_canonical_form(ast_t *e) {
                                             ast_Copy(den),
                                             ast_Copy(child)
                                         ));
-                        
+
                         simplify(num, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_RATIONAL | SIMP_LIKE_TERMS);
                         simplify(den, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_RATIONAL | SIMP_LIKE_TERMS);
 
@@ -492,14 +491,14 @@ bool simplify_canonical_form(ast_t *e) {
 
         /*Order addition and multiplication: C*A*D becomes A*C*D */
         for(i = 0; i < ast_ChildLength(e); i++) {
-            ast_t *child = ast_ChildGet(e, i);
+            pcas_ast_t *child = ast_ChildGet(e, i);
 
             if(e->type == NODE_OPERATOR && (optype(e) == OP_MULT || optype(e) == OP_ADD)) {
                 unsigned j;
 
                 for(j = 0; j < i; j++) {
                     int val;
-                    ast_t *child2;
+                    pcas_ast_t *child2;
 
                     child2 = ast_ChildGet(e, j);
                     val = compare(child, child2, optype(e) == OP_ADD);
@@ -525,24 +524,24 @@ bool simplify_canonical_form(ast_t *e) {
     AA to A^(1+1)
     A^2AB to A^(2+1)B
 */ 
-bool simplify_like_terms_multiplication(ast_t *e) {
-    ast_t *child = NULL;
+bool simplify_like_terms_multiplication(pcas_ast_t *e) {
+    pcas_ast_t *child = NULL;
     bool changed = false;
-    
+
     for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
             changed |= simplify_like_terms_multiplication(child);
-    
+
     if(isoptype(e, OP_MULT)) {
         unsigned i, j;
 
         for(i = 0; i < ast_ChildLength(e); i++) {
-            ast_t *a, *b;
+            pcas_ast_t *a, *b;
 
             a = ast_ChildGet(e, i);
 
             for(j = i + 1; j < ast_ChildLength(e); j++) {
                 bool clean_power1 = false, clean_power2 = false;
-                ast_t *base1 = NULL, *base2 = NULL, *power1 = NULL, *power2 = NULL;
+                pcas_ast_t *base1 = NULL, *base2 = NULL, *power1 = NULL, *power2 = NULL;
 
                 b = ast_ChildGet(e, j);
 
@@ -578,7 +577,7 @@ bool simplify_like_terms_multiplication(ast_t *e) {
                 }
 
                 if(base1 != NULL && ast_Compare(base1, base2)) {
-                    ast_t *append;
+                    pcas_ast_t *append;
 
                     append = ast_MakeBinary(OP_POW,
                                             ast_Copy(base1),
@@ -619,8 +618,8 @@ bool simplify_like_terms_multiplication(ast_t *e) {
 
     Works on sin, cos, and tan
 */
-bool simplify_periodic(ast_t *e) {
-    ast_t *copy;
+bool simplify_periodic(pcas_ast_t *e) {
+    pcas_ast_t *copy;
     mp_int a, b, c, d;
     bool is_negative, changed = false;
 
@@ -643,7 +642,7 @@ bool simplify_periodic(ast_t *e) {
         b = mp_int_alloc();
         mp_int_init_value(b, 1);
     } else if(isoptype(copy, OP_DIV)) {
-        ast_t *num, *den;
+        pcas_ast_t *num, *den;
 
         num = ast_ChildGet(copy, 0);
         den = ast_ChildGet(copy, 1);
@@ -719,7 +718,7 @@ bool simplify_periodic(ast_t *e) {
     return changed;
 }
 
-bool simplify_identities(ast_t *e, const unsigned short flags) {
+bool simplify_identities(pcas_ast_t *e, unsigned short flags) {
     bool changed = false;
 
     if(flags & SIMP_ID_GENERAL)
@@ -751,7 +750,7 @@ bool simplify_identities(ast_t *e, const unsigned short flags) {
 
     Returns true if ast was changed
 */
-bool simplify(ast_t *e, const unsigned short flags) {
+bool simplify(pcas_ast_t *e, unsigned short flags) {
     bool did_change = false, intermediate_change, factor_changed;
 
     do {
@@ -799,8 +798,6 @@ bool simplify(ast_t *e, const unsigned short flags) {
 
         }
 
-       
-
         /*Simplify like terms*/
         if(flags & SIMP_LIKE_TERMS) {
             /*First fix 2A+B _ (A+B) to 2A+B_A_B */
@@ -810,8 +807,8 @@ bool simplify(ast_t *e, const unsigned short flags) {
             /*This would fix AA to A^2 if it exists*/
             while(simplify_like_terms_multiplication(e))        intermediate_change = did_change = true;
         }
-        
+
     } while(intermediate_change);
-    
+
     return did_change;
 }

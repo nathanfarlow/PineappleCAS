@@ -61,7 +61,7 @@ struct Identifier str_table[AMOUNT_TOKENS] = {
     {6, "deriv("},                  /*TOK_DERIV*/
 
     {4, "int("}, {4, "abs("},       /*TOK_INT, TOK_ABS*/
-    {5, "sqrt("}, {7, "cbroot("},   /*TOK_SQRT, TOK_CUBED_ROOT*/
+    {5, "sqrt("}, {7, "cbrt("},     /*TOK_SQRT, TOK_CUBED_ROOT*/
     {3, "ln("}, {3, "e^("},         /*TOK_LN, TOK_E_TO_POWER*/
     {4, "log("}, {4, "10^("},       /*TOK_LOG, TOK_10_TO_POWER*/
     {4, "sin("}, {5, "asin("},      /*TOK_SIN, TOK_SIN_INV*/
@@ -97,7 +97,7 @@ typedef struct _Tokenizer {
 } tokenizer_t;
 
 /*'0' through '9' and including '.'*/
-#define is_num(byte) ((byte >= 0x30 && byte <= 0x39) || byte == lookup[TOK_PERIOD].bytes[0])
+#define is_num(byte) (((byte) >= 0x30 && (byte) <= 0x39) || (byte) == lookup[TOK_PERIOD].bytes[0])
 
 mp_rat read_num(const uint8_t *equation, unsigned index, unsigned length, struct Identifier *lookup, unsigned *consumed) {
     mp_rat num;
@@ -205,7 +205,7 @@ token_t read_token(const uint8_t *equation, unsigned index, unsigned length, str
     return tok;
 }
 
-error_t _tokenize(token_t *tokens, const uint8_t *equation, unsigned length, unsigned *tok_amount, struct Identifier *lookup) {
+pcas_error_t _tokenize(token_t *tokens, const uint8_t *equation, unsigned length, unsigned *tok_amount, struct Identifier *lookup) {
     unsigned token_index = 0;
     unsigned i = 0;
 
@@ -234,8 +234,8 @@ error_t _tokenize(token_t *tokens, const uint8_t *equation, unsigned length, uns
     return E_SUCCESS;
 }
 
-error_t tokenize(tokenizer_t *t, const uint8_t *equation, unsigned length, struct Identifier *lookup) {
-    error_t err;
+pcas_error_t tokenize(tokenizer_t *t, const uint8_t *equation, unsigned length, struct Identifier *lookup) {
+    pcas_error_t err;
 
     /*Determine the amount of tokens to malloc()*/
     err = _tokenize(NULL, equation, length, &t->amount, lookup);
@@ -300,7 +300,7 @@ uint8_t operand_count(TokenType type) {
 
     if(type == TOK_LOG_BASE)
         return 2;
-    
+
     if(type == TOK_DERIV)
         return 3;
 
@@ -308,7 +308,7 @@ uint8_t operand_count(TokenType type) {
 }
 
 /*Changes the TokenType into the OperatorType and fixes operands*/
-void translate(ast_t *e) {
+void translate(pcas_ast_t *e) {
 
     switch((int)optype(e)) {
     case TOK_PLUS:       optype(e) = OP_ADD; break;
@@ -323,8 +323,8 @@ void translate(ast_t *e) {
     case TOK_PROPER:     optype(e) = OP_ADD; break;
     case TOK_POWER:      optype(e) = OP_POW; break;
     case TOK_SCIENTIFIC: {
-        ast_t *op2;
-        
+        pcas_ast_t *op2;
+
         optype(e) = OP_MULT;
 
         op2 = ast_MakeBinary(OP_POW, ast_MakeNumber(num_FromInt(10)), ast_ChildGet(e, 1));
@@ -400,10 +400,10 @@ void translate(ast_t *e) {
     }
 }
 
-bool collapse_precedence(stack_t *operators, stack_t *expressions, TokenType type) {
+bool collapse_precedence(pcas_stack_t *operators, pcas_stack_t *expressions, TokenType type) {
 
     while(operators->top > 0) {
-        ast_t *collapsed;
+        pcas_ast_t *collapsed;
         token_t *op;
         unsigned i;
 
@@ -426,9 +426,9 @@ bool collapse_precedence(stack_t *operators, stack_t *expressions, TokenType typ
 
         /*Store the token type into the operand type. This will
         Be fixed in make_operator*/
-        collapsed = ast_MakeOperator(op->type);
+        collapsed = ast_MakeOperator((OperatorType) op->type);
         for(i = 0; i < operand_count(op->type); i++) {
-            ast_t *operand = stack_Pop(expressions);
+            pcas_ast_t *operand = stack_Pop(expressions);
 
             if(operand == NULL) {
                 ast_Cleanup(collapsed);
@@ -446,12 +446,12 @@ bool collapse_precedence(stack_t *operators, stack_t *expressions, TokenType typ
     return true;
 }
 
-bool collapse_all(stack_t *operators, stack_t *expressions) {
+bool collapse_all(pcas_stack_t *operators, pcas_stack_t *expressions) {
     return collapse_precedence(operators, expressions, 0);
 }
 
 #define parse_assert(expression, err) if(!(expression)) {   \
-    ast_t *current;                                         \
+    pcas_ast_t *current;                                    \
                                                             \
     while((current = stack_Pop(&expressions)) != NULL)      \
         ast_Cleanup(current);                               \
@@ -465,12 +465,10 @@ bool collapse_all(stack_t *operators, stack_t *expressions) {
     return NULL;                                            \
 }
 
-#include "dbg.h"
-
-ast_t *parse(const uint8_t *equation, unsigned length, struct Identifier *lookup, error_t *e) {
+pcas_ast_t *parse(const uint8_t *equation, unsigned length, struct Identifier *lookup, pcas_error_t *e) {
     tokenizer_t tokenizer = {0};
-    stack_t operators, expressions;
-    ast_t *root;
+    pcas_stack_t operators, expressions;
+    pcas_ast_t *root;
 
     /*Create instances to push on the stacks as pointers*/
     token_t mult =      {TOK_MULTIPLY};

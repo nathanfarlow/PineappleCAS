@@ -90,7 +90,7 @@ mp_result mp_rat_init_size(mp_rat r, mp_size n_prec, mp_size d_prec)
     mp_int_clear(MP_NUMER_P(r));
     return res;
   }
-  
+
   return mp_int_set_value(MP_DENOM_P(r), 1);
 }
 
@@ -102,7 +102,7 @@ mp_result mp_rat_init_copy(mp_rat r, mp_rat old)
     return res;
   if ((res = mp_int_init_copy(MP_DENOM_P(r), MP_DENOM_P(old))) != MP_OK) 
     mp_int_clear(MP_NUMER_P(r));
-  
+
   return res;
 }
 
@@ -146,7 +146,7 @@ void      mp_rat_clear(mp_rat r)
 void      mp_rat_free(mp_rat r)
 {
   NRCHECK(r != NULL);
-  
+
   if (r->num.digits != NULL)
     mp_rat_clear(r);
 
@@ -162,7 +162,6 @@ mp_int mp_rat_numer_ref(mp_rat r)
 {
   return MP_NUMER_P(r);
 }
-
 
 mp_result mp_rat_denom(mp_rat r, mp_int z)
 {
@@ -185,7 +184,7 @@ mp_result mp_rat_copy(mp_rat a, mp_rat c)
 
   if ((res = mp_int_copy(MP_NUMER_P(a), MP_NUMER_P(c))) != MP_OK)
     return res;
-  
+
   res = mp_int_copy(MP_DENOM_P(a), MP_DENOM_P(c));
   return res;
 }
@@ -194,7 +193,7 @@ void      mp_rat_zero(mp_rat r)
 {
   mp_int_zero(MP_NUMER_P(r));
   mp_int_set_value(MP_DENOM_P(r), 1);
-  
+
 }
 
 mp_result mp_rat_abs(mp_rat a, mp_rat c)
@@ -203,7 +202,7 @@ mp_result mp_rat_abs(mp_rat a, mp_rat c)
 
   if ((res = mp_int_abs(MP_NUMER_P(a), MP_NUMER_P(c))) != MP_OK)
     return res;
-  
+
   res = mp_int_abs(MP_DENOM_P(a), MP_DENOM_P(c));
   return res;
 }
@@ -438,9 +437,9 @@ int       mp_rat_compare_unsigned(mp_rat a, mp_rat b)
     if ((res = mp_int_mul(TEMP(0), MP_DENOM_P(b), TEMP(0))) != MP_OK ||
 	(res = mp_int_mul(TEMP(1), MP_DENOM_P(a), TEMP(1))) != MP_OK)
       goto CLEANUP;
-    
+
     cmp = mp_int_compare_unsigned(TEMP(0), TEMP(1));
-    
+
   CLEANUP:
     while (--last >= 0)
       mp_int_clear(TEMP(last));
@@ -464,9 +463,9 @@ int       mp_rat_compare_value(mp_rat r, mp_small n, mp_small d)
     return out;
   if ((res = mp_rat_set_value(&tmp, n, d)) != MP_OK)
     goto CLEANUP;
-  
+
   out = mp_rat_compare(r, &tmp);
-  
+
  CLEANUP:
   mp_rat_clear(&tmp);
   return out;
@@ -502,7 +501,7 @@ mp_result mp_rat_to_string(mp_rat r, mp_size radix, char *str, int limit)
   /* If the value is zero, don't bother writing any denominator */
   if (mp_int_compare_zero(MP_NUMER_P(r)) == 0)
     return MP_OK;
-  
+
   /* Locate the end of the numerator, and make sure we are not going to exceed
      the limit by writing a slash. */
   len = strlen(str);
@@ -513,7 +512,7 @@ mp_result mp_rat_to_string(mp_rat r, mp_size radix, char *str, int limit)
 
   *start++ = '/';
   limit -= 1;
-  
+
   res = mp_int_to_string(MP_DENOM_P(r), radix, start, limit);
   return res;
 }
@@ -525,7 +524,7 @@ mp_result mp_rat_to_decimal(mp_rat r, mp_size radix, mp_size prec,
   mp_result res;
   char *start = str;
   mp_size len, lead_0, left = limit; int last = 0;
-    
+
   SETUP(mp_int_init_copy(TEMP(last), MP_NUMER_P(r)), last);
   SETUP(mp_int_init(TEMP(last)), last);
   SETUP(mp_int_init(TEMP(last)), last);
@@ -592,7 +591,7 @@ mp_result mp_rat_to_decimal(mp_rat r, mp_size radix, mp_size prec,
 	res = mp_int_add_value(TEMP(1), 1, TEMP(1));
     }
     break;
-    
+
   case MP_ROUND_DOWN:
     break;  /* No action required */
 
@@ -612,17 +611,17 @@ mp_result mp_rat_to_decimal(mp_rat r, mp_size radix, mp_size prec,
 
   if ((res = mp_int_to_string(TEMP(0), radix, start, left)) != MP_OK)
     goto CLEANUP;
-  
+
   len = strlen(start);
   start += len;
   left -= len;
-  
+
   if (prec == 0) 
     goto CLEANUP;
-  
+
   *start++ = '.';
   left -= 1;
-  
+
   if ((mp_size)left < prec + 1) {
     res = MP_TRUNC;
     goto CLEANUP;
@@ -637,7 +636,7 @@ mp_result mp_rat_to_decimal(mp_rat r, mp_size radix, mp_size prec,
  CLEANUP:
   while (--last >= 0)
     mp_int_clear(TEMP(last));
-  
+
   return res;
 }
 
@@ -664,12 +663,12 @@ mp_result mp_rat_decimal_len(mp_rat r, mp_size radix, mp_size prec)
   int  z_len, f_len;
 
   z_len = mp_int_string_len(MP_NUMER_P(r), radix);
-  
+
   if (prec == 0)
     f_len = 1; /* terminator only */
   else
     f_len = 1 + prec + 1; /* decimal point, digits, terminator */
-  
+
   return z_len + f_len;
 }
 
@@ -691,7 +690,7 @@ mp_result mp_rat_read_cstring(mp_rat r, mp_size radix, const char *str,
   /* Skip whitespace between numerator and (possible) separator */
   while (isspace((unsigned char) *endp))
     ++endp;
-  
+
   /* If there is no separator, we will stop reading at this point. */
   if (*endp != '/') {
     mp_int_set_value(MP_DENOM_P(r), 1);
@@ -699,11 +698,11 @@ mp_result mp_rat_read_cstring(mp_rat r, mp_size radix, const char *str,
       *end = endp;
     return res;
   }
-  
+
   ++endp; /* skip separator */
   if ((res = mp_int_read_cstring(MP_DENOM_P(r), radix, endp, end)) != MP_OK)
     return res;
-  
+
   /* Make sure the value is well-defined */
   if (mp_int_compare_zero(MP_DENOM_P(r)) == 0)
     return MP_UNDEF;
@@ -755,7 +754,7 @@ mp_result mp_rat_read_cdecimal(mp_rat r, mp_size radix, const char *str,
 
   while (isspace((unsigned char) *str))
     ++str;
-  
+
   switch (*str) {
   case '-':
     osign = MP_NEG;
@@ -763,7 +762,7 @@ mp_result mp_rat_read_cdecimal(mp_rat r, mp_size radix, const char *str,
   default:
     osign = MP_ZPOS;
   }
-  
+
   if ((res = mp_int_read_cstring(MP_NUMER_P(r), radix, str, &endp)) != MP_OK &&
      (res != MP_TRUNC))
     return res;
@@ -804,7 +803,7 @@ mp_result mp_rat_read_cdecimal(mp_rat r, mp_size radix, const char *str,
     /* Make a temporary to hold the part after the decimal point. */
     if ((res = mp_int_init(&frac)) != MP_OK)
       return res;
-    
+
     if ((res = mp_int_read_cstring(&frac, radix, endp, &endp)) != MP_OK &&
        (res != MP_TRUNC))
       goto CLEANUP;
@@ -819,7 +818,7 @@ mp_result mp_rat_read_cdecimal(mp_rat r, mp_size radix, const char *str,
     while (mp_int_divisible_value(&frac, radix))
       if ((res = mp_int_div_value(&frac, radix, &frac, NULL)) != MP_OK)
 	goto CLEANUP;
-    
+
     /* Count leading zeros after the decimal point */
     while (save[num_lz] == '0')
       ++num_lz;
@@ -827,12 +826,12 @@ mp_result mp_rat_read_cdecimal(mp_rat r, mp_size radix, const char *str,
     /* Find the least power of the radix that is at least as large as the
        significant value of the fractional part, ignoring leading zeroes.  */
     (void) mp_int_set_value(MP_DENOM_P(r), radix); 
-    
+
     while (mp_int_compare(MP_DENOM_P(r), &frac) < 0) {
       if ((res = mp_int_mul_value(MP_DENOM_P(r), radix, MP_DENOM_P(r))) != MP_OK)
 	goto CLEANUP;
     }
-    
+
     /* Also shift by enough to account for leading zeroes */
     while (num_lz > 0) {
       if ((res = mp_int_mul_value(MP_DENOM_P(r), radix, MP_DENOM_P(r))) != MP_OK)
@@ -846,7 +845,7 @@ mp_result mp_rat_read_cdecimal(mp_rat r, mp_size radix, const char *str,
        result. */
     if ((res = mp_int_mul(MP_NUMER_P(r), MP_DENOM_P(r), MP_NUMER_P(r))) != MP_OK)
       goto CLEANUP;
-    
+
     { /* This addition needs to be unsigned. */
       MP_SIGN(MP_NUMER_P(r)) = MP_ZPOS;
       if ((res = mp_int_add(MP_NUMER_P(r), &frac, MP_NUMER_P(r))) != MP_OK)
@@ -925,7 +924,7 @@ static mp_result s_rat_combine(mp_rat a, mp_rat b, mp_rat c,
       return res;
     if ((res = mp_int_copy(MP_DENOM_P(a), MP_DENOM_P(c))) != MP_OK)
       return res;
-    
+
     return s_rat_reduce(c);
   }
   else {
@@ -934,7 +933,7 @@ static mp_result s_rat_combine(mp_rat a, mp_rat b, mp_rat c,
 
     SETUP(mp_int_init_copy(TEMP(last), MP_NUMER_P(a)), last);
     SETUP(mp_int_init_copy(TEMP(last), MP_NUMER_P(b)), last);
-    
+
     if ((res = mp_int_mul(TEMP(0), MP_DENOM_P(b), TEMP(0))) != MP_OK)
       goto CLEANUP;
     if ((res = mp_int_mul(TEMP(1), MP_DENOM_P(a), TEMP(1))) != MP_OK)

@@ -1,8 +1,11 @@
 obj*/
 bin*/
 
+.idea/
 .vscode/
 *.code-workspace
+
+cmake-build-*/
 
 *.sublime-project
 *.sublime-workspace
