@@ -252,9 +252,9 @@ void draw_context(Context c) {
         gfx_PrintStringXY("library by Michael J.", 115, 80 + 10 * 5);
         gfx_PrintStringXY("Fromberger.", 115, 80 + 10 * 6);
 
-        gfx_PrintStringXY("Thanks Mateo and Andriweb", 115, 80 + 10 * 8);
-        gfx_PrintStringXY("for help and inspiration", 115, 80 + 10 * 9);
-        gfx_PrintStringXY("for this project.", 115, 80 + 10 * 10);
+        gfx_PrintStringXY("Thanks Adriweb and Mateo", 115, 80 + 10 * 8);
+        gfx_PrintStringXY("for help and contributions", 115, 80 + 10 * 9);
+        gfx_PrintStringXY("to this project.", 115, 80 + 10 * 10);
     }
 
     for(i = 0; i < elements_in_context[c]; i++) {
