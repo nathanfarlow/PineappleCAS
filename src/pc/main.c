@@ -337,10 +337,14 @@ int run_test(int argc, char **argv) {
     delta = clock();
     for(i = 0; i < len; i++) {
         test_t *t = arr[i];
-        if(!test_Run(t))
+        printf("Running test %d/%d... ", i, len);
+        if(!test_Run(t)) {
+            puts("[FAIL]");
             failed++;
-        else
+        } else {
+            puts("[OK]");
             passed++;
+        }
     }
     delta = clock() - delta;
     
