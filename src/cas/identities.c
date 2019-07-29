@@ -230,8 +230,6 @@ bool matches(pcas_ast_t *id, pcas_ast_t *e, Dictionary dict) {
             return ast_Compare(dict_Get(dict, id), e);
         }
     } else if(id->type == NODE_OPERATOR) {
-        unsigned i, j;
-
         /*Make a copy of the dictionary in case the children do not match
         We do not fill the dictionary with bad values*/
         pcas_ast_t *dict_copy[AMOUNT_SYMBOLS];
@@ -240,6 +238,7 @@ bool matches(pcas_ast_t *id, pcas_ast_t *e, Dictionary dict) {
 
         if(is_op_commutative(optype(id))) {
             /*Order does not matter*/
+            unsigned i, j;
             bool matched, combined = false, *matched_e_children, *matched_id_children;
             char combined_character = '\0';
 
@@ -405,6 +404,7 @@ bool matches(pcas_ast_t *id, pcas_ast_t *e, Dictionary dict) {
             
         } else {
             /*Order and length do matter*/
+            int i;
 
             if(e->type != NODE_OPERATOR) {
                 dict_Cleanup(dict_copy);
