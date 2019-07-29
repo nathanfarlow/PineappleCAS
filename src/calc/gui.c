@@ -801,10 +801,10 @@ void execute_expand() {
 
     unsigned short flags = 0;
 
-    if(simplify_context[0]->checked) {
-        flags |= EXP_DISTRIB_NUMBERS | EXP_DISTRIB_MULTIPLICATION | EXP_DISTRIB_DIVISION | EXP_DISTRIB_ADDITION;
+    if(expand_context[0]->checked) {
+        flags |= EXP_DISTRIB_NUMBERS | EXP_DISTRIB_MULTIPLICATION | EXP_DISTRIB_ADDITION;
     }
-    if(simplify_context[1]->checked) {
+    if(expand_context[1]->checked) {
         flags |= EXP_EXPAND_POWERS;
     }
 
@@ -820,6 +820,7 @@ void execute_expand() {
 
             simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
             expand(expression, flags);
+            simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | (expand_context[0]->checked ? SIMP_LIKE_TERMS : 0) | SIMP_EVAL);
             simplify_canonical_form(expression);
 
             console_write("Exporting...");

@@ -290,8 +290,9 @@ int run_expand(int argc, char **argv) {
 
         printf("Expanding...\n\n");
 
+        simplify(e, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
         expand(e, EXP_ALL);
-        simplify(e, SIMP_ALL);
+        simplify(e, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_LIKE_TERMS | SIMP_EVAL);
         simplify_canonical_form(e);
 
         dbg_print_tree(e, 4);

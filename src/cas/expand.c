@@ -1,8 +1,5 @@
 #include "cas.h"
 
-/*In simplify.c*/
-bool simplify_like_terms(pcas_ast_t *e);
-
 pcas_ast_t *combine(pcas_ast_t *add, pcas_ast_t *b) {
     unsigned i, j;
     pcas_ast_t *expanded = ast_MakeOperator(OP_ADD);

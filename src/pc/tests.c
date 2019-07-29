@@ -239,7 +239,7 @@ bool test_Run(test_t *t) {
 
         simplify(actual, SIMP_ALL);
         expand(actual, EXP_ALL);
-        simplify(actual, SIMP_ALL ^ SIMP_ID_ALL);
+        simplify(actual, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_LIKE_TERMS | SIMP_EVAL);
 
         passed = check(t, actual, expected);
         break;
