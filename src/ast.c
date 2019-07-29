@@ -158,7 +158,7 @@ bool ast_Compare(pcas_ast_t *a, pcas_ast_t *b) {
 
         if((length = ast_ChildLength(a)) != ast_ChildLength(b))
             return false;
-        
+
         /*Compare children that are not necessarily in order. O(n^2)*/
         if(optype(a) == OP_MULT || optype(a) == OP_ADD) {
             unsigned a_index, b_index;
@@ -203,7 +203,6 @@ bool ast_Compare(pcas_ast_t *a, pcas_ast_t *b) {
             return true;
         }
 
-        
     }
     }
 
@@ -249,7 +248,7 @@ pcas_error_t ast_ChildAppend(pcas_ast_t *parent, pcas_ast_t *child) {
         last->next = child;
 
     child->next = NULL;
-    
+
     return E_SUCCESS;
 }
 
@@ -357,7 +356,7 @@ pcas_ast_t *ast_ChildRemoveIndex(pcas_ast_t *parent, LSIZE index) {
 
     if(index == 0) {
         pcas_ast_t *temp;
-        
+
         if(opbase(parent) == NULL)
             return NULL;
 

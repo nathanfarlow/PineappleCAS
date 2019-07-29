@@ -16,7 +16,7 @@
 */
 pcas_id_t id_general[ID_NUM_GENERAL] = {
     /*logb(value, base)*/
-    
+
     /*This identity is hardcoded in eval.c so that it executes before
     the power node is evaluated with two numerical values*/
     /*{"logb(X^D,B", "Dlogb(X,B"}*/
@@ -324,7 +324,7 @@ bool matches(pcas_ast_t *id, pcas_ast_t *e, Dictionary dict) {
                         dict_Copy(dict_copy_copy, dict_copy);
 
                         if(!matched_id_children[j]) {
-                            
+
                             if(matches(id_child, e_child, dict_copy_copy)) {
                                 matched_e_children[i] = true;
                                 matched_id_children[j] = true;
@@ -381,7 +381,7 @@ bool matches(pcas_ast_t *id, pcas_ast_t *e, Dictionary dict) {
                         matched = false;
                         ast_Cleanup(c);
                     }
-                    
+
                 } else {
                     ast_Cleanup(c);
                 }
@@ -389,7 +389,7 @@ bool matches(pcas_ast_t *id, pcas_ast_t *e, Dictionary dict) {
 
             free(matched_e_children);
             free(matched_id_children);
-            
+
             ast_Cleanup(e_copy);
             ast_Cleanup(id_copy);
 
@@ -401,7 +401,7 @@ bool matches(pcas_ast_t *id, pcas_ast_t *e, Dictionary dict) {
             }
 
             return matched;
-            
+
         } else {
             /*Order and length do matter*/
             int i;
@@ -455,13 +455,13 @@ bool id_Execute(pcas_ast_t *e, pcas_id_t *id, bool recursive) {
 
     if(matches(id->from, e, dict)) {
         pcas_ast_t *to = ast_Copy(id->to);
-        
+
         fill(to, dict);
 
         replace_node(e, to);
 
         /*LOG(("Matched identity from=%s to=%s", id->from_text, id->to_text));*/
-        
+
         changed = true;
     }
 
@@ -502,7 +502,7 @@ void id_Unload(pcas_id_t *id) {
     if(id->from != NULL)
         ast_Cleanup(id->from);
     id->from = NULL;
-    
+
     if(id->to != NULL)
         ast_Cleanup(id->to);
     id->to = NULL;

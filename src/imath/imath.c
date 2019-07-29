@@ -96,8 +96,6 @@ STATIC const double s_log2[] = {
    0.193426404,                                         /* 36          */
 };
 
-
-
 /* Return the number of digits needed to represent a static value */
 #define MP_VALUE_DIGITS(V) \
 ((sizeof(V)+(sizeof(mp_digit)-1))/sizeof(mp_digit))
@@ -204,8 +202,6 @@ do{ \
 #define LOWER_HALF(W)           ((mp_digit)(W))
 #define HIGH_BIT_SET(W)         ((W) >> (MP_WORD_BIT - 1))
 #define ADD_WILL_OVERFLOW(W, V) ((MP_WORD_MAX - (V)) < (W))
-
-
 
 /* Default number of digits allocated to a new mp_int */
 #if IMATH_TEST
@@ -1648,26 +1644,26 @@ mp_result mp_int_to_uint(mp_int z, mp_usmall *out)
   mp_size   uz;
   mp_digit *dz;
   mp_sign   sz;
-  
+
   CHECK(z != NULL);
 
   /* Make sure the value is representable as an unsigned small integer */
   sz = MP_SIGN(z);
   if (sz == MP_NEG || mp_int_compare_uvalue(z, MP_USMALL_MAX) > 0)
     return MP_RANGE;
-     
+
   uz = MP_USED(z);
   dz = MP_DIGITS(z) + uz - 1;
-  
+
   while (uz > 0) {
     uv <<= MP_DIGIT_BIT/2;
     uv = (uv << (MP_DIGIT_BIT/2)) | *dz--;
     --uz;
   }
-  
+
   if (out)
     *out = uv;
-  
+
   return MP_OK;
 }
 
@@ -2568,7 +2564,7 @@ STATIC int      s_qmul(mp_int z, mp_size p2)
     d = 0;
     for (i = need, from = MP_DIGITS(z) + need; i < uz; ++i, ++from) {
       mp_digit save = *from;
-      
+
       *from = (*from << rest) | (d >> (MP_DIGIT_BIT - rest));
       d = save;
     }
@@ -2782,7 +2778,6 @@ STATIC mp_result s_embar(mp_int a, mp_int b, mp_int m, mp_int mu, mp_int c)
 	}
 	mp_int_copy(TEMP(0), c);
       }
-
 
       USQR(a, TEMP(0));
       assert(MP_SIGN(TEMP(0)) == MP_ZPOS);

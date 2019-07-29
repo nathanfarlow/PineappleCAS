@@ -25,7 +25,7 @@ bool simplify_commutative(pcas_ast_t *e) {
         if(child->type == NODE_OPERATOR 
             && is_op_commutative(optype(e))
             && optype(child) == optype(e)) {
-            
+
             /*Append children of child to end of parent*/
             ast_ChildGetLast(e)->next = child->op.operator.base;
             /*Remove child node*/
@@ -133,7 +133,7 @@ bool simplify_rational(pcas_ast_t *e) {
             */
             else if(optype(e) == OP_MULT) {
                 pcas_ast_t *mult, *num_copy, *den_copy;
-            
+
                 mult = ast_Copy(e);
                 num_copy = ast_Copy(child_num);
                 den_copy = ast_Copy(child_den);
@@ -225,10 +225,9 @@ bool simplify_normalize(pcas_ast_t *e) {
 
         replace_node(e, ast_MakeBinary(OP_DIV, ast_MakeNumber(num), ast_MakeNumber(den)));
 
-
         changed = true;
     }
-    
+
     return changed;
 }
 
@@ -320,7 +319,7 @@ int compare(pcas_ast_t *a, pcas_ast_t *b, bool add) {
     }
 
     /*Compare power bases to sort alphabetically when multiplying, and by degree when adding*/
-    
+
     if(isoptype(b, OP_POW)) {
         temp = a;
         a = b;
@@ -335,7 +334,7 @@ int compare(pcas_ast_t *a, pcas_ast_t *b, bool add) {
 
         if(isoptype(b, OP_POW)) {
             pcas_ast_t *bbase, *bpower;
-            
+
             bbase = ast_ChildGet(b, 0);
             bpower = ast_ChildGet(b, 1);
 
@@ -429,7 +428,7 @@ bool simplify_canonical_form(pcas_ast_t *e) {
                 }
 
             } while(inner_intermediate);
-            
+
         } else if(isoptype(e, OP_POW)) {
             pcas_ast_t *base, *power;
 
@@ -462,7 +461,7 @@ bool simplify_canonical_form(pcas_ast_t *e) {
                                     ast_Copy(den),
                                     ast_Copy(den)
                                 ));
-                
+
                 simplify(num, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_RATIONAL | SIMP_LIKE_TERMS);
                 simplify(den, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_RATIONAL | SIMP_LIKE_TERMS);
 
@@ -479,7 +478,7 @@ bool simplify_canonical_form(pcas_ast_t *e) {
                                             ast_Copy(den),
                                             ast_Copy(child)
                                         ));
-                        
+
                         simplify(num, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_RATIONAL | SIMP_LIKE_TERMS);
                         simplify(den, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_RATIONAL | SIMP_LIKE_TERMS);
 
@@ -528,10 +527,10 @@ bool simplify_canonical_form(pcas_ast_t *e) {
 bool simplify_like_terms_multiplication(pcas_ast_t *e) {
     pcas_ast_t *child = NULL;
     bool changed = false;
-    
+
     for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
             changed |= simplify_like_terms_multiplication(child);
-    
+
     if(isoptype(e, OP_MULT)) {
         unsigned i, j;
 
@@ -799,8 +798,6 @@ bool simplify(pcas_ast_t *e, unsigned short flags) {
 
         }
 
-       
-
         /*Simplify like terms*/
         if(flags & SIMP_LIKE_TERMS) {
             /*First fix 2A+B _ (A+B) to 2A+B_A_B */
@@ -810,8 +807,8 @@ bool simplify(pcas_ast_t *e, unsigned short flags) {
             /*This would fix AA to A^2 if it exists*/
             while(simplify_like_terms_multiplication(e))        intermediate_change = did_change = true;
         }
-        
+
     } while(intermediate_change);
-    
+
     return did_change;
 }

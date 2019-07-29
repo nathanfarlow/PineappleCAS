@@ -33,7 +33,7 @@ typedef enum _TokenType {
     TOK_DERIV,
 
     TOK_INT, TOK_ABS,
-    
+
     TOK_SQRT, TOK_CUBED_ROOT,
 
     TOK_LN, TOK_E_TO_POWER,

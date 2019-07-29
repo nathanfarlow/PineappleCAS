@@ -333,7 +333,7 @@ int run_test(int argc, char **argv) {
     }
 
     printf("Running tests...\n");
-    
+
     delta = clock();
     for(i = 0; i < len; i++) {
         test_t *t = arr[i];
@@ -347,7 +347,7 @@ int run_test(int argc, char **argv) {
         }
     }
     delta = clock() - delta;
-    
+
     test_CleanupArr(arr, len);
 
     printf("Finished in %li microseconds.\n", delta / (CLOCKS_PER_SEC / 1000));
@@ -402,9 +402,9 @@ int run_derivative(int argc, char **argv) {
         } else {
             at = ast_Copy(respect_to);
         }
-        
+
     }
-    
+
     if(err == E_SUCCESS && e != NULL && respect_to != NULL && at != NULL) {
 
         e_copy = ast_Copy(e);

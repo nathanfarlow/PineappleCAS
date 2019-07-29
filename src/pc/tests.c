@@ -208,7 +208,7 @@ bool test_Run(test_t *t) {
 
         /*We do this to change -1 * 23 to -23 to be able to compare*/
         simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
-        
+
         simplify(a, SIMP_ALL);
         simplify(b, SIMP_ALL);
         actual = gcd(a, b);
@@ -292,7 +292,6 @@ void test_CleanupArr(test_t **arr, unsigned len) {
     }
     free(arr);
 }
-
 
 #else
 typedef int make_iso_compilers_happy;

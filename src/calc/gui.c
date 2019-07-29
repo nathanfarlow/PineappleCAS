@@ -8,7 +8,6 @@
 #include <graphx.h>
 #include <keypadc.h>
 
-
 #include "../parser.h"
 #include "../cas/cas.h"
 #include "../cas/identities.h"
@@ -87,7 +86,6 @@ char *dropdown_entries[NUM_DROPDOWN_ENTRIES] = {
     "Ans"
 };
 
-
 #define NUM_IO 2
 #define NUM_FUNCTION 5
 #define NUM_SIMPLIFY 7
@@ -134,7 +132,6 @@ unsigned elements_in_context[NUM_CONTEXTS] = {
     NUM_HELP
 };
 
-
 view_t **context_lookup[NUM_CONTEXTS] = {
     io_context, function_context, simplify_context,
     evaluate_context, expand_context, derivative_context,
@@ -144,7 +141,6 @@ view_t **context_lookup[NUM_CONTEXTS] = {
 Context current_context = CONTEXT_FUNCTION;
 unsigned active_index = 0;
 unsigned function_index = 0;
-
 
 void draw_label(view_t *v) {
     gfx_PrintStringXY(v->text, v->x, v->y + v->h / 2 - TEXT_HEIGHT / 2);
@@ -194,7 +190,6 @@ void view_draw(view_t *v) {
     }
 }
 
-
 view_t *view_create(GuiType type, int x, int y, int w, int h, char *text) {
     view_t *v = calloc(1, sizeof(view_t));
     v->type = type;
@@ -227,10 +222,9 @@ view_t *view_create_label(int x, int y, char *text) {
     return view_create(GUI_LABEL, x, y, 0, 8, text);
 }
 
-
 void draw_context(Context c) {
     unsigned i;
-    
+
     gfx_SetColor(COLOR_BACKGROUND);
 
     switch(c) {
@@ -257,7 +251,7 @@ void draw_context(Context c) {
         gfx_PrintStringXY("PineappleCAS uses the imath", 115, 80 + 10 * 4);
         gfx_PrintStringXY("library by Michael J.", 115, 80 + 10 * 5);
         gfx_PrintStringXY("Fromberger.", 115, 80 + 10 * 6);
-        
+
         gfx_PrintStringXY("Thanks Mateo and Andriweb", 115, 80 + 10 * 8);
         gfx_PrintStringXY("for help and inspiration", 115, 80 + 10 * 9);
         gfx_PrintStringXY("for this project.", 115, 80 + 10 * 10);
@@ -314,7 +308,7 @@ void handle_input(uint8_t key) {
         }
         return;
     }
-    
+
     switch(current_context) {
     case CONTEXT_IO:
         if(key == sk_Down) {
@@ -323,7 +317,7 @@ void handle_input(uint8_t key) {
             current_context = CONTEXT_FUNCTION;
             active_index = 0;
             function_context[0]->active = true;
-            
+
             draw_context(CONTEXT_IO);
             draw_context(CONTEXT_FUNCTION);
             draw_context(CONTEXT_SIMPLIFY);
@@ -418,7 +412,7 @@ void handle_input(uint8_t key) {
             default:
                 break;
             }
-            
+
         }
 
         break;
@@ -693,11 +687,11 @@ void execute_simplify() {
                 sprintf(buffer, "Failed. %s.", error_text[err]);
                 console_write(buffer);
             }
-            
+
         } else {
             console_write("Failed. Empty input.");
         }
-        
+
     } else {
         sprintf(buffer, "Failed. %s.", error_text[err]);
         console_write(buffer);
@@ -758,7 +752,7 @@ void execute_evaluate() {
                     } else {
                         console_write("Failed. Empty input.");
                     }
-                    
+
                 } else {
                     sprintf(buffer, "Failed. %s.", error_text[err]);
                     console_write(buffer);
@@ -785,11 +779,11 @@ void execute_evaluate() {
                 sprintf(buffer, "Failed. %s.", error_text[err]);
                 console_write(buffer);
             }
-            
+
         } else {
             console_write("Failed. Empty input.");
         }
-        
+
     } else {
         sprintf(buffer, "Failed. %s.", error_text[err]);
         console_write(buffer);
@@ -840,11 +834,11 @@ void execute_expand() {
                 sprintf(buffer, "Failed. %s.", error_text[err]);
                 console_write(buffer);
             }
-            
+
         } else {
             console_write("Failed. Empty input.");
         }
-        
+
     } else {
         sprintf(buffer, "Failed. %s.", error_text[err]);
         console_write(buffer);
@@ -896,11 +890,11 @@ void execute_derivative() {
                 sprintf(buffer, "Failed. %s.", error_text[err]);
                 console_write(buffer);
             }
-            
+
         } else {
             console_write("Failed. Empty input.");
         }
-        
+
     } else {
         sprintf(buffer, "Failed. %s.", error_text[err]);
         console_write(buffer);

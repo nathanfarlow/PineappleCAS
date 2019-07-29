@@ -94,7 +94,7 @@ bool eval_derivative_nodes(pcas_ast_t *e) {
     /*Hardcode sum rule*/
     else if(isoptype(expr, OP_ADD)) {
         pcas_ast_t *n = ast_MakeOperator(OP_ADD);
-        
+
         for(child = ast_ChildGet(expr, 0); child != NULL; child = child->next) {
             pcas_ast_t *deriv = ast_MakeOperator(OP_DERIV);
 

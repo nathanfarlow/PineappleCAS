@@ -32,7 +32,6 @@ pcas_ast_t *combine(pcas_ast_t *add, pcas_ast_t *b) {
     return expanded;
 }
 
-
 bool expand(pcas_ast_t *e, unsigned char flags) {
     unsigned i, j;
 
@@ -66,7 +65,6 @@ bool expand(pcas_ast_t *e, unsigned char flags) {
                                 should_expand = flags & EXP_DISTRIB_ADDITION;
                             else
                                 should_expand = flags & EXP_DISTRIB_MULTIPLICATION;
-                            
 
                             if(should_expand) {
                                 pcas_ast_t *combined = combine(ichild, jchild);
@@ -80,7 +78,7 @@ bool expand(pcas_ast_t *e, unsigned char flags) {
                                 did_change = true;
                                 break;
                             }
-                            
+
                         }
                     }
 
@@ -88,7 +86,7 @@ bool expand(pcas_ast_t *e, unsigned char flags) {
                         break;
                 }
             }
-            
+
         } else if((flags & EXP_DISTRIB_DIVISION) && isoptype(e, OP_DIV)) {
             pcas_ast_t *num, *den;
 
@@ -127,7 +125,7 @@ bool expand(pcas_ast_t *e, unsigned char flags) {
                 did_change = true;
                 continue;
             }
-            
+
         }
 
     } while(intermediate_change);

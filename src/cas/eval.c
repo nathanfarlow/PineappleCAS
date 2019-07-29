@@ -67,7 +67,6 @@ static bool eval_commutative(pcas_ast_t *e, unsigned short flags) {
                 mp_int_free(num);
                 mp_int_free(den);
 
-
                 ast_Cleanup(ast_ChildRemoveIndex(e, i));
 
                 i--;
@@ -226,7 +225,7 @@ static bool eval_div(pcas_ast_t *e, unsigned short flags) {
             return true;
         }
     }
-    
+
     if(!(flags & EVAL_DIVISION))
         return false;
 
@@ -369,7 +368,7 @@ static bool eval_pow(pcas_ast_t *e, unsigned short flags) {
             return true;
         }
     }
-    
+
     /*Evaluate a^b if a and b are integers*/
     if(a->type == NODE_NUMBER && b->type == NODE_NUMBER) {
 
@@ -388,7 +387,7 @@ static bool eval_pow(pcas_ast_t *e, unsigned short flags) {
 
                 return true;
             }
-           
+
         }
 
     }
@@ -505,7 +504,6 @@ static bool eval_int(pcas_ast_t *e, unsigned short flags) {
 
     mp_int_free(remainder);
 
-
     return changed;
 }
 
@@ -583,7 +581,7 @@ static bool eval_factorial(pcas_ast_t *e, unsigned short flags) {
         if(mp_rat_is_integer(a->op.num) && mp_rat_compare_zero(a->op.num) > 0) {
             mp_rat accumulator;
             mp_int i;
-            
+
             if(flags & EVAL_FACTORIAL_FULL
             || (flags & EVAL_FACTORIAL_SMALL && factorial_in_small_range(a))) {
                 accumulator = num_FromInt(1);
@@ -601,7 +599,7 @@ static bool eval_factorial(pcas_ast_t *e, unsigned short flags) {
 
                 return true;
             }
-            
+
         }
 
     }

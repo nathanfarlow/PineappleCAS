@@ -58,7 +58,7 @@ typedef enum {
     SYM_L, SYM_M, SYM_N, SYM_O, SYM_P,
     SYM_Q, SYM_R, SYM_S, SYM_T, SYM_U,
     SYM_V, SYM_W, SYM_X, SYM_Y, SYM_Z,
-    
+
     SYM_IMAG,
 
     SYM_PI, SYM_EULER, SYM_THETA,
@@ -97,7 +97,6 @@ typedef struct _pcas_Node {
     } op;
 
 } pcas_ast_t;
-
 
 /*Wrapper functions for shorthand calling in functions*/
 /*Expects null terminated string*/

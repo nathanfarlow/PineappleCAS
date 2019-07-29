@@ -65,7 +65,7 @@ pcas_ast_t *leftmost(pcas_ast_t *e) {
 
 /*Returns length of buffer. Writes to buffer is buffer != NULL*/
 static unsigned _to_binary(pcas_ast_t *e, uint8_t *data, unsigned index, struct Identifier *lookup, pcas_error_t *err) {
-    
+
     switch(e->type) {
     case NODE_NUMBER: {
         char *buffer;
@@ -164,7 +164,7 @@ static unsigned _to_binary(pcas_ast_t *e, uint8_t *data, unsigned index, struct 
 
                 if(needs_mult && !isoptype(next, OP_ROOT))
                     add_token(TOK_MULTIPLY);
-                
+
             }
 
             child = ast_ChildGetLast(e);
@@ -240,11 +240,11 @@ static unsigned _to_binary(pcas_ast_t *e, uint8_t *data, unsigned index, struct 
             break;
         }  case OP_DERIV: {
             pcas_ast_t *a, *b, *c;
-            
+
             a = ast_ChildGet(e, 0);
             b = ast_ChildGet(e, 1);
             c = ast_ChildGet(e, 2);
-            
+
             add_token(TOK_DERIV);
             index = _to_binary(a, data, index, lookup, err);
             add_token(TOK_COMMA);
@@ -252,7 +252,7 @@ static unsigned _to_binary(pcas_ast_t *e, uint8_t *data, unsigned index, struct 
             add_token(TOK_COMMA);
             index = _to_binary(c, data, index, lookup, err);
             add_token(TOK_CLOSE_PAR);
-            
+
             break;
         } case OP_FACTORIAL: {
 
@@ -286,7 +286,7 @@ static unsigned _to_binary(pcas_ast_t *e, uint8_t *data, unsigned index, struct 
                 case OP_TANH_INV:   add_token(TOK_TANH_INV); break;
                 default: break;
             }
-        
+
             index = _to_binary(ast_ChildGet(e, 0), data, index, lookup, err);
             add_token(TOK_CLOSE_PAR);
             break;

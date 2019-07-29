@@ -300,7 +300,7 @@ uint8_t operand_count(TokenType type) {
 
     if(type == TOK_LOG_BASE)
         return 2;
-    
+
     if(type == TOK_DERIV)
         return 3;
 
@@ -324,7 +324,7 @@ void translate(pcas_ast_t *e) {
     case TOK_POWER:      optype(e) = OP_POW; break;
     case TOK_SCIENTIFIC: {
         pcas_ast_t *op2;
-        
+
         optype(e) = OP_MULT;
 
         op2 = ast_MakeBinary(OP_POW, ast_MakeNumber(num_FromInt(10)), ast_ChildGet(e, 1));

@@ -36,7 +36,7 @@ static pcas_ast_t *gcd_add(pcas_ast_t *add, pcas_ast_t *b) {
 
     for(i = 1; i < ast_ChildLength(add); i++) {
         pcas_ast_t *temp_gcd, *child;
-        
+
         child = ast_ChildGet(add, i);
         temp_gcd = gcd(current_gcd, child);
 
@@ -199,7 +199,7 @@ bool factor_addition(pcas_ast_t *e, unsigned char flags) {
                         can_factor = flags & FAC_SIMPLE_ADDITION_EVALUATEABLE;
                     else
                         can_factor = flags & FAC_SIMPLE_ADDITION_NONEVALUATEABLE;
-                    
+
                     if(can_factor) {
                         simplify(append, SIMP_NORMALIZE | SIMP_RATIONAL | SIMP_EVAL);
                         ast_ChildAppend(e, append);
@@ -208,7 +208,7 @@ bool factor_addition(pcas_ast_t *e, unsigned char flags) {
                         ast_Cleanup(ast_ChildRemove(e, b));
 
                         ast_Cleanup(g);
-                        
+
                         changed = true;
                         break;
                     } else {
