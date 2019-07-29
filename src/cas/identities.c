@@ -142,7 +142,7 @@ pcas_id_t id_complex[ID_NUM_COMPLEX] = {
 
 typedef pcas_ast_t** Dictionary;
 
-#define dict_Get(dict, ast_symbol) 	dict[ast_symbol->op.symbol - 'A']
+#define dict_Get(dict, ast_symbol) 	dict[(ast_symbol)->op.symbol - 'A']
 
 void dict_Copy(Dictionary dest, Dictionary source) {
     unsigned i;

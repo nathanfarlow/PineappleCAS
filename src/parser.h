@@ -4,12 +4,12 @@
 #include "ast.h"
 #include "error.h"
 
-#define is_tok_unary_operator(tok)    (tok >= TOK_NEGATE && tok <= TOK_FACTORIAL)
-#define is_tok_binary_operator(tok)   (tok >= TOK_PLUS && tok <= TOK_ROOT)
+#define is_tok_unary_operator(tok)    ((tok) >= TOK_NEGATE && (tok) <= TOK_FACTORIAL)
+#define is_tok_binary_operator(tok)   ((tok) >= TOK_PLUS && (tok) <= TOK_ROOT)
 #define is_tok_operator(tok) (is_tok_unary_operator(tok) || is_tok_binary_operator(tok))
 
-#define is_tok_unary_function(tok)    (tok >= TOK_INT && tok <= TOK_TANH_INV)
-#define is_tok_nary_function(tok)     (tok == TOK_LOG_BASE || tok == TOK_DERIV)
+#define is_tok_unary_function(tok)    ((tok) >= TOK_INT && (tok) <= TOK_TANH_INV)
+#define is_tok_nary_function(tok)     ((tok) == TOK_LOG_BASE || (tok) == TOK_DERIV)
 #define is_tok_function(tok)          (is_tok_unary_function(tok) || is_tok_nary_function(tok))
 
 /*Ti Tokens, used for reading from yvars*/

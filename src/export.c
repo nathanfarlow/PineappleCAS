@@ -28,11 +28,11 @@ static uint8_t precedence(pcas_ast_t *e) {
     return 255;
 }
 
-#define is_right_operator_type(type) (type == OP_FACTORIAL)
+#define is_right_operator_type(type) ((type) == OP_FACTORIAL)
 
-#define need_paren(parent, child) ( ((parent->type == NODE_OPERATOR && is_op_operator(optype(parent)) && !is_op_commutative(optype(parent)) && precedence(child) <= precedence(parent)) \
+#define need_paren(parent, child) ( (((parent)->type == NODE_OPERATOR && is_op_operator(optype(parent)) && !is_op_commutative(optype(parent)) && precedence(child) <= precedence(parent)) \
                                     || precedence(child) < precedence(parent)) \
-                                    || (is_right_operator_type(optype(parent)) && child->type == NODE_NUMBER && mp_rat_compare_zero(child->op.num) < 0) )
+                                    || (is_right_operator_type(optype(parent)) && (child)->type == NODE_NUMBER && mp_rat_compare_zero((child)->op.num) < 0) )
 
 pcas_ast_t *rightmost(pcas_ast_t *e) {
     if(e->type == NODE_OPERATOR) {

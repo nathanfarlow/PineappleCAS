@@ -302,7 +302,7 @@ static bool eval_div(pcas_ast_t *e, unsigned short flags) {
     return changed; 
 }
 
-#define power_in_small_range(a, b) (mp_rat_compare_value(a->op.num, -1, 1) == 0 || (mp_rat_compare_value(a->op.num, 10, 1) <= 0 && mp_rat_compare_value(b->op.num, 10, 1) <= 0))
+#define power_in_small_range(a, b) (mp_rat_compare_value((a)->op.num, -1, 1) == 0 || (mp_rat_compare_value((a)->op.num, 10, 1) <= 0 && mp_rat_compare_value((b)->op.num, 10, 1) <= 0))
 
 static bool eval_pow(pcas_ast_t *e, unsigned short flags) {
     /*a^b*/
@@ -564,7 +564,7 @@ static bool eval_log(pcas_ast_t *e, unsigned short flags) {
     return false;
 }
 
-#define factorial_in_small_range(a) (mp_rat_compare_value(a->op.num, 10, 1) <= 0)
+#define factorial_in_small_range(a) (mp_rat_compare_value((a)->op.num, 10, 1) <= 0)
 
 static bool eval_factorial(pcas_ast_t *e, unsigned short flags) {
 

@@ -97,7 +97,7 @@ typedef struct _Tokenizer {
 } tokenizer_t;
 
 /*'0' through '9' and including '.'*/
-#define is_num(byte) ((byte >= 0x30 && byte <= 0x39) || byte == lookup[TOK_PERIOD].bytes[0])
+#define is_num(byte) (((byte) >= 0x30 && (byte) <= 0x39) || (byte) == lookup[TOK_PERIOD].bytes[0])
 
 mp_rat read_num(const uint8_t *equation, unsigned index, unsigned length, struct Identifier *lookup, unsigned *consumed) {
     mp_rat num;

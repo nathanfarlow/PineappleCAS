@@ -14,13 +14,13 @@ typedef enum {
     NODE_NUMBER, NODE_SYMBOL, NODE_OPERATOR
 } NodeType;
 
-#define is_op_commutative(op) (op == OP_ADD || op == OP_MULT)
+#define is_op_commutative(op) ((op) == OP_ADD || (op) == OP_MULT)
 
-#define is_op_operator(op) (op >= OP_ADD && op <= OP_LOG)
-#define is_op_function(op) (op >= OP_INT && op <= OP_TANH_INV)
+#define is_op_operator(op) ((op) >= OP_ADD && (op) <= OP_LOG)
+#define is_op_function(op) ((op) >= OP_INT && (op) <= OP_TANH_INV)
 
-#define is_op_nary(op) (op >= OP_ADD && op <= OP_LOG)
-#define is_op_unary(op) (op >= OP_FACTORIAL && op <= OP_TANH_INV)
+#define is_op_nary(op) ((op) >= OP_ADD && (op) <= OP_LOG)
+#define is_op_unary(op) ((op) >= OP_FACTORIAL && (op) <= OP_TANH_INV)
 
 typedef enum {
     /*nary*/
@@ -68,10 +68,10 @@ typedef enum {
 
 /*Shortcuts for NODE_OPERATOR*/
 #define optype(e)       e->op.operator.type
-#define isoptype(e, op) (e->type == NODE_OPERATOR && optype(e) == op)
+#define isoptype(e, op) ((e)->type == NODE_OPERATOR && optype(e) == (op))
 #define opbase(e)       e->op.operator.base
 
-#define is_ast_int(e, val) (e->type == NODE_NUMBER && mp_rat_compare_value(e->op.num, val, 1) == 0)
+#define is_ast_int(e, val) ((e)->type == NODE_NUMBER && mp_rat_compare_value((e)->op.num, val, 1) == 0)
 
 typedef struct _pcas_Node {
 
