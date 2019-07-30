@@ -104,7 +104,7 @@ bool expand(pcas_ast_t *e, unsigned char flags) {
             intermediate_change = true;
             did_change = true;
             continue;
-        } else if((flags & EXP_DISTRIB_DIVISION) && isoptype(e, OP_POW)) {
+        } else if(isoptype(e, OP_POW)) {
             pcas_ast_t *exponent, *div_node;
 
             div_node = ast_ChildGet(e, 0);
