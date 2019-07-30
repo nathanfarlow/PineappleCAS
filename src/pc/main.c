@@ -368,7 +368,7 @@ int run_derivative(int argc, char **argv) {
     unsigned trimmed_len;
 
     pcas_error_t err;
-    pcas_ast_t *e = NULL, *e_copy = NULL, *respect_to = NULL, *at = NULL;
+    pcas_ast_t *e = NULL, *respect_to = NULL, *at = NULL;
 
     uint8_t *output;
     unsigned output_len;
@@ -408,13 +408,6 @@ int run_derivative(int argc, char **argv) {
 
     if(err == E_SUCCESS && e != NULL && respect_to != NULL && at != NULL) {
 
-        e_copy = ast_Copy(e);
-        replace_node(e, ast_MakeOperator(OP_DERIV));
-
-        ast_ChildAppend(e, e_copy);
-        ast_ChildAppend(e, respect_to);
-        ast_ChildAppend(e, at);
-
         printf("\n");
         dbg_print_tree(e, 4);
 
@@ -430,7 +423,8 @@ int run_derivative(int argc, char **argv) {
 
         printf("Taking derivative...\n");
 
-        eval_derivative_nodes(e);
+        derivative(e, respect_to, at);
+
         printf("Simplifying...\n\n");
 
         simplify(e, SIMP_ALL);
@@ -451,6 +445,8 @@ int run_derivative(int argc, char **argv) {
     }
 
     ast_Cleanup(e);
+    ast_Cleanup(respect_to);
+    ast_Cleanup(at);
 
     return 0;
 }

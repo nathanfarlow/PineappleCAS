@@ -55,7 +55,7 @@ void draw_background() {
 typedef enum {
     GUI_LABEL,
     GUI_CHECKBOX,
-    GUI_TEXTBOX,
+    GUI_CHARSELECT,
     GUI_DROPDOWN,
     GUI_BUTTON
 } GuiType;
@@ -74,6 +74,8 @@ typedef struct {
     bool checked;
     /*For dropdowns*/
     unsigned index;
+    /*for char select*/
+    char character;
 
     /*For dropdowns*/
     unsigned selected_index;
@@ -171,16 +173,26 @@ void draw_button(view_t *v) {
     draw_string_centered(v->text, v->x + v->w / 2, v->y + v->h / 2 - TEXT_HEIGHT / 2);
 }
 
+void draw_charselect(view_t *v) {
+    char buffer[2] = {0};
+    gfx_SetColor(COLOR_PURPLE);
+    gfx_Rectangle(v->x, v->y, v->w, v->h);
+
+    buffer[0] = v->character;
+    draw_string_centered(buffer, v->x + v->w / 2, v->y + v->h / 2 - TEXT_HEIGHT / 2);
+}
+
 void view_draw(view_t *v) {
 
     gfx_SetTextBGColor(COLOR_TRANSPARENT);
     gfx_SetTextFGColor(COLOR_TEXT);
 
     switch(v->type) {
-    case GUI_LABEL:     draw_label(v);      break;
-    case GUI_CHECKBOX:  draw_checkbox(v);   break;
-    case GUI_DROPDOWN:  draw_dropdown(v);   break;
-    case GUI_BUTTON:    draw_button(v);     break;
+    case GUI_LABEL:         draw_label(v);      break;
+    case GUI_CHECKBOX:      draw_checkbox(v);   break;
+    case GUI_DROPDOWN:      draw_dropdown(v);   break;
+    case GUI_BUTTON:        draw_button(v);     break;
+    case GUI_CHARSELECT:    draw_charselect(v); break;
     default: return;
     }
 
@@ -222,6 +234,12 @@ view_t *view_create_label(int x, int y, char *text) {
     return view_create(GUI_LABEL, x, y, 0, 8, text);
 }
 
+view_t *view_create_charselect(int x, int y) {
+    view_t *v = view_create(GUI_CHARSELECT, x, y, 16, 16, NULL);
+    v->character = 'X';
+    return v;
+}
+
 void draw_context(Context c) {
     unsigned i;
 
@@ -239,11 +257,11 @@ void draw_context(Context c) {
             break;
     }
 
+    gfx_SetTextFGColor(COLOR_TEXT);
     if(c == CONTEXT_EVALUATE) {
         gfx_PrintStringXY("From: ", 124 + 25, 96 + 12 + 10 - TEXT_HEIGHT / 2);
         gfx_PrintStringXY("To: ", 124 + 25, 96 + 12 + 24 + 10 - TEXT_HEIGHT / 2);
     } else if(c == CONTEXT_HELP) {
-        gfx_SetTextFGColor(COLOR_TEXT);
         gfx_PrintStringXY("View https://github.com/", 115, 80 + 10 * 0);
         gfx_PrintStringXY("nathanfarlow/PineappleCAS", 115, 80 + 10 * 1);
         gfx_PrintStringXY("for usage instructions.", 115, 80 + 10 * 2);
@@ -255,6 +273,8 @@ void draw_context(Context c) {
         gfx_PrintStringXY("Thanks Adriweb and Mateo", 115, 80 + 10 * 8);
         gfx_PrintStringXY("for help and contributions", 115, 80 + 10 * 9);
         gfx_PrintStringXY("to this project.", 115, 80 + 10 * 10);
+    } else if(c == CONTEXT_DERIVATIVE) {
+        gfx_PrintStringXY("Respect to: ", 124, 80);
     }
 
     for(i = 0; i < elements_in_context[c]; i++) {
@@ -292,6 +312,9 @@ void execute_simplify();
 void execute_evaluate();
 void execute_expand();
 void execute_derivative();
+
+/*the key lookup tables for os_GetCSC()*/
+const char alpha_table[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5C, 0x00, 0x57, 0x52, 0x4D, 0x48, 0x00, 0x00, 0x00, 0x00, 0x56, 0x51, 0x4C, 0x47, 0x00, 0x00, 0x00, 0x5A, 0x55, 0x50, 0x4B, 0x46, 0x43, 0x00, 0x00, 0x59, 0x54, 0x4F, 0x4A, 0x45, 0x42, 0x58, 0x00, 0x58, 0x53, 0x4E, 0x49, 0x44, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 void handle_input(uint8_t key) {
 
@@ -354,8 +377,9 @@ void handle_input(uint8_t key) {
 
             break;
         }
+    default: {
+        view_t *v = context_lookup[current_context][active_index];
 
-    default:
         if(key == sk_Up) {
             if(active_index == 0) {
                 context_lookup[current_context][active_index]->active = false;
@@ -392,8 +416,6 @@ void handle_input(uint8_t key) {
             context_lookup[current_context][active_index]->active = true;
             draw_context(CONTEXT_FUNCTION);
         } else if(key == sk_Enter) {
-            view_t *v = context_lookup[current_context][active_index];
-
             switch(v->type) {
             case GUI_CHECKBOX:
                 v->checked = !v->checked;
@@ -413,7 +435,17 @@ void handle_input(uint8_t key) {
                 break;
             }
 
+        } else {
+            if(v->type == GUI_CHARSELECT) {
+                char val = alpha_table[key];
+
+                if(val != 0) {
+                    v->character = val;
+                    draw_context(current_context);
+                }
+            }
         }
+    }
 
         break;
     }
@@ -447,8 +479,8 @@ void gui_Init() {
     expand_context[1] = view_create_checkbox(124, 80 + 12 * 1, "Expand powers", true);
     expand_context[2] = button_expand = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 184, "Expand");
 
-    derivative_context[0] = view_create_checkbox(124, 80, "Full simplify result", false);
-    derivative_context[0] = button_derivative = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 184, "Differentiate");
+    derivative_context[0] = view_create_charselect(124 + 90, 80 - (16 - TEXT_HEIGHT) / 2);
+    derivative_context[1] = button_derivative = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 184, "Differentiate");
 
     console_button = view_create_button(LCD_WIDTH / 2, LCD_HEIGHT - LCD_HEIGHT / 6 - 20, "Close");
 
@@ -574,7 +606,7 @@ void compile_all() {
 
 char *token_table[21] = {
     ti_Y1, ti_Y2, ti_Y3, ti_Y4, ti_Y5, ti_Y6, ti_Y7, ti_Y8, ti_Y9, ti_Y0,
-    ti_Str1, ti_Str2, ti_Str3, ti_Str4, ti_Str5, ti_Str6, ti_Str7, ti_Str8, ("\xAA\x8\0"), ("\xAA\x9\0"), /*Str0 is misnamed and ti_Str9 does not exist?*/
+    ti_Str1, ti_Str2, ti_Str3, ti_Str4, ti_Str5, ti_Str6, ti_Str7, ti_Str8, ("\xAA\x8\0"), ("\xAA\x9\0"), /*ti_Str0 is misnamed and ti_Str9 does not exist in the current toolchain*/
     ti_Ans
 };
 
@@ -618,8 +650,19 @@ void write_to_dropdown_index(unsigned index, pcas_ast_t *expression, pcas_error_
     var = ti_OpenVar(token_table[index], "w", index > 9 ? TI_STRING_TYPE : TI_EQU_TYPE);
 
     if(var != NULL) {
+
+        /*Write to var*/
         bin = export_to_binary(expression, &bin_len, ti_table, err);
         ti_Write(bin, bin_len, 1, var);
+
+        /*If var is a yvar, enable it*/
+        if(var <= 9) {
+            /*Thanks Mateo: https://www.cemetech.net/forum/viewtopic.php?t=15947*/
+            uint8_t *status = ti_GetVATPtr(var);
+            status--;
+            *status |= 1;
+        }
+        
         ti_Close(var);
     } else {
         *err = E_GENERIC;
@@ -764,6 +807,7 @@ void execute_evaluate() {
             if(should_eval) {
                 console_write("Evaluating constants..");
                 eval(expression, EVAL_ALL);
+                simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);
                 simplify_canonical_form(expression);
             }
 
@@ -854,9 +898,6 @@ void execute_expand() {
 void execute_derivative() {
     pcas_ast_t *expression;
     pcas_error_t err;
-    bool should_simplify;
-
-    should_simplify = derivative_context[0]->checked;
 
     console_write("Parsing input...");
 
@@ -865,18 +906,15 @@ void execute_derivative() {
     if(err == E_SUCCESS) {
 
         if(expression != NULL) {
+            pcas_ast_t *respect_to = parse((uint8_t*)&derivative_context[0]->character, 1, str_table, &err);
 
             console_write("Differentiating...");
 
             simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
-            /*
-            derivative(expression);
-            */
-            if(should_simplify) {
-                console_write("Performing full simplification...");
-                compile_all();
-                simplify(expression, SIMP_ALL);
-            }
+
+            derivative(expression, respect_to, respect_to);
+
+            simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);
             simplify_canonical_form(expression);
 
             console_write("Exporting...");

@@ -250,12 +250,10 @@ bool test_Run(test_t *t) {
             break;
         }
 
-        actual = ast_MakeOperator(OP_DERIV);
-        ast_ChildAppend(actual, ast_Copy(a)); /*value to take the derivative of*/
-        ast_ChildAppend(actual, ast_Copy(b)); /*variable in respect to*/
-        ast_ChildAppend(actual, ast_Copy(b)); /*evaluate at*/
-
+        actual = a;
         expected = c;
+
+        derivative(a, b, b);
 
         /*We do this to change -1 * 23 to -23 to be able to compare*/
         simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
@@ -265,8 +263,6 @@ bool test_Run(test_t *t) {
         simplify(actual, SIMP_ALL);
 
         passed = check(t, actual, expected);
-
-        ast_Cleanup(actual);
 
         break;
     }

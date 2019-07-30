@@ -54,15 +54,16 @@ bool eval_derivative_nodes(pcas_ast_t *e) {
     pcas_ast_t *expr, *respect_to, *at;
     pcas_ast_t *child;
 
+    bool changed = false;
+
     if(e->type != NODE_OPERATOR)
         return false;
 
-    if(!isoptype(e, OP_DERIV)) {
-        bool changed = false;
-        for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
-            changed |= eval_derivative_nodes(child);
+    for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
+        changed |= eval_derivative_nodes(child);
+
+    if(!isoptype(e, OP_DERIV))
         return changed;
-    }
 
     expr = ast_ChildGet(e, 0);
     /*Have to copy these because node might change away from deriv node*/
@@ -124,4 +125,16 @@ bool eval_derivative_nodes(pcas_ast_t *e) {
     ast_Cleanup(at);
 
     return true;
+}
+
+void derivative(pcas_ast_t *e, pcas_ast_t *respect_to, pcas_ast_t *eval_at) {
+    pcas_ast_t *deriv_node = ast_MakeOperator(OP_DERIV);
+
+    ast_ChildAppend(deriv_node, ast_Copy(e));           /*value to take the derivative of*/
+    ast_ChildAppend(deriv_node, ast_Copy(respect_to));  /*variable in respect to*/
+    ast_ChildAppend(deriv_node, ast_Copy(eval_at));     /*evaluate at*/
+
+    eval_derivative_nodes(deriv_node);
+    
+    replace_node(e, deriv_node);
 }
