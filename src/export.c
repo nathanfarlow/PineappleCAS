@@ -52,6 +52,9 @@ pcas_ast_t *leftmost(pcas_ast_t *e) {
         switch(optype(e)) {
         case OP_POW:
         case OP_ROOT:
+            /*For the sqrt special case*/
+            if(is_ast_int(ast_ChildGet(e, 0), 2))
+                return e;
         case OP_LOG:
         case OP_FACTORIAL:
             return leftmost(opbase(e));
@@ -140,9 +143,9 @@ static unsigned _to_binary(pcas_ast_t *e, uint8_t *data, unsigned index, struct 
                 child = ast_ChildGet(e, i);
                 next = child->next;
 
-                /*Always put parentheses around root operator.
-                For example, -1 * 2root2 should be -(2root2) */
-                root_special_case = isoptype(child, OP_ROOT);
+                /*Always put parentheses around root operator unless it is sqrt(
+                For example, -1 * 3root2 should be -(3root2) */
+                root_special_case = isoptype(child, OP_ROOT) && !is_ast_int(ast_ChildGet(child, 0), 2);
 
                 if(is_ast_int(child, -1)) {
                     add_token(TOK_NEGATE);
@@ -168,7 +171,7 @@ static unsigned _to_binary(pcas_ast_t *e, uint8_t *data, unsigned index, struct 
             }
 
             child = ast_ChildGetLast(e);
-            root_special_case = isoptype(child, OP_ROOT);
+            root_special_case = isoptype(child, OP_ROOT) && !is_ast_int(ast_ChildGet(child, 0), 2);
 
             if(!is_ast_int(child, 1)) {
                 if(need_paren(e, child) || root_special_case) add_token(TOK_OPEN_PAR);
@@ -207,7 +210,7 @@ static unsigned _to_binary(pcas_ast_t *e, uint8_t *data, unsigned index, struct 
                 if(need_paren(e, b)) add_token(TOK_OPEN_PAR);
                 index = _to_binary(b, data, index, lookup, err);
                 if(need_paren(e, b)) add_token(TOK_CLOSE_PAR);
-                
+
                 add_token(TOK_CLOSE_PAR);
             } else {
                 if(need_paren(e, a)) add_token(TOK_OPEN_PAR);
