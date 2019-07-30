@@ -201,15 +201,25 @@ static unsigned _to_binary(pcas_ast_t *e, uint8_t *data, unsigned index, struct 
             a = ast_ChildGet(e, 0);
             b = ast_ChildGet(e, 1);
 
-            if(need_paren(e, a)) add_token(TOK_OPEN_PAR);
-            index = _to_binary(a, data, index, lookup, err);
-            if(need_paren(e, a)) add_token(TOK_CLOSE_PAR);
+            if(is_ast_int(a, 2)) {
+                add_token(TOK_SQRT);
 
-            add_token(TOK_ROOT);
+                if(need_paren(e, b)) add_token(TOK_OPEN_PAR);
+                index = _to_binary(b, data, index, lookup, err);
+                if(need_paren(e, b)) add_token(TOK_CLOSE_PAR);
+                
+                add_token(TOK_CLOSE_PAR);
+            } else {
+                if(need_paren(e, a)) add_token(TOK_OPEN_PAR);
+                index = _to_binary(a, data, index, lookup, err);
+                if(need_paren(e, a)) add_token(TOK_CLOSE_PAR);
 
-            if(need_paren(e, b)) add_token(TOK_OPEN_PAR);
-            index = _to_binary(b, data, index, lookup, err);
-            if(need_paren(e, b)) add_token(TOK_CLOSE_PAR);
+                add_token(TOK_ROOT);
+
+                if(need_paren(e, b)) add_token(TOK_OPEN_PAR);
+                index = _to_binary(b, data, index, lookup, err);
+                if(need_paren(e, b)) add_token(TOK_CLOSE_PAR);
+            }
 
             break;
         }
