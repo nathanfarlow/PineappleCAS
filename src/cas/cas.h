@@ -37,38 +37,43 @@
 */
 #define SIMP_LIKE_TERMS                 (1u << 4u)
 /*
+    Change derivative nodes to their evaluated derivative
+    sin(X) + deriv(X^2,X,2) becomes sin(X) + 4
+*/
+#define SIMP_DERIV                      (1u << 5u)
+/*
     Simplifies inverses like sin(asin(X)) = X
     as well as log identities
 */
-#define SIMP_ID_GENERAL                 (1u << 5u)
+#define SIMP_ID_GENERAL                 (1u << 6u)
 /*
     Simplifies trig identities like sin(X)^2 + cos(X)^2 = 1
 
     ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG
     ANY SIMP_ID WILL ALSO CALL TO EXPAND() AND FACTOR()
 */
-#define SIMP_ID_TRIG                    (1u << 6u)
+#define SIMP_ID_TRIG                    (1u << 7u)
 /*
     Simplifies trig constants like sin(pi/4) = sqrt(2)/2
 
     ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG
     ANY SIMP_ID WILL ALSO CALL TO EXPAND() AND FACTOR()
 */
-#define SIMP_ID_TRIG_CONSTANTS          (1u << 7u)
+#define SIMP_ID_TRIG_CONSTANTS          (1u << 8u)
 /*
     Simplifies hyperbolic identities like sinh(X)/cosh(X) = tanh(X)
 
     ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG
     ANY SIMP_ID WILL ALSO CALL TO EXPAND() AND FACTOR()
 */
-#define SIMP_ID_HYPERBOLIC              (1u << 8u)
+#define SIMP_ID_HYPERBOLIC              (1u << 9u)
 /*
     Simplifies complex functins like sin(z) and ln(z)
 
     ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG
     ANY SIMP_ID WILL ALSO CALL TO EXPAND() AND FACTOR()
 */
-#define SIMP_ID_COMPLEX                 (1u << 9u)
+#define SIMP_ID_COMPLEX                 (1u << 10u)
 /*
     Simplify all identities
 

@@ -80,16 +80,17 @@ bool eval_derivative_nodes(pcas_ast_t *e) {
     /*Hardcode multiplication rules*/
     else if(isoptype(expr, OP_MULT)) {
         pcas_ast_t *copy = ast_Copy(e);
-        id_Execute(copy, &id_deriv_constant_rule, false);
+        changed |= id_Execute(copy, &id_deriv_constant_rule, false);
 
         /*Multiplication of a constant*/
         if(is_constant(copy, respect_to)) {
             replace_node(e, copy);
+            changed = true;
         }
         /*Apply product rule*/
         else {
             ast_Cleanup(copy);
-            id_Execute(e, &id_deriv_product_rule, false);
+            changed |= id_Execute(e, &id_deriv_product_rule, false);
         }
     }
     /*Hardcode sum rule*/
@@ -106,25 +107,29 @@ bool eval_derivative_nodes(pcas_ast_t *e) {
         }
 
         replace_node(e, n);
+        changed = true;
     }
     /*Hardcode power rule because we have to check if the power is a constant*/
     else if(isoptype(expr, OP_POW) && is_constant(ast_ChildGet(expr, 1), respect_to)) {
-        id_Execute(e, &id_deriv_power_rule, false);
+        changed |= id_Execute(e, &id_deriv_power_rule, false);
     } else {
         /*While is necessary because of power rules.*/
-        while(id_ExecuteTable(e, id_derivative, ID_NUM_DERIV, false));
+        while(id_ExecuteTable(e, id_derivative, ID_NUM_DERIV, false))
+            changed = true;
     }
 
     for(child = ast_ChildGet(e, 0); child != NULL; child = child->next)
-        eval_derivative_nodes(child);
+        changed |= eval_derivative_nodes(child);
 
-    if(!ast_Compare(respect_to, at))
-        substitute(e, respect_to, at);
+    if(changed) {
+        if(!ast_Compare(respect_to, at))
+            substitute(e, respect_to, at);
+    }
 
     ast_Cleanup(respect_to);
     ast_Cleanup(at);
 
-    return true;
+    return changed;
 }
 
 void derivative(pcas_ast_t *e, pcas_ast_t *respect_to, pcas_ast_t *eval_at) {

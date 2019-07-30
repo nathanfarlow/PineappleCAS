@@ -679,7 +679,7 @@ void execute_simplify() {
     pcas_ast_t *expression;
     pcas_error_t err;
 
-    unsigned short flags = SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL;
+    unsigned short flags = SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_DERIV;
 
     if(simplify_context[0]->checked) {
         flags |= SIMP_LIKE_TERMS;
@@ -912,6 +912,7 @@ void execute_derivative() {
 
             simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
 
+            /*Automatically takes care of embedded derivatives*/
             derivative(expression, respect_to, respect_to);
 
             simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);

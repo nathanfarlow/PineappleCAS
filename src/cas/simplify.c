@@ -765,6 +765,11 @@ bool simplify(pcas_ast_t *e, unsigned short flags) {
             while(simplify_rational(e))     intermediate_change = did_change = true;
         if(flags & SIMP_EVAL)
             while(eval(e, EVAL_EASY))       intermediate_change = did_change = true;
+        
+        if(flags & SIMP_DERIV) {
+            intermediate_change |= eval_derivative_nodes(e);
+            did_change |= intermediate_change;
+        }
 
         /*Simplify identities. First factor the expression and simplify identities.
         Then expand the expression and simplify identities that we missed. Only factor and expand if 
