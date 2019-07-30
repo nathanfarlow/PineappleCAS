@@ -82,14 +82,20 @@ bool expand(pcas_ast_t *e, unsigned char flags) {
                     if(intermediate_change)
                         break;
                 }
+
+                if(intermediate_change)
+                    break;
             }
 
-        } else if((flags & EXP_DISTRIB_DIVISION) && isoptype(e, OP_DIV)) {
+        } 
+
+        if((flags & EXP_DISTRIB_DIVISION) && isoptype(e, OP_DIV)) {
             pcas_ast_t *num, *den;
 
             num = ast_ChildGet(e, 0);
             den = ast_ChildGet(e, 1);
 
+            /*Split A/B into A * (1/B)*/
             replace_node(e, ast_MakeBinary(OP_MULT, ast_Copy(num), ast_MakeBinary(OP_DIV, ast_MakeNumber(num_FromInt(1)), ast_Copy(den))));
 
             /*This could be dangerous, but we'll cross that bridge when we get there.*/
@@ -97,8 +103,28 @@ bool expand(pcas_ast_t *e, unsigned char flags) {
 
             intermediate_change = true;
             did_change = true;
+            continue;
+        } else if((flags & EXP_DISTRIB_DIVISION) && isoptype(e, OP_POW)) {
+            pcas_ast_t *exponent, *div_node;
 
-        } else if((flags & EXP_EXPAND_POWERS) && isoptype(e, OP_POW)) {
+            div_node = ast_ChildGet(e, 0);
+            exponent = ast_ChildGet(e, 1);
+
+            if(isoptype(div_node, OP_DIV)) {
+                pcas_ast_t *new_num, *new_den, *new_div;
+                new_num = ast_MakeBinary(OP_POW, ast_Copy(ast_ChildGet(div_node, 0)), ast_Copy(exponent));
+                new_den = ast_MakeBinary(OP_POW, ast_Copy(ast_ChildGet(div_node, 1)), ast_Copy(exponent));
+                new_div = ast_MakeBinary(OP_DIV, new_num, new_den);
+
+                replace_node(e, new_div);
+
+                intermediate_change = true;
+                did_change = true;
+                continue;
+            }
+        }
+
+        if((flags & EXP_EXPAND_POWERS) && isoptype(e, OP_POW)) {
             mp_int val;
             pcas_ast_t *base, *power, *replacement;
 
@@ -120,7 +146,6 @@ bool expand(pcas_ast_t *e, unsigned char flags) {
 
                 intermediate_change = true;
                 did_change = true;
-                continue;
             }
 
         }
