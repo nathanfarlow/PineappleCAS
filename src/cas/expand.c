@@ -104,16 +104,41 @@ bool expand(pcas_ast_t *e, unsigned char flags) {
             intermediate_change = true;
             did_change = true;
             continue;
-        } else if(isoptype(e, OP_POW)) {
-            pcas_ast_t *exponent, *div_node;
+        }
 
-            div_node = ast_ChildGet(e, 0);
-            exponent = ast_ChildGet(e, 1);
+        if(optype(e) == OP_POW) {
+            pcas_ast_t *base, *power;
 
-            if(isoptype(div_node, OP_DIV)) {
+            base = ast_ChildGet(e, 0);
+            power = ast_ChildGet(e, 1);
+
+            /*Change (AB)^2 to A^2B^2*/
+
+            if(isoptype(base, OP_MULT)) {
+                unsigned j;
+                pcas_ast_t *replacement = ast_MakeOperator(OP_MULT);
+
+                for(j = 0; j < ast_ChildLength(base); j++) {
+                    pcas_ast_t *cur = ast_ChildGet(base, j);
+
+                    ast_ChildAppend(replacement, ast_MakeBinary(OP_POW,
+                                                                ast_Copy(cur),
+                                                                ast_Copy(power)
+                                                                ));
+                }
+
+                replace_node(e, replacement);
+
+                intermediate_change = true;
+                did_change = true;
+                continue;
+            }
+
+            /*Change (A/B)^2 to A^2/B^2&*/
+            else if(isoptype(base, OP_DIV)) {
                 pcas_ast_t *new_num, *new_den, *new_div;
-                new_num = ast_MakeBinary(OP_POW, ast_Copy(ast_ChildGet(div_node, 0)), ast_Copy(exponent));
-                new_den = ast_MakeBinary(OP_POW, ast_Copy(ast_ChildGet(div_node, 1)), ast_Copy(exponent));
+                new_num = ast_MakeBinary(OP_POW, ast_Copy(ast_ChildGet(base, 0)), ast_Copy(power));
+                new_den = ast_MakeBinary(OP_POW, ast_Copy(ast_ChildGet(base, 1)), ast_Copy(power));
                 new_div = ast_MakeBinary(OP_DIV, new_num, new_den);
 
                 replace_node(e, new_div);
@@ -122,32 +147,32 @@ bool expand(pcas_ast_t *e, unsigned char flags) {
                 did_change = true;
                 continue;
             }
-        }
 
-        if((flags & EXP_EXPAND_POWERS) && isoptype(e, OP_POW)) {
-            mp_int val;
-            pcas_ast_t *base, *power, *replacement;
+            if(flags & EXP_EXPAND_POWERS) {
+                mp_int val;
+                pcas_ast_t *base, *power, *replacement;
 
-            base = ast_ChildGet(e, 0);
-            power = ast_ChildGet(e, 1);
+                base = ast_ChildGet(e, 0);
+                power = ast_ChildGet(e, 1);
 
-            if(isoptype(base, OP_ADD) && mp_rat_is_integer(power->op.num)) {
-                val = &power->op.num->num;
-                replacement = ast_MakeOperator(OP_MULT);
+                if(isoptype(base, OP_ADD) && mp_rat_is_integer(power->op.num)) {
+                    val = &power->op.num->num;
+                    replacement = ast_MakeOperator(OP_MULT);
 
-                while(mp_int_compare_zero(val) > 0) {
+                    while(mp_int_compare_zero(val) > 0) {
 
-                    ast_ChildAppend(replacement, ast_Copy(base));
+                        ast_ChildAppend(replacement, ast_Copy(base));
 
-                    mp_int_sub_value(val, 1, val);
+                        mp_int_sub_value(val, 1, val);
+                    }
+
+                    replace_node(e, replacement);
+
+                    intermediate_change = true;
+                    did_change = true;
+                    continue;
                 }
-
-                replace_node(e, replacement);
-
-                intermediate_change = true;
-                did_change = true;
             }
-
         }
 
     } while(intermediate_change);

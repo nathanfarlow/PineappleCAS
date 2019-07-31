@@ -127,8 +127,9 @@ pcas_id_t id_hyperbolic[ID_NUM_HYPERBOLIC] = {
 };
 
 pcas_id_t id_complex[ID_NUM_COMPLEX] = {
+    {"(-A)^(X/Y)", "e^(ipiX/Y)A^(X/Y"},
     {"1/i", "-i"},
-    {"e^(X(I+Ji", "cos(X)+isin(X"},
+    {"e^(I+Ji", "e^I(cos(J)+isin(J"},
     {"(I+Ji)^X", "e^(Xln(I+Ji"},
     {"X^(I+Ji", "e^((I+Ji)ln(X"},
     {"abs(I+Ji", "sqrt(I^2+J^2"},

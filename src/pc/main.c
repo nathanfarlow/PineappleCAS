@@ -338,7 +338,7 @@ int run_test(int argc, char **argv) {
     delta = clock();
     for(i = 0; i < len; i++) {
         test_t *t = arr[i];
-        printf("Running test %d/%d... ", i, len);
+        printf("Running test %d/%d on line %d... ", i + 1, len, t->line);
         if(!test_Run(t)) {
             puts("[FAIL]");
             failed++;

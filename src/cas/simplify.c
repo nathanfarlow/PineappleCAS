@@ -189,28 +189,6 @@ bool simplify_normalize(pcas_ast_t *e) {
             )));
 
             changed = true;
-        } else if(optype(e) == OP_POW) {
-            pcas_ast_t *base, *power;
-
-            base = ast_ChildGet(e, 0);
-            power = ast_ChildGet(e, 1);
-
-            if(isoptype(base, OP_MULT)) {
-                unsigned j;
-                pcas_ast_t *replacement = ast_MakeOperator(OP_MULT);
-
-                for(j = 0; j < ast_ChildLength(base); j++) {
-                    pcas_ast_t *cur = ast_ChildGet(base, j);
-
-                    ast_ChildAppend(replacement, ast_MakeBinary(OP_POW,
-                                                                ast_Copy(cur),
-                                                                ast_Copy(power)
-                                                                ));
-                }
-
-                replace_node(e, replacement);
-                changed = true;
-            }
         }
     } else if(e->type == NODE_NUMBER && !mp_rat_is_integer(e->op.num)) {
         mp_rat num, den;
@@ -751,11 +729,11 @@ bool simplify_identities(pcas_ast_t *e, unsigned short flags) {
     Returns true if ast was changed
 */
 bool simplify(pcas_ast_t *e, unsigned short flags) {
-    bool did_change = false, intermediate_change, factor_changed;
+    bool did_change = false, intermediate_change, expand_changed;
 
     do {
         intermediate_change = false;
-        factor_changed = false;
+        expand_changed = false;
 
         if(flags & SIMP_NORMALIZE)
             while(simplify_normalize(e))    intermediate_change = did_change = true;
@@ -776,31 +754,26 @@ bool simplify(pcas_ast_t *e, unsigned short flags) {
         at least one id flag is set. The expression remains in the expanded state at the end of simplify().*/
 
         if(flags & SIMP_ID_ALL) {
-            factor_changed = factor(e, FAC_SIMPLE_ADDITION_EVALUATEABLE | FAC_SIMPLE_ADDITION_NONEVALUATEABLE);
+            factor(e, FAC_SIMPLE_ADDITION_EVALUATEABLE | FAC_SIMPLE_ADDITION_NONEVALUATEABLE);
 
             intermediate_change |= simplify_identities(e, flags);
             did_change |= intermediate_change;
         }
 
-        if(factor_changed) {
-            bool expand_changed;
+        if(flags & SIMP_ID_ALL) {
+            expand_changed = expand(e, EXP_DISTRIB_NUMBERS | EXP_DISTRIB_MULTIPLICATION | EXP_DISTRIB_DIVISION);
 
-            if(flags & SIMP_ID_ALL) {
-                expand_changed = expand(e, EXP_DISTRIB_NUMBERS | EXP_DISTRIB_MULTIPLICATION | EXP_DISTRIB_DIVISION);
+            if(expand_changed) {
 
-                if(expand_changed) {
+                /*Expand leaves constants unevaluated and commutative operators with 1 or 0 children.*/
+                simplify(e, SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_LIKE_TERMS);
 
-                    /*Expand leaves constants unevaluated and commutative operators with 1 or 0 children.*/
-                    simplify(e, SIMP_COMMUTATIVE | SIMP_EVAL | SIMP_LIKE_TERMS);
+                intermediate_change |= simplify_identities(e, flags);
+                did_change |= intermediate_change;
 
-                    intermediate_change |= simplify_identities(e, flags);
-                    did_change |= intermediate_change;
-
-                    /*Fix the expansion of division here*/
-                    simplify(e, SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);
-                }
+                /*Fix the expansion of division here*/
+                simplify(e, SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);
             }
-
         }
 
         /*Simplify like terms*/

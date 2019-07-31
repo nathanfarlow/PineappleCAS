@@ -202,11 +202,11 @@ simplify; cos(I+Ji; cos(I)cosh(J)_isin(I)sinh(J)
 simplify; cos(Ji; cosh(J)
 simplify; cos(i; cosh(1
 
-simplify; e^((I+Ji)X; cos(X)+isin(X
+simplify; e^(iX; cos(X)+isin(X
 
 #These identities are simplified twice
-simplify; (I+Ji)^X; cos(X)+isin(X)
-simplify; X^(I+Ji; cos(ln(X))+isin(ln(X))
+simplify; (I+Ji)^X; cos(Xatan(J/I))(I^2+J^2)^(X/2)+(I^2+J^2)^(X/2)isin(Xatan(J/I))
+simplify; X^(I+Ji; cos(ln(X)J)X^I+X^Iisin(ln(X)J)
 
 #HOW I cannot believe these actually work
 simplify; i^i; 1/e^(pi/2)
@@ -227,6 +227,9 @@ simplify; i^6; -1
 simplify; i^7; -i
 
 simplify; 1/i; -i
+
+simplify; sqrt(2+i); (4root5)cos(atan(1/2)/2)+i(4root5)sin(atan(1/2)/2)
+simplify e^(ipi/2); i
 
 simplify; sin(X) + deriv(X^2, X, X); sin(X) + 2X
 simplify; Xderiv(sin(X),X,pi); -X
@@ -265,9 +268,9 @@ expand; (ABC)^6; A^6B^6C^6
 
 #Derivative tests
 deriv; X; X; 1
-deriv; sin(X)/ln(X); X; ((-sin(X))/X+ln(X)cos(X))/ln(X)^2
+deriv; sin(X)/ln(X); X; (-sin(X))/(Xln(X)^2)+cos(X)/ln(X)
 deriv; e^(5X); X; 5e^(5X);
-deriv; X^X; X; (ln(X)+1)X^X
+deriv; X^X; X; X^X+ln(X)X^X
 deriv; ln(X); X; 1/X
 
 #log base 3 of X

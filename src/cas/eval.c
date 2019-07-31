@@ -419,7 +419,7 @@ static bool eval_pow(pcas_ast_t *e, unsigned short flags) {
         b = a;
         a = ast_ChildGet(temp, 1);
 
-        if(mp_rat_is_integer(a->op.num) && mp_rat_is_integer(b->op.num)) {
+        if(mp_rat_is_integer(a->op.num) && mp_rat_is_integer(b->op.num) && mp_rat_compare_zero(b->op.num) > 0) {
             mp_int answer, check;
             mp_small small;
             /*Set answer = small root of a*/
