@@ -120,6 +120,36 @@ pcas_id_t id_trig_constants[ID_NUM_TRIG_CONSTANTS] = {
     {"tan(pi", "0"}
 };
 
+pcas_id_t id_trig_inv_constants[ID_NUM_TRIG_INV_CONSTANTS] = {
+    {"asin(-1", "-pi/2"},
+    {"asin(-sqrt(3)/2", "-pi/3"},
+    {"asin(-1/2^(1/2", "-pi/4"},
+    {"asin(-1/2", "-pi/6"},
+    {"asin(0", "0"},
+    {"asin(1/2", "pi/6"},
+    {"asin(1/2^(1/2)", "pi/4"},
+    {"asin(sqrt(3)/2", "pi/3"},
+    {"asin(1", "pi/2"},
+
+    {"acos(-1", "pi"},
+    {"acos(-sqrt(3)/2", "5pi/6"},
+    {"acos(-1/2^(1/2)", "3pi/4"},
+    {"acos(-1/2", "2pi/3"},
+    {"acos(0", "pi/2"},
+    {"acos(1/2", "pi/3"},
+    {"acos(1/2^(1/2)", "pi/4"},
+    {"acos(sqrt(3)/2", "pi/6"},
+    {"acos(1", "0"},
+
+    {"atan(-sqrt(3", "-pi/3"},
+    {"atan(-1", "-pi/4"},
+    {"atan(-1/sqrt(3", "-pi/6"},
+    {"atan(0", "0"},
+    {"atan(1/sqrt(3", "pi/6"},
+    {"atan(1", "pi/4"},
+    {"atan(sqrt(3", "pi/3"}
+};
+
 pcas_id_t id_hyperbolic[ID_NUM_HYPERBOLIC] = {
     {"cosh(X)_sinh(X)", "e^(-X"},
     {"sinh(X)/cosh(X", "tanh(X"},
@@ -537,6 +567,7 @@ void id_UnloadAll() {
     id_UnloadTable(id_general, ID_NUM_GENERAL);
     id_UnloadTable(id_trig_identities, ID_NUM_TRIG_IDENTITIES);
     id_UnloadTable(id_trig_constants, ID_NUM_TRIG_CONSTANTS);
+    id_UnloadTable(id_trig_inv_constants, ID_NUM_TRIG_INV_CONSTANTS);
     id_UnloadTable(id_hyperbolic, ID_NUM_HYPERBOLIC);
     id_UnloadTable(id_complex, ID_NUM_COMPLEX);
 

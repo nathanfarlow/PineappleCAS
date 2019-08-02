@@ -715,6 +715,9 @@ bool simplify_identities(pcas_ast_t *e, unsigned short flags) {
     if(flags & SIMP_ID_TRIG_CONSTANTS)
         changed |= id_ExecuteTable(e, id_trig_constants, ID_NUM_TRIG_CONSTANTS, true);
 
+    if(flags & SIMP_ID_TRIG_INV_CONSTANTS)
+        changed |= id_ExecuteTable(e, id_trig_inv_constants, ID_NUM_TRIG_INV_CONSTANTS, true);
+
     if(flags & SIMP_ID_HYPERBOLIC)
         changed |= id_ExecuteTable(e, id_hyperbolic, ID_NUM_HYPERBOLIC, true);
 
@@ -761,7 +764,7 @@ bool simplify(pcas_ast_t *e, unsigned short flags) {
         }
 
         if(flags & SIMP_ID_ALL) {
-            expand_changed = expand(e, EXP_DISTRIB_NUMBERS | EXP_DISTRIB_MULTIPLICATION | EXP_DISTRIB_DIVISION);
+            expand_changed = expand(e, EXP_DISTRIB_NUMBERS | EXP_DISTRIB_MULTIPLICATION | EXP_DISTRIB_DIVISION | EXP_DISTRIB_POWERS);
 
             if(expand_changed) {
 
@@ -779,11 +782,11 @@ bool simplify(pcas_ast_t *e, unsigned short flags) {
         /*Simplify like terms*/
         if(flags & SIMP_LIKE_TERMS) {
             /*First fix 2A+B _ (A+B) to 2A+B_A_B */
-            while(expand(e, EXP_DISTRIB_NUMBERS))               intermediate_change = did_change = true;
+            while(expand(e, EXP_DISTRIB_NUMBERS | EXP_DISTRIB_POWERS)) intermediate_change = did_change = true;
             /*Then fix 2A+B_A_B to A(2+-1)+B(1+-1)*/
-            while(factor(e, FAC_SIMPLE_ADDITION_EVALUATEABLE))  intermediate_change = did_change = true;
+            while(factor(e, FAC_SIMPLE_ADDITION_EVALUATEABLE))               intermediate_change = did_change = true;
             /*This would fix AA to A^2 if it exists*/
-            while(simplify_like_terms_multiplication(e))        intermediate_change = did_change = true;
+            while(simplify_like_terms_multiplication(e))                     intermediate_change = did_change = true;
         }
 
     } while(intermediate_change);

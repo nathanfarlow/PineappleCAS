@@ -61,26 +61,33 @@
 */
 #define SIMP_ID_TRIG_CONSTANTS          (1u << 8u)
 /*
+    Simplifies inverse trig constants like atan(sqrt(3)) = pi/3
+
+    ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG
+    ANY SIMP_ID WILL ALSO CALL TO EXPAND() AND FACTOR()
+*/
+#define SIMP_ID_TRIG_INV_CONSTANTS      (1u << 9u)
+/*
     Simplifies hyperbolic identities like sinh(X)/cosh(X) = tanh(X)
 
     ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG
     ANY SIMP_ID WILL ALSO CALL TO EXPAND() AND FACTOR()
 */
-#define SIMP_ID_HYPERBOLIC              (1u << 9u)
+#define SIMP_ID_HYPERBOLIC              (1u << 10u)
 /*
     Simplifies complex functins like sin(z) and ln(z)
 
     ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG
     ANY SIMP_ID WILL ALSO CALL TO EXPAND() AND FACTOR()
 */
-#define SIMP_ID_COMPLEX                 (1u << 10u)
+#define SIMP_ID_COMPLEX                 (1u << 11u)
 /*
     Simplify all identities
 
     ANY SIMP_ID WILL AUTOMATICALLY SET THE EVAL FLAG, COMMUTATIVE FLAG, AND THE SIMPLIFY LIKE TERMS FLAG
     ANY SIMP_ID WILL ALSO CALL TO EXPAND() AND FACTOR()
 */
-#define SIMP_ID_ALL                     (SIMP_ID_GENERAL | SIMP_ID_TRIG | SIMP_ID_TRIG_CONSTANTS | SIMP_ID_HYPERBOLIC)
+#define SIMP_ID_ALL                     (SIMP_ID_GENERAL | SIMP_ID_TRIG | SIMP_ID_TRIG_CONSTANTS | SIMP_ID_TRIG_INV_CONSTANTS | SIMP_ID_HYPERBOLIC)
 
 #define SIMP_ALL                        (0xFFFFu)
 
@@ -122,8 +129,10 @@ bool factor(pcas_ast_t *e, unsigned char flags);
 #define EXP_DISTRIB_DIVISION       (1u << 2u)
 /*Expand (A+B)(C+D) to AC+AD+BC+BD */
 #define EXP_DISTRIB_ADDITION       (1u << 3u)
+/*Distribute (AB)^2 to A^2B^2 and (1/A)^2 to (1^2/A^2)*/
+#define EXP_DISTRIB_POWERS         (1u << 4u)
 /*Expand (A+B)^2 to A^2 + 2AB + B^2 */
-#define EXP_EXPAND_POWERS          (1u << 4u)
+#define EXP_EXPAND_POWERS          (1u << 5u)
 #define EXP_ALL                    0xFF
 
 bool expand(pcas_ast_t *e, unsigned char flags);

@@ -166,6 +166,35 @@ simplify; sin(9pi/4); sqrt(2)/2
 simplify; cos(59pi/6); sqrt(3)/2
 simplify; tan(73pi/6); sqrt(3)/3
 
+#Trig inverse tests
+simplify; asin(-1; -pi/2
+simplify; asin(-sqrt(3)/2; -pi/3
+simplify; asin(-sqrt(2)/2; -pi/4
+simplify; asin(-1/2; -pi/6
+simplify; asin(0; 0
+simplify; asin(1/2; pi/6
+simplify; asin(sqrt(2)/2; pi/4
+simplify; asin(sqrt(3)/2; pi/3
+simplify; asin(1; pi/2
+
+simplify; acos(-1; pi
+simplify; acos(-sqrt(3)/2; 5pi/6
+simplify; acos(-sqrt(2)/2; 3pi/4
+simplify; acos(-1/2; 2pi/3
+simplify; acos(0; pi/2
+simplify; acos(1/2; pi/3
+simplify; acos(sqrt(2)/2; pi/4
+simplify; acos(sqrt(3)/2; pi/6
+simplify; acos(1; 0
+
+simplify; atan(-sqrt(3; -pi/3
+simplify; atan(-1; -pi/4
+simplify; atan(-1/sqrt(3; -pi/6
+simplify; atan(0; 0
+simplify; atan(1/sqrt(3; pi/6
+simplify; atan(1; pi/4
+simplify; atan(sqrt(3; pi/3
+
 #Identities, comprehensive
 simplify; sin(ln(X))^2 + cos(ln(X))^2 + 1 _ 2sin(X/2)^2 _ 1; cos(X)
 simplify; sin(ln(X) + 1)^2 + cos(ln(X))^2; sin(ln(X) + 1)^2 + cos(ln(X))^2

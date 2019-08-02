@@ -461,12 +461,12 @@ void gui_Init() {
     function_context[3] = view_create_label(26, 128, "Derivative");
     function_context[4] = view_create_label(26, 144, "Help");
 
-    simplify_context[0] = view_create_checkbox(124, 80 + 12 * 0, "Like terms", true);
-    simplify_context[1] = view_create_checkbox(124, 80 + 12 * 1, "Basic identities", true);
-    simplify_context[2] = view_create_checkbox(124, 80 + 12 * 2, "Trig identities", true);
-    simplify_context[3] = view_create_checkbox(124, 80 + 12 * 3, "Hyperbolic identities", true);
-    simplify_context[4] = view_create_checkbox(124, 80 + 12 * 4, "Complex identities", true);
-    simplify_context[5] = view_create_checkbox(124, 80 + 12 * 5, "Evaluate trig constants", true);
+    simplify_context[0] = view_create_checkbox(124, 80 + 12 * 0, "Basic identities", true);
+    simplify_context[1] = view_create_checkbox(124, 80 + 12 * 1, "Trig identities", true);
+    simplify_context[2] = view_create_checkbox(124, 80 + 12 * 2, "Hyperbolic identities", true);
+    simplify_context[3] = view_create_checkbox(124, 80 + 12 * 3, "Complex identities", true);
+    simplify_context[4] = view_create_checkbox(124, 80 + 12 * 4, "Evaluate trig", true);
+    simplify_context[5] = view_create_checkbox(124, 80 + 12 * 5, "Evaluate inverse trig", true);
     simplify_context[6] = button_simplify = view_create_button(10 + 2 + 100 + (LCD_WIDTH - 10 - 10 - 2 - 100) / 2, 184, "Simplify");
 
     evaluate_context[0] = view_create_checkbox(124, 80, "Evaluate constants", true);
@@ -560,8 +560,18 @@ void compile_trig_constants() {
     static bool compiled = false;
 
     if(!compiled) {
-        console_write("Compiling trig constant ids...");
+        console_write("Compiling trig const ids...");
         compile(id_trig_constants, ID_NUM_TRIG_CONSTANTS);
+        compiled = true;
+    }
+}
+
+void compile_trig_inv_constants() {
+    static bool compiled = false;
+
+    if(!compiled) {
+        console_write("Compiling inv trig const ids...");
+        compile(id_trig_inv_constants, ID_NUM_TRIG_INV_CONSTANTS);
         compiled = true;
     }
 }
@@ -679,30 +689,31 @@ void execute_simplify() {
     pcas_ast_t *expression;
     pcas_error_t err;
 
-    unsigned short flags = SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_DERIV;
+    unsigned short flags = SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_DERIV | SIMP_LIKE_TERMS;
 
     if(simplify_context[0]->checked) {
-        flags |= SIMP_LIKE_TERMS;
-    }
-    if(simplify_context[1]->checked) {
         compile_general();
         flags |= SIMP_ID_GENERAL;
     }
-    if(simplify_context[2]->checked) {
+    if(simplify_context[1]->checked) {
         compile_trig();
         flags |= SIMP_ID_TRIG;
     }
-    if(simplify_context[3]->checked) {
+    if(simplify_context[2]->checked) {
         compile_hyperbolic();
         flags |= SIMP_ID_HYPERBOLIC;
     }
-    if(simplify_context[4]->checked) {
+    if(simplify_context[3]->checked) {
         compile_complex();
         flags |= SIMP_ID_COMPLEX;
     }
-    if(simplify_context[5]->checked) {
+    if(simplify_context[4]->checked) {
         compile_trig_constants();
         flags |= SIMP_ID_TRIG_CONSTANTS;
+    }
+    if(simplify_context[5]->checked) {
+        compile_trig_inv_constants();
+        flags |= SIMP_ID_TRIG_INV_CONSTANTS;
     }
 
     console_write("Parsing input...");
