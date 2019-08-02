@@ -55,6 +55,7 @@ pcas_ast_t *leftmost(pcas_ast_t *e) {
             /*For the sqrt special case*/
             if(is_ast_int(ast_ChildGet(e, 0), 2))
                 return e;
+            /*FALLTHROUGH*/
         case OP_LOG:
         case OP_FACTORIAL:
             return leftmost(opbase(e));

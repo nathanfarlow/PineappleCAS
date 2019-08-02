@@ -2866,7 +2866,6 @@ STATIC mp_result s_udiv_knuth(mp_int u, mp_int v) {
   n = MP_USED(v);
   m = MP_USED(u) - n;
   assert(n > 1);
-  assert(m >= 0);
 
   /* D1: Normalize.
      The normalization step provides the necessary condition for Theorem B,
