@@ -899,6 +899,8 @@ void execute_derivative() {
     pcas_ast_t *expression;
     pcas_error_t err;
 
+    compile_derivative();
+    
     console_write("Parsing input...");
 
     expression = parse_from_dropdown_index(from_drop->index, &err);
