@@ -361,6 +361,13 @@ void handle_input(uint8_t key) {
             view_t *v = context_lookup[current_context][active_index];
             v->index = (v->index + 1) % NUM_DROPDOWN_ENTRIES;
             draw_context(current_context);
+        } else if(key == sk_Up) {
+            view_t *v = context_lookup[current_context][active_index];
+            if(v->index == 0)
+                v->index = NUM_DROPDOWN_ENTRIES - 1;
+            else
+                v->index--;
+            draw_context(current_context);
         }
 
         break;
@@ -861,7 +868,7 @@ void execute_expand() {
 
 void execute_derivative() {
     char buffer[50];
-    
+
     pcas_ast_t *expression;
     pcas_error_t err;
 
