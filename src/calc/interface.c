@@ -36,7 +36,7 @@ uint8_t *trim(uint8_t *input, unsigned input_len, unsigned *trimmed_len) {
 
 bool is_var_string_type(ti_var_t var) {
     /*Check if 4 low bits from first byte of vat data is 0x4*/
-    return *(uint8_t*)ti_GetVATPtr(var) & 0xF == 0x4;
+    return (*((uint8_t*)ti_GetVATPtr(var)) & 0xFu) == 0x4u;
 }
 
 /*Read trimmed string from Ans variable*/
