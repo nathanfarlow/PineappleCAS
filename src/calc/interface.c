@@ -2,9 +2,6 @@
 
 #include "interface.h"
 
-#include <tice.h>
-#include <fileioc.h>
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -37,13 +34,16 @@ uint8_t *trim(uint8_t *input, unsigned input_len, unsigned *trimmed_len) {
     return trimmed;
 }
 
+bool is_var_string_type(ti_var_t var) {
+    /*Check if 4 low bits from first byte of vat data is 0x4*/
+    return *(uint8_t*)ti_GetVATPtr(var) & 0xF == 0x4;
+}
+
 /*Read trimmed string from Ans variable*/
 uint8_t *read_ans(unsigned *ans_len) {
     ti_var_t v;
     const uint8_t *data;
     uint8_t *str, *trimmed = NULL;
-
-    uint8_t type;
 
     uint16_t size;
 
@@ -51,10 +51,8 @@ uint8_t *read_ans(unsigned *ans_len) {
 
     v = ti_OpenVar(ti_Ans, "r", TI_STRING_TYPE);
 
-    /*Get 4 low bits from first byte of vat data*/
-    type = *(uint8_t*)ti_GetVATPtr(v) & 0xF;
     /*If Ans is a string*/
-    if(type == 0x4) {
+    if(is_var_string_type(v)) {
         data = ti_GetDataPtr(v);
         size = ti_GetSize(v);
 
@@ -201,6 +199,12 @@ pcas_ast_t *parse_from_tok(uint8_t *tok, pcas_error_t *err) {
     ti_CloseAll();
 
     var = ti_OpenVar((char*)tok, "r", tok[0] == 0x5Eu ? TI_EQU_TYPE : TI_STRING_TYPE);
+
+    /*If we're opening Ans or a string and the type is not a string type*/
+    if(tok[0] != 0x5Eu && !is_var_string_type(var)) {
+        *err = E_GENERIC;
+        return NULL;
+    }
 
     if(var != NULL) {
         const uint8_t *data;
