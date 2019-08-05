@@ -16,7 +16,8 @@
 #include "interface.h"
 
 void draw_string_centered(char *text, int x, int y) {
-    unsigned len = gfx_GetStringWidth(text);
+    unsigned len;
+    len = gfx_GetStringWidth(text);
 
     gfx_SetTextBGColor(COLOR_TRANSPARENT);
     gfx_SetTextFGColor(COLOR_TEXT);
@@ -205,7 +206,8 @@ void view_draw(view_t *v) {
 }
 
 view_t *view_create(GuiType type, int x, int y, int w, int h, char *text) {
-    view_t *v = calloc(1, sizeof(view_t));
+    view_t *v;
+    v = calloc(1, sizeof(view_t));
     v->type = type;
     v->x = x;
     v->y = y;
@@ -216,18 +218,21 @@ view_t *view_create(GuiType type, int x, int y, int w, int h, char *text) {
 }
 
 view_t *view_create_checkbox(int x, int y, char *text, bool checked) {
-    view_t *v = view_create(GUI_CHECKBOX, x, y, 8, 8, text);
+    view_t *v;
+    v = view_create(GUI_CHECKBOX, x, y, 8, 8, text);
     v->checked = checked;
     return v;
 }
 
 view_t *view_create_button(int x, int y, char *text) {
-    int width = gfx_GetStringWidth(text);
+    int width;
+    width = gfx_GetStringWidth(text);
     return view_create(GUI_BUTTON, x - width / 2, y - TEXT_HEIGHT / 2, width + 8, 20, text);
 }
 
 view_t *view_create_dropdown(int x, int y, unsigned index) {
-    view_t *v = view_create(GUI_DROPDOWN, x, y, 50, 20, NULL);
+    view_t *v;
+    v = view_create(GUI_DROPDOWN, x, y, 50, 20, NULL);
     v->index = index;
     return v;
 }
@@ -237,7 +242,8 @@ view_t *view_create_label(int x, int y, char *text) {
 }
 
 view_t *view_create_charselect(int x, int y) {
-    view_t *v = view_create(GUI_CHARSELECT, x, y, 16, 16, NULL);
+    view_t *v;
+    v = view_create(GUI_CHARSELECT, x, y, 16, 16, NULL);
     v->character = 'X';
     return v;
 }
@@ -288,7 +294,6 @@ bool console_drawn = false;
 int console_index = 0;
 
 void draw_console() {
-
     gfx_SetColor(COLOR_BACKGROUND);
     gfx_FillRectangle(LCD_WIDTH / 6, LCD_HEIGHT / 6, LCD_WIDTH - LCD_WIDTH / 3, LCD_HEIGHT - LCD_HEIGHT / 3);
     gfx_SetColor(COLOR_BLUE);
@@ -298,7 +303,6 @@ void draw_console() {
     view_draw(console_button);
 
     console_drawn = true;
-
 }
 
 void console_write(char *text) {
@@ -358,11 +362,13 @@ void handle_input(uint8_t key) {
             io_context[1]->active = true;
             draw_context(CONTEXT_IO);
         } else if(key == sk_Enter) {
-            view_t *v = context_lookup[current_context][active_index];
+            view_t *v;
+            v = context_lookup[current_context][active_index];
             v->index = (v->index + 1) % NUM_DROPDOWN_ENTRIES;
             draw_context(current_context);
         } else if(key == sk_Up) {
-            view_t *v = context_lookup[current_context][active_index];
+            view_t *v;
+            v = context_lookup[current_context][active_index];
             if(v->index == 0)
                 v->index = NUM_DROPDOWN_ENTRIES - 1;
             else
@@ -372,7 +378,6 @@ void handle_input(uint8_t key) {
 
         break;
     case CONTEXT_FUNCTION:
-
         if((key == sk_Right || key == sk_Enter) && elements_in_context[CONTEXT_SIMPLIFY + active_index] > 0) {
             function_index = active_index;
 
@@ -387,7 +392,8 @@ void handle_input(uint8_t key) {
             break;
         }
     default: {
-        view_t *v = context_lookup[current_context][active_index];
+        view_t *v;
+        v = context_lookup[current_context][active_index];
 
         if(key == sk_Up) {
             if(active_index == 0) {
@@ -446,7 +452,8 @@ void handle_input(uint8_t key) {
 
         } else {
             if(v->type == GUI_CHARSELECT) {
-                char val = alpha_table[key];
+                char val;
+                val = alpha_table[key];
 
                 if(val != 0) {
                     v->character = val;
@@ -525,7 +532,8 @@ void gui_Run() {
     draw_context(CONTEXT_SIMPLIFY);
 
     while(true) {
-        uint8_t key = os_GetCSC();
+        uint8_t key;
+        key = os_GetCSC();
 
         if(key == sk_Clear)
             break;

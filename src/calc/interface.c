@@ -247,7 +247,8 @@ void write_to_tok(uint8_t *tok, pcas_ast_t *expression, pcas_error_t *err) {
         /*If var is a yvar, enable it*/
         if(var <= 9) {
             /*Thanks Mateo: https://www.cemetech.net/forum/viewtopic.php?t=15947*/
-            uint8_t *status = ti_GetVATPtr(var);
+            uint8_t *status;
+            status = ti_GetVATPtr(var);
             status--;
             *status |= 1;
         }
@@ -259,20 +260,6 @@ void write_to_tok(uint8_t *tok, pcas_ast_t *expression, pcas_error_t *err) {
     }
 
     *err = E_SUCCESS;
-}
-
-#include "../dbg.h"
-void dbg_args(arg_list *args) {
-    unsigned i, j;
-
-    LOG(("Amount: %u", args->amount));
-
-    for(i = 0; i < args->amount; i++) {
-        LOG(("\t1%u: len: %u", i, args->arg_len[i]));
-        for(j = 0; j < args->arg_len[i]; j++) {
-            LOG(("\t\tbyte %u: %x", j, args->args[i][j]));
-        }
-    }
 }
 
 /*
