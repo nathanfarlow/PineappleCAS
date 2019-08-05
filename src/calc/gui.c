@@ -13,6 +13,8 @@
 #include "../cas/identities.h"
 #include "../cas/derivative.h"
 
+#include "interface.h"
+
 void draw_string_centered(char *text, int x, int y) {
     unsigned len = gfx_GetStringWidth(text);
 
@@ -621,71 +623,16 @@ char *token_table[21] = {
 };
 
 pcas_ast_t *parse_from_dropdown_index(unsigned index, pcas_error_t *err) {
-    ti_var_t var;
-
-    ti_CloseAll();
-
-    var = ti_OpenVar(token_table[index], "r", index > 9 ? TI_STRING_TYPE : TI_EQU_TYPE);
-
-    if(var != NULL) {
-        const uint8_t *data;
-        uint16_t size;
-
-        pcas_ast_t *result;
-
-        data = ti_GetDataPtr(var);
-        size = ti_GetSize(var);
-
-        result = parse(data, size, ti_table, err);
-
-        ti_Close(var);
-
-        if(*err == E_SUCCESS)
-            return result;
-
-        return NULL;
-    }
-
-    *err = E_GENERIC;
-    return NULL;
+    return parse_from_tok((uint8_t*)token_table[index], err);
 }
 
 void write_to_dropdown_index(unsigned index, pcas_ast_t *expression, pcas_error_t *err) {
-    unsigned bin_len;
-    uint8_t *bin;
-    ti_var_t var;
-
-    ti_CloseAll();
-
-    var = ti_OpenVar(token_table[index], "w", index > 9 ? TI_STRING_TYPE : TI_EQU_TYPE);
-
-    if(var != NULL) {
-
-        /*Write to var*/
-        bin = export_to_binary(expression, &bin_len, ti_table, err);
-        ti_Write(bin, bin_len, 1, var);
-
-        /*If var is a yvar, enable it*/
-        if(var <= 9) {
-            /*Thanks Mateo: https://www.cemetech.net/forum/viewtopic.php?t=15947*/
-            uint8_t *status = ti_GetVATPtr(var);
-            status--;
-            *status |= 1;
-        }
-        
-        ti_Close(var);
-    } else {
-        *err = E_GENERIC;
-        return;
-    }
-
-    *err = E_SUCCESS;
+    write_to_tok((uint8_t*)token_table[index], expression, err);
 }
 
-/*Buffer for error text, had to do this becuase we are running out of space in our binary*/
-char buffer[50];
-
 void execute_simplify() {
+    char buffer[50];
+
     pcas_ast_t *expression;
     pcas_error_t err;
 
@@ -758,6 +705,8 @@ void execute_simplify() {
 }
 
 void execute_evaluate() {
+    char buffer[50];
+
     bool should_sub, should_eval;
     pcas_ast_t *expression;
     pcas_error_t err;
@@ -768,11 +717,12 @@ void execute_evaluate() {
     console_write("Parsing input...");
 
     expression = parse_from_dropdown_index(from_drop->index, &err);
-    simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
 
     if(err == E_SUCCESS) {
 
         if(expression != NULL) {
+
+            simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
 
             if(should_sub) {
                 pcas_ast_t *sub_from, *sub_to;
@@ -817,10 +767,11 @@ void execute_evaluate() {
 
             if(should_eval) {
                 console_write("Evaluating constants..");
-                eval(expression, EVAL_ALL);
-                simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);
-                simplify_canonical_form(expression);
+                eval(expression, EVAL_ALL);    
             }
+
+            simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);
+            simplify_canonical_form(expression);
 
             console_write("Exporting...");
 
@@ -851,6 +802,8 @@ void execute_evaluate() {
 }
 
 void execute_expand() {
+    char buffer[50];
+
     pcas_ast_t *expression;
     pcas_error_t err;
 
@@ -907,6 +860,8 @@ void execute_expand() {
 }
 
 void execute_derivative() {
+    char buffer[50];
+    
     pcas_ast_t *expression;
     pcas_error_t err;
 

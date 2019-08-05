@@ -1,9 +1,14 @@
 #ifndef COMPILE_PC
 
 #include "gui.h"
+#include "interface.h"
 
 void main() {
-    gui_Run();
+
+	if(interface_Valid())
+		interface_Run();
+	else
+    	gui_Run();
 }
 
 #else
