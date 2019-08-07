@@ -278,7 +278,7 @@ void interface_Simplify(arg_list *args) {
     pcas_ast_t *expression;
     pcas_error_t err;
 
-    unsigned short flags = SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_DERIV | SIMP_LIKE_TERMS;
+    unsigned short flags = SIMP_ALL;
 
     uint8_t *input, *output;
     unsigned input_len, output_len;
@@ -297,11 +297,13 @@ void interface_Simplify(arg_list *args) {
     interface_assert(tok_valid(input, input_len), "Not a valid input variable");
     interface_assert(tok_valid(output, output_len), "Not a valid output variable");
 
-    if(args->amount == 4) {
+    if(args->amount >= 4) {
         uint8_t *options;
         unsigned option_len;
 
         unsigned i = 0;
+
+        flags ^= SIMP_ID_ALL;
 
         options = args->args[3];
         option_len = args->arg_len[3];
@@ -413,9 +415,9 @@ void interface_Substitute(arg_list *args) {
     /*Fail silently because syntax is correct, but input might be bad. Let basic program handle error*/
     interface_assert(err == E_SUCCESS && expression != NULL, NULL);
     sub_from_expr = parse_from_tok(sub_from, &err);
-    interface_assert(err == E_SUCCESS && sub_from != NULL, NULL);
+    interface_assert(err == E_SUCCESS && sub_from_expr != NULL, NULL);
     sub_to_expr = parse_from_tok(sub_to, &err);
-    interface_assert(err == E_SUCCESS && sub_to != NULL, NULL);
+    interface_assert(err == E_SUCCESS && sub_to_expr != NULL, NULL);
 
     simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
     substitute(expression, sub_from_expr, sub_to_expr);
@@ -464,7 +466,7 @@ void interface_Expand(arg_list *args) {
     interface_assert(tok_valid(input, input_len), "Not a valid input variable");
     interface_assert(tok_valid(output, output_len), "Not a valid output variable");
 
-    if(args->amount == 4) {
+    if(args->amount >= 4) {
         uint8_t *options;
         unsigned option_len;
 
@@ -473,9 +475,9 @@ void interface_Expand(arg_list *args) {
         options = args->args[3];
         option_len = args->arg_len[3];
 
-        interface_assert(option_len == 6, "Wrong number of boolean options");
+        interface_assert(option_len == 2, "Wrong number of boolean options");
 
-        for(i = 0; i < 6; i++)
+        for(i = 0; i < 2; i++)
             interface_assert(options[i] == '0' || options[i] == '1', "Boolean option must be 0 or 1");
 
         if(options[0] == '1') flags |= EXP_DISTRIB_NUMBERS | EXP_DISTRIB_MULTIPLICATION | EXP_DISTRIB_ADDITION;
