@@ -520,6 +520,8 @@ void interface_Derivative(arg_list *args) {
     uint8_t *input, *output, *respect_to;
     unsigned input_len, output_len, respect_to_len;
 
+    char *theta = "theta";
+
     interface_assert(args->amount >= 4, "Not enough arguments");
 
     tok_fix(&args->args[1], &args->arg_len[1]);
@@ -540,7 +542,13 @@ void interface_Derivative(arg_list *args) {
     expression = parse_from_tok(input, &err);
     /*Fail silently because syntax is correct, but input might be bad. Let basic program handle error*/
     interface_assert(err == E_SUCCESS && expression != NULL, NULL);
-    respect_to_expr = parse(respect_to, respect_to_len, str_table, &err);
+
+    /*If input is theta, parse theta string instead*/
+    if(respect_to[0] == 'Z' + 1) {
+        respect_to_expr = parse((uint8_t*)theta, strlen(theta), str_table, &err);
+    } else {
+        respect_to_expr = parse(respect_to, respect_to_len, str_table, &err);
+    }
     interface_assert(err == E_SUCCESS && respect_to_expr != NULL, NULL);
 
     simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
