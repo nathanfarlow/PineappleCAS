@@ -1,9 +1,21 @@
-# PineappleCAS [![Build Status](https://travis-ci.org/nathanfarlow/PineappleCAS.svg)](https://travis-ci.org/nathanfarlow/PineappleCAS)
+<p align="center"><img src="https://raw.githubusercontent.com/nathanfarlow/PineappleCAS/master/img/logo.png"></p>
+<h2 align="center"><b>PineappleCAS</b></h2>
+<p align="center">
+<a href="https://travis-ci.org/nathanfarlow/PineappleCAS" alt="Build Status"><img src="https://travis-ci.org/nathanfarlow/PineappleCAS.svg"></a>
+</p>
+<p>
+PineappleCAS is a computer algebra system for the TI-84 Plus CE calculators. It is designed as a faster, cleaner, more useful, memory-leak-free alternative to the <a href="https://github.com/nathanfarlow/SymbolicDerivative">SymbolicDerivative</a> project. PineappleCAS uses the <a href="https://github.com/creachadair/imath">imath library</a> for arbitrary precision math: 
+</p>
 
-A generic CAS targeted for the TI-84+ CE calculators. Designed as a faster, cleaner, more useful, memory-leak-free alternative to the [SymbolicDerivative](https://github.com/nathanfarlow/SymbolicDerivative) project.
+<hr>
 
-PineappleCAS uses the imath library for arbitrary precision math: https://github.com/creachadair/imath
-
+## Screenshots
+![Main screen](https://raw.githubusercontent.com/nathanfarlow/PineappleCAS/master/img/simplify.png "GUI")
+![Complex example](https://raw.githubusercontent.com/nathanfarlow/PineappleCAS/master/img/i^i.png "Complex simplification")
+![Trig example](https://raw.githubusercontent.com/nathanfarlow/PineappleCAS/master/img/trig.png "Trig identity simplification")
+![Derivative example](https://raw.githubusercontent.com/nathanfarlow/PineappleCAS/master/img/deriv.png "Derivative with respect to X")
+![Exponent example](https://raw.githubusercontent.com/nathanfarlow/PineappleCAS/master/img/eval_exponent.png "Large exponent")
+![Factorial example](https://raw.githubusercontent.com/nathanfarlow/PineappleCAS/master/img/eval_factorial.png "Large factorial")
 ## TODO
 - [X] Testing
 - [X] Parse expression
