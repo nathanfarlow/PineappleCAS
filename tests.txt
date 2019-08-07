@@ -294,6 +294,7 @@ expand ((A + B)^5 + 1)^4; 1+2 A^4+A^8+8 A^3 B+8 A^7 B+12 A^2 B^2+28 A^6 B^2+8 A 
 expand; AB(X+1); ABX + AB
 expand; (A + B)(B + C); AB + AC + B^2 + BC
 expand; (ABC)^6; A^6B^6C^6
+expand; (A+B)(C+B)^2; AC^2+AB^2+BC^2+2ABC+2CB^2+B^3
 
 #Derivative tests
 deriv; X; X; 1
