@@ -56,7 +56,9 @@ Some commands have optional boolean options, indicated by [optional boolean opti
 
 ## Simplify
 **Usage:** SIMP,[Input],[Output],[6 optional boolean options]
+
 **Description:** Automatically simplifies like terms. Automatically takes derivative of any nDeriv() tokens if it can. Simplifies identities based on the boolean options passed.
+
 **Options:** The boolean options indicate which simplification identities to use. If not included, the simplification command will use all identities.
 
 Boolean options from left to right:
@@ -80,6 +82,7 @@ Boolean options from left to right:
 
 ## Evaluate
 **Usage:** EVAL,[Input],[Output]
+
 **Description:** Evaluates functions like int(X), abs(X), integer factorials, and integer bases to integer exponents.
 
 **Example program:**
@@ -91,6 +94,7 @@ Boolean options from left to right:
 
 ## Substitute
 **Usage:** SUB,[Input],[Output],[Input to substitute from],[Input to substitute to]
+
 **Description:** Substitutes an expression for another.
 
 **Example program:**
@@ -102,7 +106,9 @@ Boolean options from left to right:
 
 ## Expand
 **Usage:** EXP,[Input],[Output],[2 optional boolean options]
+
 **Description:** Expands multiplication.
+
 **Options:** The boolean options indicate what to expand. If not included, the expand command will expand both multiplication and powers. This function is unoptimized, and very, very slow. You have been warned!
 
 Boolean options from left to right:
@@ -122,6 +128,7 @@ Boolean options from left to right:
 
 ## Derivative
 **Usage:** DERIV,[Input],[Output],[Variable respect to]
+
 **Description:** Takes the derivative of input with respect to [Variable respect to] and writes the result to output. Valid variables are A-Z, and theta.
 
 **Example program:**
