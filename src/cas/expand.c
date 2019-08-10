@@ -40,6 +40,7 @@ static bool _expand(pcas_ast_t *e, unsigned char flags) {
 
     do {
         intermediate_change = false;
+        simplify(e, SIMP_COMMUTATIVE);
 
         if(isoptype(e, OP_MULT)) {
 
@@ -174,17 +175,16 @@ static bool _expand(pcas_ast_t *e, unsigned char flags) {
 
     } while(intermediate_change);
 
+    simplify(e, SIMP_NORMALIZE | SIMP_COMMUTATIVE);
+
     return did_change;
 }
 
 bool expand(pcas_ast_t *e, unsigned char flags) {
     bool changed = false;
     /*Expand powers first to make things faster*/
-    if(flags & EXP_EXPAND_POWERS) {
+    if(flags & EXP_EXPAND_POWERS)
         changed |= _expand(e, EXP_EXPAND_POWERS);
-        if(changed)
-            simplify(e, SIMP_NORMALIZE | SIMP_COMMUTATIVE);
-    }
     changed |= _expand(e, flags & ~EXP_EXPAND_POWERS);
     return changed;
 }

@@ -326,7 +326,7 @@ void interface_Simplify(arg_list *args) {
     interface_assert(err == E_SUCCESS && expression != NULL, NULL);
 
     simplify(expression, flags);
-    simplify_canonical_form(expression);
+    simplify_canonical_form(expression, CANONICAL_ALL);
 
     write_to_tok(output, expression, &err);
 
@@ -368,7 +368,7 @@ void interface_Eval(arg_list *args) {
     simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
     eval(expression, EVAL_ALL);
     simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);
-    simplify_canonical_form(expression);
+    simplify_canonical_form(expression, CANONICAL_ALL);
 
     write_to_tok(output, expression, &err);
 
@@ -422,7 +422,7 @@ void interface_Substitute(arg_list *args) {
     simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
     substitute(expression, sub_from_expr, sub_to_expr);
     simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);
-    simplify_canonical_form(expression);
+    simplify_canonical_form(expression, CANONICAL_ALL);
 
     write_to_tok(output, expression, &err);
 
@@ -493,7 +493,7 @@ void interface_Expand(arg_list *args) {
     simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
     expand(expression, flags);
     simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | ((flags & EXP_DISTRIB_MULTIPLICATION) ? SIMP_LIKE_TERMS : 0) | SIMP_EVAL);
-    simplify_canonical_form(expression);
+    simplify_canonical_form(expression, CANONICAL_ALL ^ CANONICAL_COMBINE_POWERS);
 
     write_to_tok(output, expression, &err);
 
@@ -554,7 +554,7 @@ void interface_Derivative(arg_list *args) {
     simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
     derivative(expression, respect_to_expr, respect_to_expr);
     simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);
-    simplify_canonical_form(expression);
+    simplify_canonical_form(expression, CANONICAL_ALL);
 
     write_to_tok(output, expression, &err);
 

@@ -101,12 +101,24 @@ bool simplify(pcas_ast_t *e, unsigned short flags);
     Change powers to roots.
     Combine a^5b^5 to (ab)^5.
 
+
+*/
+/*Order multiplication and division. Change XAZ to AXZ and 1+sin(X)ZA5 to 5AZsin(X)+1*/
+#define CANONICAL_SORT                  (1u << 0u)
+/*Rationalize denominators*/
+#define CANONICAL_RATIONALIZE           (1u << 1u)
+/*Change X^(1/2) to sqrt(X)*/
+#define CANONICAL_POWERS_TO_ROOTS       (1u << 2u)
+/*Combine a^5b^5 to (ab)^5.*/
+#define CANONICAL_COMBINE_POWERS        (1u << 3u)
+#define CANONICAL_ALL                   (0xFFu)
+/*
     Use only when exporting and do not plan to simplify again
     or execute any other function on ast. Messes up all other algorithms.
 
-    Sorting for addition and multiplication is O(n^2) by insertion sort
+    Sorting for addition and multiplication is insertion sort, but recursive so kinda expensive
 */
-bool simplify_canonical_form(pcas_ast_t *e);
+bool simplify_canonical_form(pcas_ast_t *e, unsigned char flags);
 
 /*Factor A + A to A(1 + 1) where at least one part of the
 resulting multiplication can be evauated numerically*/

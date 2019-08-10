@@ -270,9 +270,19 @@ bool test_Run(test_t *t) {
         break;
     }
 
-    ast_Cleanup(a);
-    ast_Cleanup(b);
-    ast_Cleanup(c);
+    /*This is just here to ensure that the canonical form function terminates on every test case*/
+    if(a != NULL) {
+        simplify_canonical_form(a, CANONICAL_ALL);
+        ast_Cleanup(a);
+    }
+    if(b != NULL) {
+        simplify_canonical_form(b, CANONICAL_ALL);
+        ast_Cleanup(b);
+    }
+    if(c != NULL) {
+        simplify_canonical_form(c, CANONICAL_ALL);
+        ast_Cleanup(c);
+    }
 
     return passed;
 }

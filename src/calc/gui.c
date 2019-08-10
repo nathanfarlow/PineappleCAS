@@ -691,7 +691,7 @@ void execute_simplify() {
             console_write("Simplifying...");
 
             simplify(expression, flags);
-            simplify_canonical_form(expression);
+            simplify_canonical_form(expression, CANONICAL_ALL);
 
             console_write("Exporting...");
 
@@ -788,7 +788,7 @@ void execute_evaluate() {
             }
 
             simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);
-            simplify_canonical_form(expression);
+            simplify_canonical_form(expression, CANONICAL_ALL);
 
             console_write("Exporting...");
 
@@ -846,7 +846,7 @@ void execute_expand() {
             simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL);
             expand(expression, flags);
             simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | (expand_context[0]->checked ? SIMP_LIKE_TERMS : 0) | SIMP_EVAL);
-            simplify_canonical_form(expression);
+            simplify_canonical_form(expression, CANONICAL_ALL ^ CANONICAL_COMBINE_POWERS);
 
             console_write("Exporting...");
 
@@ -909,7 +909,7 @@ void execute_derivative() {
             derivative(expression, respect_to, respect_to);
 
             simplify(expression, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL | SIMP_LIKE_TERMS);
-            simplify_canonical_form(expression);
+            simplify_canonical_form(expression, CANONICAL_ALL);
 
             console_write("Exporting...");
 

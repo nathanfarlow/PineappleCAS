@@ -258,7 +258,7 @@ bool absolute_val(pcas_ast_t *e) {
 
     return false;
 }
-
+#include <stdio.h>
 /*returns negative if a < b, 0 if a=b, positive if a > b in terms of sorting order*/
 int compare(pcas_ast_t *a, pcas_ast_t *b, bool add) {
     pcas_ast_t *temp;
@@ -330,13 +330,20 @@ int compare(pcas_ast_t *a, pcas_ast_t *b, bool add) {
     if(a->type < b->type) return multiplier * (add ? 1 : -1);
     else if(a->type > b->type) return multiplier * (add ? -1 : 1);
 
+    /*
+     * Don't deal with sorting multivariable polynomials
+     * Maybe we'll revisit this in the future
+     */
+    if(isoptype(a, OP_POW))
+        return 0;
+
     switch(a->type) {
     case NODE_NUMBER:   return multiplier * mp_rat_compare(a->op.num, b->op.num);
     case NODE_SYMBOL:   return multiplier * (a->op.symbol - b->op.symbol);
-    case NODE_OPERATOR: return multiplier * (optype(a) - optype(b));
+    case NODE_OPERATOR: return multiplier * ((optype(a) + (optype(a) < OP_POW ? AMOUNT_SYMBOLS : 0)) - (optype(b) + (optype(a) < OP_POW ? AMOUNT_SYMBOLS : 0)));
     }
 
-    return -1;
+    return 0;
 }
 
 /*
@@ -351,15 +358,15 @@ int compare(pcas_ast_t *a, pcas_ast_t *b, bool add) {
 
     Sorting for addition and multiplication is O(n^2) by insertion sort
 */
-bool simplify_canonical_form(pcas_ast_t *e) {
+bool simplify_canonical_form(pcas_ast_t *e, unsigned char flags) {
     bool changed = false, intermediate_change;
     unsigned i;
 
     do {
         intermediate_change = false;
 
-        if(isoptype(e, OP_MULT)) {
-            unsigned i, j;
+        if((flags & CANONICAL_COMBINE_POWERS) && isoptype(e, OP_MULT)) {
+            unsigned j;
             bool inner_intermediate;
 
             /*Combine a^5b^5 to (ab)^5 */
@@ -407,7 +414,9 @@ bool simplify_canonical_form(pcas_ast_t *e) {
 
             } while(inner_intermediate);
 
-        } else if(isoptype(e, OP_POW)) {
+        }
+
+        if((flags & CANONICAL_POWERS_TO_ROOTS) && isoptype(e, OP_POW)) {
             pcas_ast_t *base, *power;
 
             /*Change powers to roots*/
@@ -421,7 +430,9 @@ bool simplify_canonical_form(pcas_ast_t *e) {
                                     ast_Copy(base)));
                 intermediate_change = changed = true;
             }
-        } else if(isoptype(e, OP_DIV)) {
+        }
+
+        if((flags & CANONICAL_RATIONALIZE) && isoptype(e, OP_DIV)) {
             pcas_ast_t *num, *den;
 
             /*Rationalize denominator*/
@@ -467,31 +478,39 @@ bool simplify_canonical_form(pcas_ast_t *e) {
             }
         }
 
-        /*Order addition and multiplication: C*A*D becomes A*C*D */
+        if(flags & CANONICAL_SORT) {
+            /*Order addition and multiplication: C*A*D becomes A*C*D */
+            for(i = 0; i < ast_ChildLength(e); i++) {
+                pcas_ast_t *child = ast_ChildGet(e, i);
+
+                if(e->type == NODE_OPERATOR && (optype(e) == OP_MULT || optype(e) == OP_ADD)) {
+                    unsigned j;
+
+                    for(j = 0; j < i; j++) {
+                        int val;
+                        pcas_ast_t *child2;
+
+                        child2 = ast_ChildGet(e, j);
+                        val = compare(child, child2, optype(e) == OP_ADD);
+
+                        if(val < 0) {
+                            ast_ChildInsert(e, ast_ChildRemoveIndex(e, i), j);
+                            intermediate_change = changed = true;
+                        }
+                    }
+                }
+
+            }
+
+        }
+
         for(i = 0; i < ast_ChildLength(e); i++) {
             pcas_ast_t *child = ast_ChildGet(e, i);
 
-            if(e->type == NODE_OPERATOR && (optype(e) == OP_MULT || optype(e) == OP_ADD)) {
-                unsigned j;
-
-                for(j = 0; j < i; j++) {
-                    int val;
-                    pcas_ast_t *child2;
-
-                    child2 = ast_ChildGet(e, j);
-                    val = compare(child, child2, optype(e) == OP_ADD);
-
-                    if(val < 0) {
-                        ast_ChildInsert(e, ast_ChildRemoveIndex(e, i), j);
-                        intermediate_change = changed = true;
-                    }
-                }
-            }
-
-            intermediate_change |= simplify_canonical_form(child);
+            intermediate_change |= simplify_canonical_form(child, flags);
             changed |= intermediate_change;
-
         }
+
     } while(intermediate_change);
 
     return changed;
