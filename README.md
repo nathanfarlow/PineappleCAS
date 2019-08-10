@@ -4,7 +4,7 @@
 <a href="https://travis-ci.org/nathanfarlow/PineappleCAS" alt="Build Status"><img src="https://travis-ci.org/nathanfarlow/PineappleCAS.svg"></a>
 </p>
 <p>
-PineappleCAS is a computer algebra system for the TI-84 Plus CE calculators. It is designed as a faster, cleaner, more useful, memory-leak-free alternative to the <a href="https://github.com/nathanfarlow/SymbolicDerivative">SymbolicDerivative</a> project. PineappleCAS uses the <a href="https://github.com/creachadair/imath">imath library</a> for arbitrary precision math: 
+PineappleCAS is a computer algebra system for the TI-84 Plus CE calculators. It is designed as a faster, cleaner, more useful, memory-leak-free alternative to the <a href="https://github.com/nathanfarlow/SymbolicDerivative">SymbolicDerivative</a> project. PineappleCAS uses the <a href="https://github.com/creachadair/imath">imath library</a> for arbitrary precision math.
 </p>
 
 <hr>
@@ -16,6 +16,8 @@ PineappleCAS is a computer algebra system for the TI-84 Plus CE calculators. It 
 ![Derivative example](https://raw.githubusercontent.com/nathanfarlow/PineappleCAS/master/img/deriv.png "Derivative with respect to X")
 ![Exponent example](https://raw.githubusercontent.com/nathanfarlow/PineappleCAS/master/img/eval_exponent.png "Large exponent")
 ![Factorial example](https://raw.githubusercontent.com/nathanfarlow/PineappleCAS/master/img/eval_factorial.png "Large factorial")
+![Expand example](https://raw.githubusercontent.com/nathanfarlow/PineappleCAS/master/img/expand.png "Expand expression")
+![Basic interface](https://raw.githubusercontent.com/nathanfarlow/PineappleCAS/master/img/interface.png "Basic interface")
 
 # Installation
 * Download the latest PineappleCAS release from https://github.com/nathanfarlow/PineappleCAS/releases and send PCAS.8xp to your calculator's archive memory.
@@ -32,7 +34,7 @@ git clone https://github.com/nathanfarlow/PineappleCAS
 cd PineappleCAS
 make
 ```
-The calculator program compiles consistently on Ubuntu, but Windows has a problem with it. Executing make on Windows many times seems to work for some reason.
+The calculator program compiles consistently on Ubuntu, but Windows has a problem with it. Executing make on Windows many times seems to work for some reason. (I blame the compiler!)
 
 **Compile for PC:**
 ```
@@ -101,7 +103,7 @@ Boolean options from left to right:
 ## Expand
 **Usage:** EXP,[Input],[Output],[2 optional boolean options]
 **Description:** Expands multiplication.
-**Options:** The boolean options indicate what to expand. If not included, the expand command will expand both multiplication and powers.
+**Options:** The boolean options indicate what to expand. If not included, the expand command will expand both multiplication and powers. This function is unoptimized, and very, very slow. You have been warned!
 
 Boolean options from left to right:
 - Boolean 1: Expand multiplication (A+B)(C+D) or A(B+C+2)
@@ -132,7 +134,7 @@ Boolean options from left to right:
 ## Good things to know:
 PCAS automatically calls SIMP,[Input],[Output],000000 after every command, so simplifying after is only necessary if you want to simplify further with identities.
 
-Remember that you can definitely use strings as input and output as well. You can also check if PCAS was able to successfully execute the command. Here's an exmample incorporating both of those things:
+Remember that you can definitely use strings as input and output as well. You can also check if PCAS was able to successfully execute the command. Here's an example incorporating both of those things:
 ```
 :"Take derivative of Str1 with respect to B and write to Y1."
 :"DERIV,Str1,Y1,B"
