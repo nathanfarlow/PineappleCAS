@@ -139,7 +139,7 @@ void derivative(pcas_ast_t *e, pcas_ast_t *respect_to, pcas_ast_t *eval_at) {
     ast_ChildAppend(deriv_node, ast_Copy(respect_to));  /*variable in respect to*/
     ast_ChildAppend(deriv_node, ast_Copy(eval_at));     /*evaluate at*/
 
-    eval_derivative_nodes(deriv_node);
+    while(eval_derivative_nodes(deriv_node));
     
     replace_node(e, deriv_node);
 }

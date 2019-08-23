@@ -258,9 +258,8 @@ bool test_Run(test_t *t) {
         /*We do this to change -1 * 23 to -23 to be able to compare*/
         simplify(expected, SIMP_NORMALIZE | SIMP_COMMUTATIVE | SIMP_RATIONAL | SIMP_EVAL);
 
-        simplify(actual, SIMP_ALL);
-        eval_derivative_nodes(actual);
-        simplify(actual, SIMP_ALL);
+        /*Don't simplify derivatives because derivative() should have done that*/
+        simplify(actual, SIMP_ALL ^ SIMP_DERIV);
 
         passed = check(t, actual, expected);
 
