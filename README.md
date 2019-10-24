@@ -24,6 +24,7 @@ PineappleCAS is a computer algebra system for the TI-84 Plus CE calculators. It 
 * Download the latest C libraries from https://github.com/CE-Programming/libraries/releases and send to your calculator.
 * If you have CE OS 5.3 or higher, simply execute prgmPCAS on the calculator. If not, you will have to unarchive PCAS and do Asm(prgmPCAS from the catalog.
 * Navigate the GUI with the arrow keys, and press enter on GUI elements to change their value.
+* Press clear to exit the program.
 
 # Build
 Download and install the latest CE C toolchain from https://github.com/CE-Programming/toolchain
