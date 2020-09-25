@@ -26,6 +26,8 @@ PineappleCAS is a computer algebra system for the TI-84 Plus CE calculators. It 
 * Navigate the GUI with the arrow keys, and press enter on GUI elements to change their value.
 * Press clear to exit the program.
 
+Note that if you encounter the error "Attempted to use a variable or function where it is not valid" on OS versions 5.5 or newer, this is because TI removed the ability to run ASM programs on these OS versions. This is not an issue with PineappleCAS. You can jailbreak your calculator with [this tool](https://yvantt.github.io/arTIfiCE/) to restore the functionality and then try running PineappleCAS again.
+
 # Build
 Download and install the latest CE C toolchain from https://github.com/CE-Programming/toolchain
 
