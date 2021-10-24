@@ -36,6 +36,13 @@ pcas_id_t id_general[ID_NUM_GENERAL] = {
     {"acos(cos(X", "X"},
     {"tan(atan(X", "X"},
     {"atan(tan(X", "X"},
+    
+    {"cos(asin(X", "sqrt(1+-X^2"},
+	{"cos(atan(X", "1/sqrt(1+X^2"},
+	{"sin(acos(X", "sqrt(1+-X^2"},
+	{"sin(atan(X", "X/sqrt(1+X^2"},
+	{"tan(acos(X", "sqrt(1+-X^2)/X"},
+	{"tan(asin(X", "X/(sqrt(1+-X^2"},
 
     {"sinh(asinh(X", "X"},
     {"asinh(sinh(X", "X"},
