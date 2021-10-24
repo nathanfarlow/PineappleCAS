@@ -29,4 +29,4 @@ GFXDIR ?= gfx_calc
 
 USE_FLASH_FUNCTIONS ?= YES
 
-include $(CEDEV)/include/.makefile
+include $(shell cedev-config --makefile)
