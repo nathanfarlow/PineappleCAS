@@ -73,6 +73,13 @@ simplify; acos(cos(X; X
 simplify; tan(atan(X; X
 simplify; atan(tan(X; X
 
+simplify; cos(asin(X; sqrt(1_X^2
+simplify; cos(atan(X; 1/sqrt(1+X^2
+simplify; sin(acos(X; sqrt(1_X^2
+simplify; sin(atan(X; X/sqrt(1+X^2
+simplify; tan(acos(X; sqrt(1_X^2)/X
+simplify; tan(asin(X; X/(sqrt(1_X^2
+
 simplify; sinh(asinh(X; X
 simplify; asinh(sinh(X; X
 simplify; cosh(acosh(X; X
