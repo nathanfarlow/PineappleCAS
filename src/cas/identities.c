@@ -36,13 +36,6 @@ pcas_id_t id_general[ID_NUM_GENERAL] = {
     {"acos(cos(X", "X"},
     {"tan(atan(X", "X"},
     {"atan(tan(X", "X"},
-    
-    {"cos(asin(X", "sqrt(1_X^2"},
-    {"cos(atan(X", "1/sqrt(1+X^2"},
-    {"sin(acos(X", "sqrt(1_X^2"},
-    {"sin(atan(X", "X/sqrt(1+X^2"},
-    {"tan(acos(X", "sqrt(1_X^2)/X"},
-    {"tan(asin(X", "X/(sqrt(1_X^2"},
 
     {"sinh(asinh(X", "X"},
     {"asinh(sinh(X", "X"},
@@ -79,6 +72,13 @@ pcas_id_t id_trig_identities[ID_NUM_TRIG_IDENTITIES] = {
     {"Acos(X)/(Bsin(X", "A/(Btan(X"},
     {"Atan(X)cos(X", "Asin(X"},
     {"Asin(X)/(Btan(X", "Acos(X)/B"},
+
+    {"cos(asin(X", "sqrt(1_X^2"},
+    {"cos(atan(X", "1/sqrt(1+X^2"},
+    {"sin(acos(X", "sqrt(1_X^2"},
+    {"sin(atan(X", "X/sqrt(1+X^2"},
+    {"tan(acos(X", "sqrt(1_X^2)/X"},
+    {"tan(asin(X", "X/(sqrt(1_X^2"}
 };
 
 pcas_id_t id_trig_constants[ID_NUM_TRIG_CONSTANTS] = {
