@@ -238,7 +238,7 @@ void write_to_tok(uint8_t *tok, pcas_ast_t *expression, pcas_error_t *err) {
 
     var = ti_OpenVar((char*)tok, "w", tok[0] == 0x5Eu ? TI_EQU_TYPE : TI_STRING_TYPE);
 
-    if(var != NULL) {
+    if(var != 0) {
 
         /*Write to var*/
         bin = export_to_binary(expression, &bin_len, ti_table, err);

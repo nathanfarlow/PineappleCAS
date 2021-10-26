@@ -3,12 +3,14 @@
 #include "gui.h"
 #include "interface.h"
 
-void main() {
+int main() {
 
-	if(interface_Valid())
-		interface_Run();
-	else
-    	gui_Run();
+    if(interface_Valid())
+        interface_Run();
+    else
+        gui_Run();
+
+    return 0;
 }
 
 #else

@@ -12,21 +12,17 @@ COMPRESSED  ?= YES
 ICON        ?= iconc.png
 DESCRIPTION ?= "PineappleCAS"
 
+CFLAGS = -Wall -Oz
+CXXFLAGS = -Wall -Oz
+
 L ?= fileioc
 
-# ----------------------------
-# Specify source and output locations
-# ----------------------------
+USE_FLASH_FUNCTIONS ?= YES
 
-SRCDIR ?= src
-OBJDIR ?= obj_calc
-BINDIR ?= bin_calc
-GFXDIR ?= gfx_calc
+include $(shell cedev-config --makefile)
 
 # ----------------------------
 # Use OS helper functions (Advanced)
 # ----------------------------
 
 USE_FLASH_FUNCTIONS ?= YES
-
-include $(shell cedev-config --makefile)
